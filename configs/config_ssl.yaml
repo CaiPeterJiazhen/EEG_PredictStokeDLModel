@@ -1,0 +1,15 @@
+paths_config: "configs/paths.example.yaml"
+experiment_name: "ssl_pretraining"
+random_seed: 20260513
+ssl:
+  strict_loso_exclusion: true
+  input_type: "raw_timeseries"
+  objective: "contrastive_reconstruction"
+  reconstruction_lambda: 1.0
+training:
+  warmup_epochs: 5
+  max_lr: 0.001
+  min_lr: 0.000001
+fine_tuning:
+  classifier_lr: 0.001
+  encoder_lr: 0.0001

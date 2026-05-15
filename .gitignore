@@ -1,0 +1,17 @@
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.pyc
+*.pyo
+*.egg-info/
+
+data/processed/
+data/features/
+results/
+checkpoints/
+
+*.pt
+*.pth
+*.ckpt
+*.tmp

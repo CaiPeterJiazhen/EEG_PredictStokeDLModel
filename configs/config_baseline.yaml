@@ -1,0 +1,13 @@
+paths_config: "configs/paths.example.yaml"
+experiment_name: "ml_baseline"
+random_seed: 20260513
+validation:
+  strategy: "loso"
+features:
+  use_psd: true
+  use_fc: true
+  fc_metrics:
+    - "wpli"
+    - "icoh"
+clinical:
+  use_baseline_clinical: true

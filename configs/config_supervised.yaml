@@ -1,0 +1,17 @@
+paths_config: "configs/paths.example.yaml"
+experiment_name: "dual_state_supervised"
+random_seed: 20260513
+validation:
+  strategy: "loso"
+model:
+  architecture: "dual_state"
+  fusion: "concat"
+  use_psd: true
+  use_fc: true
+  use_clinical: true
+training:
+  initial_lr: 0.001
+  encoder_lr: 0.0001
+  reduce_lr_factor: 0.5
+  reduce_lr_patience: 10
+  early_stopping_patience: 20
