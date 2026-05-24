@@ -44,6 +44,11 @@ def main() -> None:
     parser.add_argument("--pca-components", type=int, default=None)
     parser.add_argument("--disable-selector", action="store_true")
     parser.add_argument("--random-state", type=int, default=42)
+    parser.add_argument(
+        "--output-tag",
+        default=None,
+        help="Optional filename-safe tag appended to prediction and metric outputs.",
+    )
     args = parser.parse_args()
 
     config = load_path_config(args.config)
@@ -65,7 +70,12 @@ def main() -> None:
         preprocessor_config=preprocessor_config,
         random_state=args.random_state,
     )
-    prediction_path, metric_path = write_baseline_outputs(predictions, metrics, config.output_root)
+    prediction_path, metric_path = write_baseline_outputs(
+        predictions,
+        metrics,
+        config.output_root,
+        run_name=args.output_tag,
+    )
     print(f"Wrote predictions: {prediction_path}")
     print(f"Wrote metrics: {metric_path}")
 

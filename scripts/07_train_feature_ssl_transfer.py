@@ -94,6 +94,11 @@ def main() -> None:
         help="Summary CSV filename under results/metrics.",
     )
     parser.add_argument(
+        "--output-tag",
+        default=None,
+        help="Optional filename-safe tag appended to per-run output names.",
+    )
+    parser.add_argument(
         "--limit-ssl-pairs",
         type=int,
         default=None,
@@ -225,6 +230,8 @@ def main() -> None:
                 pretrain_lr=args.pretrain_lr,
                 supervised_lr=args.supervised_lr,
             )
+            if args.output_tag:
+                run_name = f"{run_name}_{args.output_tag}"
             ssl_history_all = pd.concat(ssl_history_frames, ignore_index=True)
             for frame in (predictions, metrics, supervised_loss, ssl_history_all):
                 frame["ssl_data_scope"] = data_scope
@@ -297,6 +304,8 @@ def main() -> None:
             pretrain_lr=args.pretrain_lr,
             supervised_lr=args.supervised_lr,
         )
+        if args.output_tag:
+            ensemble_run_name = f"{ensemble_run_name}_{args.output_tag}"
         for frame in (ensemble_predictions, ensemble_metrics):
             frame["model"] = f"seed_ensemble_{args.architecture}_{args.feature_kind}_{args.fusion}_{args.encoder}"
             frame["architecture"] = args.architecture

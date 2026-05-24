@@ -316,10 +316,18 @@ def write_dl_outputs(
     predictions_df: pd.DataFrame,
     metrics_df: pd.DataFrame,
     output_root: str | Path,
+    run_name: str | None = None,
 ) -> tuple[Path, Path]:
     root = Path(output_root)
-    prediction_path = root / "results" / "predictions" / "dl_loso_predictions.csv"
-    metric_path = root / "results" / "metrics" / "dl_model_comparison.csv"
+    if run_name is None:
+        prediction_name = "dl_loso_predictions.csv"
+        metric_name = "dl_model_comparison.csv"
+    else:
+        token = _safe_filename_token(run_name)
+        prediction_name = f"dl_loso_predictions_{token}.csv"
+        metric_name = f"dl_model_comparison_{token}.csv"
+    prediction_path = root / "results" / "predictions" / prediction_name
+    metric_path = root / "results" / "metrics" / metric_name
     prediction_path.parent.mkdir(parents=True, exist_ok=True)
     metric_path.parent.mkdir(parents=True, exist_ok=True)
     predictions_df.to_csv(prediction_path, index=False)
@@ -330,6 +338,7 @@ def write_dl_outputs(
 def write_loss_history_outputs(
     loss_history_df: pd.DataFrame,
     output_root: str | Path,
+    run_name: str | None = None,
 ) -> tuple[Path, Path]:
     """Write per-fold epoch loss values and a loss-vs-epoch curve."""
 
@@ -342,9 +351,9 @@ def write_loss_history_outputs(
         raise ValueError("loss_history_df must contain exactly one model.")
 
     root = Path(output_root)
-    model_token = _safe_filename_token(model_names[0])
-    history_path = root / "results" / "training_logs" / f"dl_loss_history_{model_token}.csv"
-    figure_path = root / "results" / "figures" / f"dl_loss_curve_{model_token}.png"
+    output_token = _safe_filename_token(run_name or model_names[0])
+    history_path = root / "results" / "training_logs" / f"dl_loss_history_{output_token}.csv"
+    figure_path = root / "results" / "figures" / f"dl_loss_curve_{output_token}.png"
     history_path.parent.mkdir(parents=True, exist_ok=True)
     figure_path.parent.mkdir(parents=True, exist_ok=True)
     loss_history_df.to_csv(history_path, index=False)

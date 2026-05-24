@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import Any
 import warnings
 
@@ -278,17 +279,32 @@ def write_baseline_outputs(
     predictions_df: pd.DataFrame,
     metrics_df: pd.DataFrame,
     output_root: str | Path,
+    run_name: str | None = None,
 ) -> tuple[Path, Path]:
     """Write Task 9 formal prediction and metric CSV outputs below output_root."""
 
     root = Path(output_root)
-    prediction_path = root / "results" / "predictions" / "ml_baseline_loso_predictions.csv"
-    metric_path = root / "results" / "metrics" / "ml_baseline_model_comparison.csv"
+    if run_name is None:
+        prediction_name = "ml_baseline_loso_predictions.csv"
+        metric_name = "ml_baseline_model_comparison.csv"
+    else:
+        token = _safe_filename_token(run_name)
+        prediction_name = f"ml_baseline_loso_predictions_{token}.csv"
+        metric_name = f"ml_baseline_model_comparison_{token}.csv"
+    prediction_path = root / "results" / "predictions" / prediction_name
+    metric_path = root / "results" / "metrics" / metric_name
     prediction_path.parent.mkdir(parents=True, exist_ok=True)
     metric_path.parent.mkdir(parents=True, exist_ok=True)
     predictions_df.to_csv(prediction_path, index=False)
     metrics_df.to_csv(metric_path, index=False)
     return prediction_path, metric_path
+
+
+def _safe_filename_token(value: str) -> str:
+    token = re.sub(r"[^A-Za-z0-9]+", "_", value).strip("_")
+    if not token:
+        raise ValueError("run_name cannot be converted to a safe filename.")
+    return token
 
 
 def _merge_features_and_labels(feature_table: pd.DataFrame, label_table: pd.DataFrame) -> pd.DataFrame:

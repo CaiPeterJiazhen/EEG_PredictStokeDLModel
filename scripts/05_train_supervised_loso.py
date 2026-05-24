@@ -48,6 +48,11 @@ def main() -> None:
     parser.add_argument("--embedding-dim", type=int, default=16)
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--output-tag",
+        default=None,
+        help="Optional filename-safe tag appended to prediction, metric, loss, and figure outputs.",
+    )
     args = parser.parse_args()
 
     config = load_path_config(args.config)
@@ -72,8 +77,17 @@ def main() -> None:
         seed=args.seed,
     )
     predictions, metrics, loss_history = run_loso_supervised_with_history(records, training_config)
-    prediction_path, metric_path = write_dl_outputs(predictions, metrics, config.output_root)
-    loss_history_path, loss_curve_path = write_loss_history_outputs(loss_history, config.output_root)
+    prediction_path, metric_path = write_dl_outputs(
+        predictions,
+        metrics,
+        config.output_root,
+        run_name=args.output_tag,
+    )
+    loss_history_path, loss_curve_path = write_loss_history_outputs(
+        loss_history,
+        config.output_root,
+        run_name=args.output_tag,
+    )
     print(f"Wrote predictions: {prediction_path}")
     print(f"Wrote metrics: {metric_path}")
     print(f"Wrote loss history: {loss_history_path}")
