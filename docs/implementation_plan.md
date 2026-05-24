@@ -676,7 +676,7 @@ FC dual-state input: two tensors shaped 1891 x 6
 output probability shape: batch x 1
 ```
 
-- [x] **Step 2: Implement lightweight encoders**
+- [x] **Step 2: Implement original-design CNN encoders with linear baseline**
 
 Implement:
 
@@ -686,7 +686,16 @@ Shared_FC_Encoder
 ClinicalMLP
 ```
 
-Keep parameter count small due to 19 supervised patients.
+The default supervised encoder path follows the original design:
+
+```text
+PSD: Conv2D over 62 channels x 90 frequency bins
+FC: Conv1D over 1891 edges with 6 frequency-band channels
+```
+
+The manual training script also keeps `--encoder linear` as a baseline option,
+while `--encoder cnn` is the default. Keep parameter count small due to 19
+supervised patients.
 
 - [x] **Step 3: Implement fusion options**
 
@@ -722,7 +731,12 @@ Write:
 ```text
 results/predictions/dl_loso_predictions.csv
 results/metrics/dl_model_comparison.csv
+results/training_logs/dl_loss_history_<model>.csv
+results/figures/dl_loss_curve_<model>.png
 ```
+
+The loss history records one row per LOSO fold and epoch with train loss,
+validation loss, learning rate, best-epoch marker, and early-stopping marker.
 
 - [x] **Step 6: Run tests**
 
@@ -743,11 +757,11 @@ Expected: all tests pass.
 - Create: `scripts/06_train_ssl.py`
 - Create: `tests/test_ssl_dataset.py`
 
-- [ ] **Step 1: Write tests for SSL subject exclusion**
+- [x] **Step 1: Write tests for SSL subject exclusion**
 
 Tests must verify that in strict LOSO SSL mode, the current test subject is excluded from that fold's SSL pretraining dataset.
 
-- [ ] **Step 2: Implement SSL datasets**
+- [x] **Step 2: Implement SSL datasets**
 
 Support:
 
@@ -758,7 +772,20 @@ incomplete patient EEG where available
 ceiling-effect patient EEG where available
 ```
 
-- [ ] **Step 3: Implement augmentations**
+Implemented configurable data scopes:
+
+```text
+supervised-baseline: 19 supervised baseline patient EEG only
+all-patient-baseline: all patient baseline EEG
+all-patient: all patient EEG across available stages
+all-patient-health: all patient EEG plus all health EEG
+health-only: health EEG only, kept as an optional fourth standalone pool
+```
+
+`strict_loso_test_subject_id` excludes the current LOSO test patient from any
+patient-containing SSL pool.
+
+- [x] **Step 3: Implement augmentations**
 
 Implement deterministic-seed augmentations:
 
@@ -771,7 +798,7 @@ time masking
 frequency masking for PSD/time-frequency inputs
 ```
 
-- [ ] **Step 4: Implement SSL objectives**
+- [x] **Step 4: Implement SSL objectives**
 
 Implement:
 
@@ -781,7 +808,7 @@ masked reconstruction MSE
 combined loss with lambda in config
 ```
 
-- [ ] **Step 5: Implement transfer to supervised model**
+- [x] **Step 5: Implement transfer to supervised model**
 
 Support:
 
@@ -790,7 +817,41 @@ frozen encoder
 fine-tuned encoder with lower encoder learning rate
 ```
 
-- [ ] **Step 6: Run tests**
+Implemented optimizer grouping utility for frozen vs lower-learning-rate
+fine-tuned SSL encoder transfer. Direct transfer into the current PSD/FC
+supervised models requires a compatible raw-EEG supervised model or a future
+feature-space SSL encoder.
+
+Feature-space SSL transfer has now been added for the current `psd-fc-wpli`
+gated CNN:
+
+```text
+src/eeg_recovery/training/train_feature_ssl.py
+scripts/07_train_feature_ssl_transfer.py
+tests/test_feature_ssl_transfer.py
+```
+
+This path pretrains the same PSD and wPLI branch encoders used by the supervised
+CNN, then loads fold-specific pretrained branch weights into LOSO supervised
+training. For strict LOSO transfer, each fold excludes the current test patient
+from patient-containing SSL pools.
+
+Real CUDA transfer results with 50 SSL epochs and 100 supervised epochs:
+
+```text
+supervised-baseline:  accuracy 0.7895, balanced accuracy 0.7833
+all-patient-baseline: accuracy 0.7368, balanced accuracy 0.7333
+all-patient:          accuracy 0.8421, balanced accuracy 0.8333
+all-patient-health:   accuracy 0.7368, balanced accuracy 0.7333
+```
+
+Summary output:
+
+```text
+results/metrics/feature_ssl_psd_fc_wpli_transfer_summary.csv
+```
+
+- [x] **Step 6: Run tests**
 
 Run:
 
@@ -798,7 +859,11 @@ Run:
 pytest tests/test_ssl_dataset.py -v
 ```
 
-Expected: all tests pass.
+Completed: `python -B -m pytest tests/test_ssl_dataset.py -v -p no:cacheprovider`
+passed with 10 tests; full regression
+`python -B -m pytest tests -v -p no:cacheprovider` passed with 117 tests.
+After feature-space SSL transfer was added, full regression passed with 124
+tests after the real four-scope transfer run.
 
 ## Task 12: Evaluation Metrics And Statistical Tests
 

@@ -13,8 +13,9 @@ from eeg_recovery.metadata.labels import load_supervised_label_table
 from eeg_recovery.training.train_supervised import (
     SupervisedTrainingConfig,
     load_supervised_feature_records,
-    run_loso_supervised,
+    run_loso_supervised_with_history,
     write_dl_outputs,
+    write_loss_history_outputs,
 )
 
 
@@ -38,10 +39,12 @@ def main() -> None:
         default="psd",
     )
     parser.add_argument("--fusion", choices=("concat", "gated"), default="concat")
+    parser.add_argument("--encoder", choices=("cnn", "linear"), default="cnn")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--patience", type=int, default=10)
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--weight-decay", type=float, default=0.0)
     parser.add_argument("--embedding-dim", type=int, default=16)
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
@@ -58,18 +61,23 @@ def main() -> None:
         architecture=args.architecture,
         feature_kind=args.feature_kind,
         fusion=args.fusion,
+        encoder_kind=args.encoder,
         device=args.device,
         epochs=args.epochs,
         patience=args.patience,
         lr=args.lr,
+        weight_decay=args.weight_decay,
         embedding_dim=args.embedding_dim,
         dropout=args.dropout,
         seed=args.seed,
     )
-    predictions, metrics = run_loso_supervised(records, training_config)
+    predictions, metrics, loss_history = run_loso_supervised_with_history(records, training_config)
     prediction_path, metric_path = write_dl_outputs(predictions, metrics, config.output_root)
+    loss_history_path, loss_curve_path = write_loss_history_outputs(loss_history, config.output_root)
     print(f"Wrote predictions: {prediction_path}")
     print(f"Wrote metrics: {metric_path}")
+    print(f"Wrote loss history: {loss_history_path}")
+    print(f"Wrote loss curve: {loss_curve_path}")
 
 
 if __name__ == "__main__":

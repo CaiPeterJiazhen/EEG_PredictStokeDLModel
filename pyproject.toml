@@ -15,6 +15,7 @@ dependencies = [
   "scipy",
   "scikit-learn",
   "torch",
+  "matplotlib",
 ]
 
 [project.optional-dependencies]

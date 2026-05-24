@@ -3,13 +3,26 @@ experiment_name: "ssl_pretraining"
 random_seed: 20260513
 ssl:
   strict_loso_exclusion: true
+  data_scope: "supervised-baseline"
+  available_data_scopes:
+    - "supervised-baseline"
+    - "all-patient-baseline"
+    - "all-patient"
+    - "all-patient-health"
+    - "health-only"
   input_type: "raw_timeseries"
-  objective: "contrastive_reconstruction"
+  objective: "combined"
   reconstruction_lambda: 1.0
+  crop_samples: 512
+  embedding_dim: 32
+  projection_dim: 16
 training:
+  batch_size: 8
+  epochs: 20
   warmup_epochs: 5
   max_lr: 0.001
   min_lr: 0.000001
 fine_tuning:
+  freeze_encoder: false
   classifier_lr: 0.001
   encoder_lr: 0.0001

@@ -20,11 +20,13 @@ class DualStateEEGModel(nn.Module):
         fusion: str = "concat",
         embedding_dim: int = 16,
         dropout: float = 0.1,
+        encoder_kind: str = "cnn",
     ) -> None:
         super().__init__()
         self.feature_kind = _normalize_feature_kind(feature_kind)
         self.fusion = fusion
-        self.encoder = _build_encoder(self.feature_kind, embedding_dim, dropout)
+        self.encoder_kind = encoder_kind
+        self.encoder = _build_encoder(self.feature_kind, embedding_dim, dropout, encoder_kind)
 
         if fusion == "concat":
             classifier_input_dim = embedding_dim * 2
@@ -82,9 +84,9 @@ def _normalize_feature_kind(feature_kind: str) -> str:
     raise ValueError("feature_kind must be 'psd', 'fc', 'fc-wpli', or 'fc-icoh'.")
 
 
-def _build_encoder(feature_kind: str, embedding_dim: int, dropout: float) -> nn.Module:
+def _build_encoder(feature_kind: str, embedding_dim: int, dropout: float, encoder_kind: str) -> nn.Module:
     if feature_kind == "psd":
-        return SharedPSDEncoder(embedding_dim=embedding_dim, dropout=dropout)
+        return SharedPSDEncoder(embedding_dim=embedding_dim, dropout=dropout, encoder_kind=encoder_kind)
     if feature_kind == "fc":
-        return SharedFCEncoder(embedding_dim=embedding_dim, dropout=dropout)
+        return SharedFCEncoder(embedding_dim=embedding_dim, dropout=dropout, encoder_kind=encoder_kind)
     raise ValueError(f"Unsupported feature_kind: {feature_kind}")

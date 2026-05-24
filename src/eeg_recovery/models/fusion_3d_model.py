@@ -15,6 +15,7 @@ class Fusion3DEEGModel(nn.Module):
         fusion: str = "concat",
         embedding_dim: int = 16,
         dropout: float = 0.1,
+        encoder_kind: str = "cnn",
     ) -> None:
         super().__init__()
         self.dual_state_model = DualStateEEGModel(
@@ -22,6 +23,7 @@ class Fusion3DEEGModel(nn.Module):
             fusion=fusion,
             embedding_dim=embedding_dim,
             dropout=dropout,
+            encoder_kind=encoder_kind,
         )
 
     def forward(

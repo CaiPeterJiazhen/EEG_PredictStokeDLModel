@@ -2,12 +2,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable
+import re
+from typing import Any, Iterable, Mapping
 
 import numpy as np
 import pandas as pd
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 from eeg_recovery.config import PathConfig
 from eeg_recovery.metadata.subjects import normalize_subject_id
@@ -33,13 +35,18 @@ class SupervisedTrainingConfig:
     architecture: str = "dual_state"
     feature_kind: str = "psd"
     fusion: str = "concat"
+    encoder_kind: str = "cnn"
     device: str = "auto"
     epochs: int = 50
     patience: int = 10
     lr: float = 1e-3
+    weight_decay: float = 0.0
+    positive_class_weight: float = 1.0
+    negative_class_weight: float = 1.0
     embedding_dim: int = 16
     dropout: float = 0.1
     seed: int = 42
+    pretrained_transfer_mode: str = "finetune"
 
 
 def resolve_device(device: str = "auto") -> torch.device:
@@ -94,6 +101,16 @@ def run_loso_supervised(
     records: Iterable[SupervisedFeatureRecord],
     training_config: SupervisedTrainingConfig | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    predictions, metrics, _ = run_loso_supervised_with_history(records, training_config)
+    return predictions, metrics
+
+
+def run_loso_supervised_with_history(
+    records: Iterable[SupervisedFeatureRecord],
+    training_config: SupervisedTrainingConfig | None = None,
+    *,
+    pretrained_state_by_test_subject: Mapping[str, Mapping[str, torch.Tensor]] | None = None,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Train a small supervised neural model with patient-level LOSO folds."""
 
     resolved = training_config or SupervisedTrainingConfig()
@@ -108,17 +125,28 @@ def run_loso_supervised(
     record_by_subject = {record.subject_id: record for record in records}
     folds = make_loso_folds(subject_ids)
     rows: list[dict[str, Any]] = []
-    model_name = f"{resolved.architecture}_{resolved.feature_kind}_{resolved.fusion}"
+    loss_rows: list[dict[str, Any]] = []
+    model_name = f"{resolved.architecture}_{resolved.feature_kind}_{resolved.fusion}_{resolved.encoder_kind}"
 
     for fold in folds:
         train_subjects = list(fold.train_subject_ids)
         fit_subjects, val_subjects = _train_validation_subjects(train_subjects, fold.fold_index)
         scaler = _fit_state_scaler(record_by_subject[subject_id] for subject_id in fit_subjects)
         model = _build_model(resolved).to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=resolved.lr)
+        pretrained_loaded = _load_fold_pretrained_state(
+            model,
+            fold.test_subject_id,
+            pretrained_state_by_test_subject,
+        )
+        transfer_mode = resolved.pretrained_transfer_mode if pretrained_loaded else "none"
+        if pretrained_loaded:
+            _apply_pretrained_transfer_mode(model, resolved.pretrained_transfer_mode)
+        trainable_parameters = [parameter for parameter in model.parameters() if parameter.requires_grad]
+        if not trainable_parameters:
+            raise ValueError("No trainable model parameters remain after applying transfer mode.")
+        optimizer = _build_optimizer(trainable_parameters, resolved)
         scheduler = build_reduce_on_plateau(optimizer, mode="min", patience=max(1, resolved.patience // 2))
         early_stopping = EarlyStopping(patience=resolved.patience, mode="min")
-        criterion = nn.BCELoss()
 
         train_batch = _make_batch(
             (record_by_subject[subject_id] for subject_id in fit_subjects),
@@ -133,17 +161,44 @@ def run_loso_supervised(
             resolved.architecture,
         )
 
-        for _ in range(resolved.epochs):
+        for epoch in range(1, resolved.epochs + 1):
             model.train()
             optimizer.zero_grad()
             probabilities = _model_probabilities(model, train_batch)
-            loss = criterion(probabilities, train_batch["y"])
+            loss = _weighted_binary_cross_entropy(probabilities, train_batch["y"], resolved)
             loss.backward()
             optimizer.step()
 
-            val_loss = _evaluate_loss(model, val_batch, criterion)
+            train_loss = float(loss.detach().cpu().item())
+            val_loss = _evaluate_loss(model, val_batch, resolved)
             scheduler.step(val_loss)
-            if early_stopping.step(val_loss, model):
+            is_best_epoch = early_stopping.best_score is None or val_loss < early_stopping.best_score - early_stopping.min_delta
+            stopped_early = early_stopping.step(val_loss, model)
+            loss_rows.append(
+                {
+                    "model": model_name,
+                    "fold_index": fold.fold_index,
+                    "test_subject_id": fold.test_subject_id,
+                    "fit_subject_ids": ";".join(fit_subjects),
+                    "val_subject_ids": ";".join(val_subjects),
+                    "epoch": epoch,
+                    "train_loss": train_loss,
+                    "val_loss": val_loss,
+                    "learning_rate": float(optimizer.param_groups[0]["lr"]),
+                    "weight_decay": resolved.weight_decay,
+                    "positive_class_weight": resolved.positive_class_weight,
+                    "negative_class_weight": resolved.negative_class_weight,
+                    "is_best_epoch": bool(is_best_epoch),
+                    "stopped_early": bool(stopped_early),
+                    "architecture": resolved.architecture,
+                    "feature_kind": resolved.feature_kind,
+                    "fusion": resolved.fusion,
+                    "encoder_kind": resolved.encoder_kind,
+                    "pretrained": bool(pretrained_loaded),
+                    "pretrained_transfer_mode": transfer_mode,
+                }
+            )
+            if stopped_early:
                 break
         early_stopping.restore_best_weights(model)
 
@@ -163,14 +218,34 @@ def run_loso_supervised(
                 "architecture": resolved.architecture,
                 "feature_kind": resolved.feature_kind,
                 "fusion": resolved.fusion,
+                "encoder_kind": resolved.encoder_kind,
+                "pretrained": bool(pretrained_loaded),
+                "pretrained_transfer_mode": transfer_mode,
                 "status": "trained",
                 "skip_reason": "",
+                "learning_rate": resolved.lr,
+                "weight_decay": resolved.weight_decay,
+                "positive_class_weight": resolved.positive_class_weight,
+                "negative_class_weight": resolved.negative_class_weight,
+                "embedding_dim": resolved.embedding_dim,
+                "dropout": resolved.dropout,
+                "seed": resolved.seed,
             }
         )
 
     sample_predictions = pd.DataFrame(rows)
     predictions = aggregate_patient_probabilities(sample_predictions)
-    for column in ("model", "architecture", "feature_kind", "fusion", "status", "skip_reason"):
+    for column in (
+        "model",
+        "architecture",
+        "feature_kind",
+        "fusion",
+        "encoder_kind",
+        "pretrained",
+        "pretrained_transfer_mode",
+        "status",
+        "skip_reason",
+    ):
         predictions[column] = sample_predictions[column].iloc[0]
     metric_values = binary_classification_metrics(
         predictions["y_true"].to_numpy(dtype=int),
@@ -183,13 +258,36 @@ def run_loso_supervised(
                 "architecture": resolved.architecture,
                 "feature_kind": resolved.feature_kind,
                 "fusion": resolved.fusion,
+                "encoder_kind": resolved.encoder_kind,
+                "pretrained": bool(
+                    pretrained_state_by_test_subject is not None
+                    and len(pretrained_state_by_test_subject) > 0
+                ),
+                "pretrained_transfer_mode": resolved.pretrained_transfer_mode
+                if pretrained_state_by_test_subject
+                else "none",
                 "status": "trained",
                 "skip_reason": "",
+                "learning_rate": resolved.lr,
+                "weight_decay": resolved.weight_decay,
+                "positive_class_weight": resolved.positive_class_weight,
+                "negative_class_weight": resolved.negative_class_weight,
+                "embedding_dim": resolved.embedding_dim,
+                "dropout": resolved.dropout,
+                "seed": resolved.seed,
                 **metric_values,
             }
         ]
     )
-    return predictions, metrics
+    loss_history = pd.DataFrame(loss_rows)
+    return predictions, metrics, loss_history
+
+
+def _build_optimizer(
+    parameters: Iterable[torch.nn.Parameter],
+    config: SupervisedTrainingConfig,
+) -> torch.optim.Optimizer:
+    return torch.optim.Adam(parameters, lr=config.lr, weight_decay=config.weight_decay)
 
 
 def aggregate_patient_probabilities(predictions: pd.DataFrame, threshold: float = 0.5) -> pd.DataFrame:
@@ -229,6 +327,71 @@ def write_dl_outputs(
     return prediction_path, metric_path
 
 
+def write_loss_history_outputs(
+    loss_history_df: pd.DataFrame,
+    output_root: str | Path,
+) -> tuple[Path, Path]:
+    """Write per-fold epoch loss values and a loss-vs-epoch curve."""
+
+    if loss_history_df.empty:
+        raise ValueError("loss_history_df is empty.")
+    if "model" not in loss_history_df.columns:
+        raise ValueError("loss_history_df must include a model column.")
+    model_names = loss_history_df["model"].dropna().astype(str).unique()
+    if len(model_names) != 1:
+        raise ValueError("loss_history_df must contain exactly one model.")
+
+    root = Path(output_root)
+    model_token = _safe_filename_token(model_names[0])
+    history_path = root / "results" / "training_logs" / f"dl_loss_history_{model_token}.csv"
+    figure_path = root / "results" / "figures" / f"dl_loss_curve_{model_token}.png"
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    figure_path.parent.mkdir(parents=True, exist_ok=True)
+    loss_history_df.to_csv(history_path, index=False)
+    _plot_loss_history(loss_history_df, figure_path)
+    return history_path, figure_path
+
+
+def _safe_filename_token(value: str) -> str:
+    token = re.sub(r"[^A-Za-z0-9]+", "_", value).strip("_")
+    if not token:
+        raise ValueError("model name cannot be converted to a safe filename.")
+    return token
+
+
+def _plot_loss_history(loss_history_df: pd.DataFrame, figure_path: Path) -> None:
+    required = {"model", "fold_index", "epoch", "train_loss", "val_loss"}
+    missing = required - set(loss_history_df.columns)
+    if missing:
+        raise ValueError(f"loss_history_df missing required column(s): {', '.join(sorted(missing))}")
+
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    ordered = loss_history_df.sort_values(["fold_index", "epoch"])
+    fig, ax = plt.subplots(figsize=(10, 6))
+    for _, fold_rows in ordered.groupby("fold_index"):
+        ax.plot(fold_rows["epoch"], fold_rows["train_loss"], color="#1f77b4", alpha=0.18, linewidth=0.8)
+        ax.plot(fold_rows["epoch"], fold_rows["val_loss"], color="#ff7f0e", alpha=0.18, linewidth=0.8)
+
+    epoch_means = ordered.groupby("epoch", as_index=False).agg(
+        train_loss=("train_loss", "mean"),
+        val_loss=("val_loss", "mean"),
+    )
+    ax.plot(epoch_means["epoch"], epoch_means["train_loss"], color="#1f77b4", linewidth=2.5, label="Train loss mean")
+    ax.plot(epoch_means["epoch"], epoch_means["val_loss"], color="#ff7f0e", linewidth=2.5, label="Validation loss mean")
+    ax.set_xlabel("Epoch")
+    ax.set_ylabel("BCELoss")
+    ax.set_title(str(ordered["model"].iloc[0]))
+    ax.grid(True, alpha=0.25)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(figure_path, dpi=160)
+    plt.close(fig)
+
+
 def _build_model(config: SupervisedTrainingConfig) -> nn.Module:
     _validate_architecture_feature_kind(config)
     if config.architecture == "dual_state":
@@ -237,6 +400,7 @@ def _build_model(config: SupervisedTrainingConfig) -> nn.Module:
             fusion=config.fusion,
             embedding_dim=config.embedding_dim,
             dropout=config.dropout,
+            encoder_kind=config.encoder_kind,
         )
     if config.architecture == "fusion_3d":
         return Fusion3DEEGModel(
@@ -244,6 +408,7 @@ def _build_model(config: SupervisedTrainingConfig) -> nn.Module:
             fusion=config.fusion,
             embedding_dim=config.embedding_dim,
             dropout=config.dropout,
+            encoder_kind=config.encoder_kind,
         )
     if config.architecture == "multimodal":
         return MultimodalEEGModel(
@@ -251,11 +416,57 @@ def _build_model(config: SupervisedTrainingConfig) -> nn.Module:
             fusion=config.fusion,
             embedding_dim=config.embedding_dim,
             dropout=config.dropout,
+            encoder_kind=config.encoder_kind,
         )
     raise ValueError("architecture must be 'dual_state', 'fusion_3d', or 'multimodal'.")
 
 
+def _load_fold_pretrained_state(
+    model: nn.Module,
+    test_subject_id: str,
+    pretrained_state_by_test_subject: Mapping[str, Mapping[str, torch.Tensor]] | None,
+) -> bool:
+    if not pretrained_state_by_test_subject:
+        return False
+    normalized_lookup = {
+        normalize_subject_id(subject_id): state
+        for subject_id, state in pretrained_state_by_test_subject.items()
+    }
+    state = normalized_lookup.get(normalize_subject_id(test_subject_id))
+    if state is None:
+        return False
+    incompatible = model.load_state_dict(dict(state), strict=False)
+    if incompatible.unexpected_keys:
+        joined = ", ".join(incompatible.unexpected_keys)
+        raise ValueError(f"Pretrained state contains unexpected key(s): {joined}")
+    return True
+
+
+def _apply_pretrained_transfer_mode(model: nn.Module, transfer_mode: str) -> None:
+    if transfer_mode == "finetune":
+        for parameter in model.parameters():
+            parameter.requires_grad = True
+        return
+    if transfer_mode == "freeze-encoder":
+        for name, parameter in model.named_parameters():
+            parameter.requires_grad = not _is_encoder_parameter_name(name)
+        return
+    raise ValueError("pretrained_transfer_mode must be 'finetune' or 'freeze-encoder'.")
+
+
+def _is_encoder_parameter_name(name: str) -> bool:
+    if name.startswith("branch_models.") and ".encoder." in name:
+        return True
+    return name.startswith("encoder.")
+
+
 def _validate_architecture_feature_kind(config: SupervisedTrainingConfig) -> None:
+    if config.encoder_kind not in {"cnn", "linear"}:
+        raise ValueError("encoder_kind must be 'cnn' or 'linear'.")
+    if config.pretrained_transfer_mode not in {"finetune", "freeze-encoder"}:
+        raise ValueError("pretrained_transfer_mode must be 'finetune' or 'freeze-encoder'.")
+    if config.positive_class_weight <= 0 or config.negative_class_weight <= 0:
+        raise ValueError("positive_class_weight and negative_class_weight must be positive.")
     branches = branches_for_feature_kind(config.feature_kind)
     if len(branches) > 1 and config.architecture != "multimodal":
         raise ValueError(
@@ -275,13 +486,26 @@ def _model_probabilities(model: nn.Module, batch: dict[str, torch.Tensor]) -> to
 def _evaluate_loss(
     model: nn.Module,
     batch: dict[str, torch.Tensor],
-    criterion: nn.Module,
+    config: SupervisedTrainingConfig,
 ) -> float:
     model.eval()
     with torch.no_grad():
         probabilities = _model_probabilities(model, batch)
-        loss = criterion(probabilities, batch["y"])
+        loss = _weighted_binary_cross_entropy(probabilities, batch["y"], config)
     return float(loss.detach().cpu().item())
+
+
+def _weighted_binary_cross_entropy(
+    probabilities: torch.Tensor,
+    targets: torch.Tensor,
+    config: SupervisedTrainingConfig,
+) -> torch.Tensor:
+    weights = torch.where(
+        targets >= 0.5,
+        torch.as_tensor(config.positive_class_weight, dtype=probabilities.dtype, device=probabilities.device),
+        torch.as_tensor(config.negative_class_weight, dtype=probabilities.dtype, device=probabilities.device),
+    )
+    return F.binary_cross_entropy(probabilities, targets, weight=weights)
 
 
 def _make_batch(

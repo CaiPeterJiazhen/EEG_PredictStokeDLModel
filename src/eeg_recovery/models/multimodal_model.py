@@ -36,6 +36,7 @@ class MultimodalEEGModel(nn.Module):
         fusion: str = "concat",
         embedding_dim: int = 16,
         dropout: float = 0.1,
+        encoder_kind: str = "cnn",
     ) -> None:
         super().__init__()
         self.branches = branches_for_feature_kind(feature_kind)
@@ -46,6 +47,7 @@ class MultimodalEEGModel(nn.Module):
                     fusion=fusion,
                     embedding_dim=embedding_dim,
                     dropout=dropout,
+                    encoder_kind=encoder_kind,
                 )
                 for branch in self.branches
             }
@@ -65,6 +67,20 @@ class MultimodalEEGModel(nn.Module):
         *,
         return_aux: bool = False,
     ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        embedding, aux = self.extract_embedding(batch, return_aux=True)
+        probabilities = torch.sigmoid(self.classifier(embedding))
+        if return_aux:
+            return probabilities, aux
+        return probabilities
+
+    def extract_embedding(
+        self,
+        batch: dict[str, torch.Tensor],
+        *,
+        return_aux: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Return the branch-fused embedding before the classifier."""
+
         embeddings = []
         aux: dict[str, torch.Tensor] = {}
         for branch in self.branches:
@@ -76,10 +92,10 @@ class MultimodalEEGModel(nn.Module):
             embeddings.append(embedding)
             if "state_weights" in branch_aux:
                 aux[f"{branch}_state_weights"] = branch_aux["state_weights"]
-        probabilities = torch.sigmoid(self.classifier(torch.cat(embeddings, dim=1)))
+        combined = torch.cat(embeddings, dim=1)
         if return_aux:
-            return probabilities, aux
-        return probabilities
+            return combined, aux
+        return combined
 
 
 class _DualStateBranch(nn.Module):
@@ -89,13 +105,22 @@ class _DualStateBranch(nn.Module):
         fusion: str,
         embedding_dim: int,
         dropout: float,
+        encoder_kind: str,
     ) -> None:
         super().__init__()
         self.fusion = fusion
-        self.encoder = SharedPSDEncoder(embedding_dim=embedding_dim, dropout=dropout) if branch == "psd" else SharedFCEncoder(
-            embedding_dim=embedding_dim,
-            dropout=dropout,
-        )
+        if branch == "psd":
+            self.encoder = SharedPSDEncoder(
+                embedding_dim=embedding_dim,
+                dropout=dropout,
+                encoder_kind=encoder_kind,
+            )
+        else:
+            self.encoder = SharedFCEncoder(
+                embedding_dim=embedding_dim,
+                dropout=dropout,
+                encoder_kind=encoder_kind,
+            )
         if fusion == "concat":
             self.projection = nn.Sequential(
                 nn.Linear(embedding_dim * 2, embedding_dim),
