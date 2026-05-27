@@ -22,16 +22,27 @@ def _metadata(**overrides: object) -> dict[str, object]:
         "ssl_objective": "barlow",
         "segment_ssl_method": "segment_barlow",
         "base_seed": 0,
+        "effective_seed": 1,
         "fold_index": 1,
         "test_subject_id": "sub01",
         "excluded_subject_id": "sub01",
         "ssl_data_scope": "all-patient",
+        "historical_unlabeled_pretraining": True,
+        "segment_feature_kind": "psd",
+        "supervised_feature_kind": "psd-fc-wpli",
         "feature_kind": "psd",
         "encoder_kind": "cnn",
         "embedding_dim": 32,
         "dropout": 0.0,
+        "projection_dim": 32,
         "pretrain_epochs": 20,
         "pretrain_lr": 1e-3,
+        "batch_size": 16,
+        "feature_mask_prob": 0.03,
+        "noise_std": 0.02,
+        "lambda_latent": 1.0,
+        "lambda_local": 0.1,
+        "n_ssl_segments": 100,
         "source_feature_manifest_hash": "manifest-a",
     }
     metadata.update(overrides)
@@ -41,7 +52,11 @@ def _metadata(**overrides: object) -> dict[str, object]:
 def _checkpoint(branch: str) -> dict[str, object]:
     return {
         "checkpoint_type": "segment_ssl_encoder",
-        "metadata": _metadata(branch=branch, feature_kind="psd" if branch == "psd" else "fc-wpli"),
+        "metadata": _metadata(
+            branch=branch,
+            feature_kind="psd" if branch == "psd" else "fc-wpli",
+            segment_feature_kind="psd" if branch == "psd" else "fc-wpli",
+        ),
         "encoder_state_dict": {
             "encoder.network.0.weight": torch.full((1,), 1.0 if branch == "psd" else 2.0),
             "encoder.network.0.bias": torch.full((1,), 3.0 if branch == "psd" else 4.0),
@@ -135,7 +150,7 @@ def test_merged_state_loads_into_multimodal_model() -> None:
     }
     wpli_checkpoint = {
         "checkpoint_type": "segment_ssl_encoder",
-        "metadata": _metadata(branch="wpli", feature_kind="fc-wpli"),
+        "metadata": _metadata(branch="wpli", feature_kind="fc-wpli", segment_feature_kind="fc-wpli"),
         "encoder_state_dict": wpli_encoder,
         "prefixed_state_dict": None,
     }
@@ -160,12 +175,14 @@ def test_extract_wpli_encoder_from_dual_checkpoint_saves_branch_checkpoint(tmp_p
     expected_dual_metadata = _metadata(
         branch="dual",
         feature_kind="psd-fc-wpli",
+        segment_feature_kind="psd-fc-wpli",
         segment_ssl_method="dual_segment_barlow",
         source_feature_manifest_hash="dual-manifest",
     )
     branch_metadata = _metadata(
         branch="wpli",
         feature_kind="fc-wpli",
+        segment_feature_kind="fc-wpli",
         source_feature_manifest_hash="wpli-manifest",
     )
     torch.save(
@@ -204,6 +221,7 @@ def test_extract_wpli_encoder_from_dual_checkpoint_rejects_supervised_metadata(t
     expected_dual_metadata = _metadata(
         branch="dual",
         feature_kind="psd-fc-wpli",
+        segment_feature_kind="psd-fc-wpli",
         segment_ssl_method="dual_segment_barlow",
         source_feature_manifest_hash="dual-manifest",
     )
@@ -225,7 +243,7 @@ def test_extract_wpli_encoder_from_dual_checkpoint_rejects_supervised_metadata(t
             dual_checkpoint_path=dual_path,
             output_path=output_path,
             expected_dual_metadata=expected_dual_metadata,
-            branch_metadata=_metadata(branch="wpli", feature_kind="fc-wpli"),
+            branch_metadata=_metadata(branch="wpli", feature_kind="fc-wpli", segment_feature_kind="fc-wpli"),
         )
 
 
@@ -235,6 +253,7 @@ def test_extract_wpli_encoder_from_dual_checkpoint_rejects_metadata_mismatch(tmp
     observed_metadata = _metadata(
         branch="dual",
         feature_kind="psd-fc-wpli",
+        segment_feature_kind="psd-fc-wpli",
         segment_ssl_method="dual_segment_barlow",
         source_feature_manifest_hash="dual-manifest",
     )
@@ -256,5 +275,5 @@ def test_extract_wpli_encoder_from_dual_checkpoint_rejects_metadata_mismatch(tmp
             dual_checkpoint_path=dual_path,
             output_path=output_path,
             expected_dual_metadata=expected_dual_metadata,
-            branch_metadata=_metadata(branch="wpli", feature_kind="fc-wpli"),
+            branch_metadata=_metadata(branch="wpli", feature_kind="fc-wpli", segment_feature_kind="fc-wpli"),
         )

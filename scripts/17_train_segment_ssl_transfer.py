@@ -33,7 +33,7 @@ from eeg_recovery.training.train_segment_ssl import (
     write_segment_ssl_transfer_outputs,
 )
 from eeg_recovery.training.ssl_checkpointing import (
-    load_ssl_encoder_checkpoint,
+    load_reusable_ssl_encoder_checkpoint,
     make_ssl_checkpoint_name,
     prefix_branch_encoder_state_dict,
     save_ssl_encoder_checkpoint,
@@ -94,9 +94,16 @@ def main() -> None:
     parser.add_argument("--force-retrain-ssl", action="store_true")
     parser.add_argument("--reuse-only", action="store_true")
     parser.add_argument("--checkpoint-tag", default=None)
+    parser.add_argument(
+        "--ssl-only-cache",
+        action="store_true",
+        help="Run fold-specific Segment SSL pretraining/checkpoint caching only; skip supervised transfer.",
+    )
     args = parser.parse_args()
     if args.reuse_only and not args.reuse_ssl_encoders:
         raise SystemExit("--reuse-only requires --reuse-ssl-encoders.")
+    if args.reuse_only and args.force_retrain_ssl:
+        raise SystemExit("--reuse-only cannot be combined with --force-retrain-ssl.")
 
     path_config = load_path_config(args.config)
     labels = load_supervised_label_table(path_config)
@@ -172,6 +179,36 @@ def main() -> None:
                     f"test={fold.test_subject_id} segments={len(fold_segments)}"
                 )
 
+            ssl_history_all = pd.concat(ssl_history_frames, ignore_index=True)
+            if args.ssl_only_cache or args.supervised_epochs == 0:
+                run_name = segment_ssl_transfer_run_name(
+                    objective=objective,
+                    feature_kind=args.segment_feature_kind,
+                    data_scope=args.data_scope,
+                    transfer_mode=args.transfer_mode,
+                    seed=seed,
+                    pretrain_epochs=args.pretrain_epochs,
+                    projection_dim=args.projection_dim,
+                    feature_mask_prob=args.feature_mask_prob,
+                    noise_std=args.noise_std,
+                    lambda_latent=args.lambda_latent,
+                    supervised_epochs=0,
+                )
+                if args.output_tag:
+                    run_name = f"{run_name}_{args.output_tag}"
+                safe_history_path = (
+                    Path(path_config.output_root)
+                    / "results"
+                    / "ssl"
+                    / f"segment_ssl_history_{run_name}_ssl_only_cache.csv"
+                )
+                safe_history_path.parent.mkdir(parents=True, exist_ok=True)
+                ssl_history_all["run_name"] = run_name
+                ssl_history_all["ssl_only_cache"] = True
+                ssl_history_all.to_csv(safe_history_path, index=False)
+                print(f"Wrote SSL-only cache history: {safe_history_path}")
+                continue
+
             supervised_config = SupervisedTrainingConfig(
                 architecture="multimodal",
                 feature_kind=args.supervised_feature_kind,
@@ -207,7 +244,6 @@ def main() -> None:
             )
             if args.output_tag:
                 run_name = f"{run_name}_{args.output_tag}"
-            ssl_history_all = pd.concat(ssl_history_frames, ignore_index=True)
             for frame in (predictions, metrics, loss_history, ssl_history_all):
                 frame["run_name"] = run_name
                 frame["segment_ssl"] = True
@@ -362,10 +398,14 @@ def _run_or_load_segment_ssl_pretraining(
         loaded_state: dict = {}
         missing_branches = []
         for branch, checkpoint_path in checkpoint_paths.items():
-            if not checkpoint_path.exists():
+            checkpoint = load_reusable_ssl_encoder_checkpoint(
+                checkpoint_path,
+                expected_metadata=expected_metadata[branch],
+                reuse_only=False,
+            )
+            if checkpoint is None:
                 missing_branches.append(branch)
                 continue
-            checkpoint = load_ssl_encoder_checkpoint(checkpoint_path, expected_metadata[branch])
             encoder_state = checkpoint.get("encoder_state_dict")
             if not isinstance(encoder_state, dict):
                 raise ValueError(f"SSL checkpoint {checkpoint_path} is missing encoder_state_dict.")
@@ -423,6 +463,9 @@ def _ssl_checkpoint_metadata(
         "test_subject_id": fold.test_subject_id,
         "excluded_subject_id": fold.test_subject_id,
         "ssl_data_scope": args.data_scope,
+        "historical_unlabeled_pretraining": args.data_scope in {"all-patient", "all-patient-health"},
+        "segment_feature_kind": args.segment_feature_kind,
+        "supervised_feature_kind": args.supervised_feature_kind,
         "feature_kind": args.segment_feature_kind,
         "encoder_kind": "cnn",
         "embedding_dim": args.embedding_dim,

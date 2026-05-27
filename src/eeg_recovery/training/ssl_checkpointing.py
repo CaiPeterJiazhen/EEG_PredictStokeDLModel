@@ -18,12 +18,15 @@ REQUIRED_SSL_METADATA_FIELDS = (
     "test_subject_id",
     "excluded_subject_id",
     "ssl_data_scope",
-    "feature_kind",
+    "segment_feature_kind",
+    "supervised_feature_kind",
     "encoder_kind",
     "embedding_dim",
     "dropout",
+    "projection_dim",
     "pretrain_epochs",
-    "pretrain_lr",
+    "feature_mask_prob",
+    "noise_std",
     "source_feature_manifest_hash",
 )
 
@@ -122,6 +125,25 @@ def load_ssl_encoder_checkpoint(
     if expected_metadata is not None:
         validate_ssl_checkpoint_metadata(metadata, expected_metadata)
     return checkpoint
+
+
+def load_reusable_ssl_encoder_checkpoint(
+    path: str | Path,
+    *,
+    expected_metadata: Mapping[str, object],
+    reuse_only: bool = True,
+    force_retrain_ssl: bool = False,
+) -> dict[str, object] | None:
+    checkpoint_path = Path(path)
+    if force_retrain_ssl:
+        if reuse_only:
+            raise ValueError("--force-retrain-ssl cannot be combined with --reuse-only.")
+        return None
+    if not checkpoint_path.exists():
+        if reuse_only:
+            raise FileNotFoundError(f"Missing reusable Segment SSL checkpoint: {checkpoint_path}")
+        return None
+    return load_ssl_encoder_checkpoint(checkpoint_path, expected_metadata)
 
 
 def validate_ssl_checkpoint_metadata(
