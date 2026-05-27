@@ -1,0 +1,113 @@
+[segssl] objective=vicreg seed=1 fold=0 test=sub01 segments=8025
+[segssl] objective=vicreg seed=1 fold=1 test=sub05 segments=8026
+[segssl] objective=vicreg seed=1 fold=2 test=sub07 segments=8026
+[segssl] objective=vicreg seed=1 fold=3 test=sub08 segments=8053
+[segssl] objective=vicreg seed=1 fold=4 test=sub09 segments=8114
+[segssl] objective=vicreg seed=1 fold=5 test=sub10 segments=8081
+[segssl] objective=vicreg seed=1 fold=6 test=sub11 segments=8078
+[segssl] objective=vicreg seed=1 fold=7 test=sub13 segments=8093
+[segssl] objective=vicreg seed=1 fold=8 test=sub14 segments=8088
+[segssl] objective=vicreg seed=1 fold=9 test=sub15 segments=8048
+[segssl] objective=vicreg seed=1 fold=10 test=sub16 segments=8044
+[segssl] objective=vicreg seed=1 fold=11 test=sub17 segments=8028
+[segssl] objective=vicreg seed=1 fold=12 test=sub18 segments=8062
+[segssl] objective=vicreg seed=1 fold=13 test=sub20 segments=8084
+[segssl] objective=vicreg seed=1 fold=14 test=sub22 segments=8074
+[segssl] objective=vicreg seed=1 fold=15 test=sub24 segments=8059
+[segssl] objective=vicreg seed=1 fold=16 test=sub27 segments=8018
+[segssl] objective=vicreg seed=1 fold=17 test=sub28 segments=8038
+[segssl] objective=vicreg seed=1 fold=18 test=sub29 segments=8097
+Wrote predictions: E:\AAAProjectList\EEG_PredictStokeDLModel\results\predictions\dl_loso_predictions_segssl_vicreg_all-patient_fc-wpli_finetune_seed1_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote metrics: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\dl_model_comparison_segssl_vicreg_all-patient_fc-wpli_finetune_seed1_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote SSL history: E:\AAAProjectList\EEG_PredictStokeDLModel\results\ssl\segment_ssl_history_segssl_vicreg_all-patient_fc-wpli_finetune_seed1_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+[segssl] objective=vicreg seed=2 fold=0 test=sub01 segments=8025
+[segssl] objective=vicreg seed=2 fold=1 test=sub05 segments=8026
+[segssl] objective=vicreg seed=2 fold=2 test=sub07 segments=8026
+[segssl] objective=vicreg seed=2 fold=3 test=sub08 segments=8053
+[segssl] objective=vicreg seed=2 fold=4 test=sub09 segments=8114
+[segssl] objective=vicreg seed=2 fold=5 test=sub10 segments=8081
+[segssl] objective=vicreg seed=2 fold=6 test=sub11 segments=8078
+[segssl] objective=vicreg seed=2 fold=7 test=sub13 segments=8093
+[segssl] objective=vicreg seed=2 fold=8 test=sub14 segments=8088
+[segssl] objective=vicreg seed=2 fold=9 test=sub15 segments=8048
+[segssl] objective=vicreg seed=2 fold=10 test=sub16 segments=8044
+[segssl] objective=vicreg seed=2 fold=11 test=sub17 segments=8028
+[segssl] objective=vicreg seed=2 fold=12 test=sub18 segments=8062
+[segssl] objective=vicreg seed=2 fold=13 test=sub20 segments=8084
+[segssl] objective=vicreg seed=2 fold=14 test=sub22 segments=8074
+[segssl] objective=vicreg seed=2 fold=15 test=sub24 segments=8059
+[segssl] objective=vicreg seed=2 fold=16 test=sub27 segments=8018
+[segssl] objective=vicreg seed=2 fold=17 test=sub28 segments=8038
+[segssl] objective=vicreg seed=2 fold=18 test=sub29 segments=8097
+Wrote predictions: E:\AAAProjectList\EEG_PredictStokeDLModel\results\predictions\dl_loso_predictions_segssl_vicreg_all-patient_fc-wpli_finetune_seed2_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote metrics: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\dl_model_comparison_segssl_vicreg_all-patient_fc-wpli_finetune_seed2_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote SSL history: E:\AAAProjectList\EEG_PredictStokeDLModel\results\ssl\segment_ssl_history_segssl_vicreg_all-patient_fc-wpli_finetune_seed2_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+[segssl] objective=vicreg seed=3 fold=0 test=sub01 segments=8025
+[segssl] objective=vicreg seed=3 fold=1 test=sub05 segments=8026
+[segssl] objective=vicreg seed=3 fold=2 test=sub07 segments=8026
+[segssl] objective=vicreg seed=3 fold=3 test=sub08 segments=8053
+[segssl] objective=vicreg seed=3 fold=4 test=sub09 segments=8114
+[segssl] objective=vicreg seed=3 fold=5 test=sub10 segments=8081
+[segssl] objective=vicreg seed=3 fold=6 test=sub11 segments=8078
+[segssl] objective=vicreg seed=3 fold=7 test=sub13 segments=8093
+[segssl] objective=vicreg seed=3 fold=8 test=sub14 segments=8088
+[segssl] objective=vicreg seed=3 fold=9 test=sub15 segments=8048
+[segssl] objective=vicreg seed=3 fold=10 test=sub16 segments=8044
+[segssl] objective=vicreg seed=3 fold=11 test=sub17 segments=8028
+[segssl] objective=vicreg seed=3 fold=12 test=sub18 segments=8062
+[segssl] objective=vicreg seed=3 fold=13 test=sub20 segments=8084
+[segssl] objective=vicreg seed=3 fold=14 test=sub22 segments=8074
+[segssl] objective=vicreg seed=3 fold=15 test=sub24 segments=8059
+[segssl] objective=vicreg seed=3 fold=16 test=sub27 segments=8018
+[segssl] objective=vicreg seed=3 fold=17 test=sub28 segments=8038
+[segssl] objective=vicreg seed=3 fold=18 test=sub29 segments=8097
+Wrote predictions: E:\AAAProjectList\EEG_PredictStokeDLModel\results\predictions\dl_loso_predictions_segssl_vicreg_all-patient_fc-wpli_finetune_seed3_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote metrics: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\dl_model_comparison_segssl_vicreg_all-patient_fc-wpli_finetune_seed3_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote SSL history: E:\AAAProjectList\EEG_PredictStokeDLModel\results\ssl\segment_ssl_history_segssl_vicreg_all-patient_fc-wpli_finetune_seed3_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+[segssl] objective=vicreg seed=7 fold=0 test=sub01 segments=8025
+[segssl] objective=vicreg seed=7 fold=1 test=sub05 segments=8026
+[segssl] objective=vicreg seed=7 fold=2 test=sub07 segments=8026
+[segssl] objective=vicreg seed=7 fold=3 test=sub08 segments=8053
+[segssl] objective=vicreg seed=7 fold=4 test=sub09 segments=8114
+[segssl] objective=vicreg seed=7 fold=5 test=sub10 segments=8081
+[segssl] objective=vicreg seed=7 fold=6 test=sub11 segments=8078
+[segssl] objective=vicreg seed=7 fold=7 test=sub13 segments=8093
+[segssl] objective=vicreg seed=7 fold=8 test=sub14 segments=8088
+[segssl] objective=vicreg seed=7 fold=9 test=sub15 segments=8048
+[segssl] objective=vicreg seed=7 fold=10 test=sub16 segments=8044
+[segssl] objective=vicreg seed=7 fold=11 test=sub17 segments=8028
+[segssl] objective=vicreg seed=7 fold=12 test=sub18 segments=8062
+[segssl] objective=vicreg seed=7 fold=13 test=sub20 segments=8084
+[segssl] objective=vicreg seed=7 fold=14 test=sub22 segments=8074
+[segssl] objective=vicreg seed=7 fold=15 test=sub24 segments=8059
+[segssl] objective=vicreg seed=7 fold=16 test=sub27 segments=8018
+[segssl] objective=vicreg seed=7 fold=17 test=sub28 segments=8038
+[segssl] objective=vicreg seed=7 fold=18 test=sub29 segments=8097
+Wrote predictions: E:\AAAProjectList\EEG_PredictStokeDLModel\results\predictions\dl_loso_predictions_segssl_vicreg_all-patient_fc-wpli_finetune_seed7_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote metrics: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\dl_model_comparison_segssl_vicreg_all-patient_fc-wpli_finetune_seed7_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote SSL history: E:\AAAProjectList\EEG_PredictStokeDLModel\results\ssl\segment_ssl_history_segssl_vicreg_all-patient_fc-wpli_finetune_seed7_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+[segssl] objective=vicreg seed=13 fold=0 test=sub01 segments=8025
+[segssl] objective=vicreg seed=13 fold=1 test=sub05 segments=8026
+[segssl] objective=vicreg seed=13 fold=2 test=sub07 segments=8026
+[segssl] objective=vicreg seed=13 fold=3 test=sub08 segments=8053
+[segssl] objective=vicreg seed=13 fold=4 test=sub09 segments=8114
+[segssl] objective=vicreg seed=13 fold=5 test=sub10 segments=8081
+[segssl] objective=vicreg seed=13 fold=6 test=sub11 segments=8078
+[segssl] objective=vicreg seed=13 fold=7 test=sub13 segments=8093
+[segssl] objective=vicreg seed=13 fold=8 test=sub14 segments=8088
+[segssl] objective=vicreg seed=13 fold=9 test=sub15 segments=8048
+[segssl] objective=vicreg seed=13 fold=10 test=sub16 segments=8044
+[segssl] objective=vicreg seed=13 fold=11 test=sub17 segments=8028
+[segssl] objective=vicreg seed=13 fold=12 test=sub18 segments=8062
+[segssl] objective=vicreg seed=13 fold=13 test=sub20 segments=8084
+[segssl] objective=vicreg seed=13 fold=14 test=sub22 segments=8074
+[segssl] objective=vicreg seed=13 fold=15 test=sub24 segments=8059
+[segssl] objective=vicreg seed=13 fold=16 test=sub27 segments=8018
+[segssl] objective=vicreg seed=13 fold=17 test=sub28 segments=8038
+[segssl] objective=vicreg seed=13 fold=18 test=sub29 segments=8097
+Wrote predictions: E:\AAAProjectList\EEG_PredictStokeDLModel\results\predictions\dl_loso_predictions_segssl_vicreg_all-patient_fc-wpli_finetune_seed13_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote metrics: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\dl_model_comparison_segssl_vicreg_all-patient_fc-wpli_finetune_seed13_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote SSL history: E:\AAAProjectList\EEG_PredictStokeDLModel\results\ssl\segment_ssl_history_segssl_vicreg_all-patient_fc-wpli_finetune_seed13_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote seed summary: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\segssl_seed_summary_vicreg_all-patient_fc_wpli.csv
+Wrote per-subject error frequency: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\segssl_subject_error_frequency_vicreg_all-patient_fc_wpli.csv
+Wrote summary: E:\AAAProjectList\EEG_PredictStokeDLModel\results\metrics\segssl_transfer_summary_fc_wpli.csv

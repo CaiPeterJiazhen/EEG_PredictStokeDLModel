@@ -1,0 +1,2 @@
+model,ensemble_size,accuracy,balanced_accuracy,sensitivity,specificity,precision,f1,roc_auc,pr_auc,run_name,segment_ssl,segment_ssl_objective,segment_ssl_feature_kind,ssl_data_scope,historical_unlabeled_pretraining,seed
+seed_ensemble,6,0.7368421052631579,0.7333333333333334,0.8,0.6666666666666666,0.7272727272727273,0.7619047619047619,0.788888888888889,0.8169580419580419,segssl_vicreg_all-patient_fc-wpli_finetune_seedensemble6_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100,True,vicreg,fc-wpli,all-patient,True,ensemble
