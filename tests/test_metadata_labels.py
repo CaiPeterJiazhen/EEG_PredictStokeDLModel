@@ -165,6 +165,54 @@ def test_load_supervised_label_table_accepts_whitespace_normalized_integrity_hea
     assert labels["subject_id"].tolist()[0] == "sub01"
 
 
+def test_load_supervised_label_table_derives_ids_from_clinical_layout_workbook(
+    tmp_path: Path,
+) -> None:
+    clinical_path = tmp_path / "clinical_layout.xlsx"
+    patient_eeg_root = tmp_path / "patient_eeg"
+    health_eeg_root = tmp_path / "health_eeg"
+    ced_path = tmp_path / "standard_1005.ced"
+    patient_eeg_root.mkdir()
+    health_eeg_root.mkdir()
+    ced_path.write_text("placeholder", encoding="utf-8")
+
+    columns = [
+        "编号",
+        "姓名",
+        "年龄",
+        "病程",
+        "性别",
+        "患病侧",
+        "治疗前FMA",
+        "治疗后FMA",
+        "治疗前MBI",
+        "治疗后MBI",
+    ]
+    rows = [
+        [row[0], "匿名", f"{row[1]}岁", f"{row[3]}天", row[2], f"{row[4]}手", *row[5:]]
+        for row in EXPECTED_SUPERVISED_ROWS
+    ]
+    rows.append(["sub021", "匿名", "47岁", "1年", "女", "右手", "非常好", "非常好", None, None])
+    pd.DataFrame(rows, columns=columns).to_excel(clinical_path, index=False)
+
+    config = PathConfig(
+        patient_info_integrity_xlsx=clinical_path,
+        patient_info_clinical_xlsx=clinical_path,
+        patient_eeg_root=patient_eeg_root,
+        health_eeg_root=health_eeg_root,
+        standard_1005_ced=ced_path,
+        output_root=tmp_path / "outputs",
+    )
+
+    labels = load_supervised_label_table(config)
+
+    assert len(labels) == 19
+    assert "sub21" not in set(labels["subject_id"])
+    assert labels["Residual"].median() == 1.5
+    assert labels["label"].value_counts().sort_index().to_dict() == {0: 9, 1: 10}
+    assert labels.set_index("subject_id").loc["sub01", "affected_hand"] == "左"
+
+
 def test_load_supervised_label_table_raises_for_duplicate_supervised_clinical_subject(
     tmp_path: Path,
 ) -> None:
