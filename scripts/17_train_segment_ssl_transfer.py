@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timezone
 from pathlib import Path
 import sys
 
@@ -23,11 +24,19 @@ from eeg_recovery.training.train_feature_ssl import aggregate_seed_ensemble_pred
 from eeg_recovery.training.train_segment_ssl import (
     SEGMENT_SSL_OBJECTIVES,
     SegmentSSLTrainingConfig,
+    extract_branch_encoder_state,
     per_subject_error_frequency,
     run_segment_ssl_pretraining,
+    segment_records_manifest_hash,
     segment_ssl_transfer_run_name,
     summarize_seed_metrics,
     write_segment_ssl_transfer_outputs,
+)
+from eeg_recovery.training.ssl_checkpointing import (
+    load_ssl_encoder_checkpoint,
+    make_ssl_checkpoint_name,
+    prefix_branch_encoder_state_dict,
+    save_ssl_encoder_checkpoint,
 )
 from eeg_recovery.training.train_ssl import SSL_DATA_SCOPES
 from eeg_recovery.training.train_supervised import (
@@ -79,7 +88,15 @@ def main() -> None:
     parser.add_argument("--seeds", type=int, nargs="+", default=DEFAULT_SEEDS)
     parser.add_argument("--limit-segments", type=int, default=None, help="Optional cap for smoke tests only.")
     parser.add_argument("--output-tag", default=None)
+    parser.add_argument("--save-ssl-encoders", action="store_true")
+    parser.add_argument("--reuse-ssl-encoders", action="store_true")
+    parser.add_argument("--ssl-checkpoint-dir", default=None)
+    parser.add_argument("--force-retrain-ssl", action="store_true")
+    parser.add_argument("--reuse-only", action="store_true")
+    parser.add_argument("--checkpoint-tag", default=None)
     args = parser.parse_args()
+    if args.reuse_only and not args.reuse_ssl_encoders:
+        raise SystemExit("--reuse-only requires --reuse-ssl-encoders.")
 
     path_config = load_path_config(args.config)
     labels = load_supervised_label_table(path_config)
@@ -135,7 +152,15 @@ def main() -> None:
                     device=args.device,
                     seed=seed + fold.fold_index,
                 )
-                pretrained_state, ssl_history = run_segment_ssl_pretraining(fold_segments, ssl_config)
+                pretrained_state, ssl_history = _run_or_load_segment_ssl_pretraining(
+                    fold_segments=fold_segments,
+                    ssl_config=ssl_config,
+                    path_config=path_config,
+                    args=args,
+                    objective=objective,
+                    seed=seed,
+                    fold=fold,
+                )
                 ssl_history.insert(0, "fold_index", fold.fold_index)
                 ssl_history.insert(1, "test_subject_id", fold.test_subject_id)
                 ssl_history["ssl_data_scope"] = args.data_scope
@@ -290,6 +315,170 @@ def _load_segment_records_for_feature_kind(output_root: Path, feature_kind: str)
 
 def _path_token(value: str) -> str:
     return value.replace("-", "_")
+
+
+def _run_or_load_segment_ssl_pretraining(
+    *,
+    fold_segments,
+    ssl_config: SegmentSSLTrainingConfig,
+    path_config,
+    args,
+    objective: str,
+    seed: int,
+    fold,
+) -> tuple[dict, pd.DataFrame]:
+    branches = branches_for_feature_kind(args.segment_feature_kind)
+    checkpoint_dir = Path(args.ssl_checkpoint_dir) if args.ssl_checkpoint_dir else Path(path_config.output_root) / "results" / "checkpoints" / "ssl_encoders"
+    expected_metadata = {
+        branch: _ssl_checkpoint_metadata(
+            args=args,
+            objective=objective,
+            branch=branch,
+            seed=seed,
+            fold=fold,
+            fold_segments=fold_segments,
+            ssl_config=ssl_config,
+        )
+        for branch in branches
+    }
+    checkpoint_paths = {
+        branch: checkpoint_dir
+        / make_ssl_checkpoint_name(
+            method="segssl",
+            branch=branch,
+            ssl_objective=objective,
+            seed=seed,
+            fold_index=fold.fold_index,
+            test_subject_id=fold.test_subject_id,
+            embedding_dim=args.embedding_dim,
+            pretrain_epochs=args.pretrain_epochs,
+            ssl_data_scope=args.data_scope,
+            tag=args.checkpoint_tag,
+        )
+        for branch in branches
+    }
+
+    if args.reuse_ssl_encoders and not args.force_retrain_ssl:
+        loaded_state: dict = {}
+        missing_branches = []
+        for branch, checkpoint_path in checkpoint_paths.items():
+            if not checkpoint_path.exists():
+                missing_branches.append(branch)
+                continue
+            checkpoint = load_ssl_encoder_checkpoint(checkpoint_path, expected_metadata[branch])
+            encoder_state = checkpoint.get("encoder_state_dict")
+            if not isinstance(encoder_state, dict):
+                raise ValueError(f"SSL checkpoint {checkpoint_path} is missing encoder_state_dict.")
+            loaded_state.update(prefix_branch_encoder_state_dict(branch, encoder_state))
+        if not missing_branches and loaded_state:
+            return loaded_state, _checkpoint_reuse_history(
+                objective=objective,
+                feature_kind=args.segment_feature_kind,
+                fold_segments=fold_segments,
+                ssl_config=ssl_config,
+                checkpoint_paths=checkpoint_paths,
+            )
+        if args.reuse_only:
+            missing = ", ".join(missing_branches)
+            raise FileNotFoundError(f"Missing reusable Segment SSL checkpoint(s) for branch(es): {missing}")
+    elif args.reuse_only:
+        missing = [branch for branch, path in checkpoint_paths.items() if not path.exists()]
+        if missing:
+            joined = ", ".join(missing)
+            raise FileNotFoundError(f"Missing reusable Segment SSL checkpoint(s) for branch(es): {joined}")
+
+    pretrained_state, ssl_history = run_segment_ssl_pretraining(fold_segments, ssl_config)
+    if args.save_ssl_encoders:
+        for branch, checkpoint_path in checkpoint_paths.items():
+            encoder_state = extract_branch_encoder_state(pretrained_state, branch)
+            metadata = dict(expected_metadata[branch])
+            metadata["created_at"] = datetime.now(timezone.utc).isoformat()
+            save_ssl_encoder_checkpoint(
+                checkpoint_path,
+                metadata,
+                encoder_state,
+                prefixed_state_dict=prefix_branch_encoder_state_dict(branch, encoder_state),
+            )
+    return pretrained_state, ssl_history
+
+
+def _ssl_checkpoint_metadata(
+    *,
+    args,
+    objective: str,
+    branch: str,
+    seed: int,
+    fold,
+    fold_segments,
+    ssl_config: SegmentSSLTrainingConfig,
+) -> dict[str, object]:
+    return {
+        "checkpoint_type": "segment_ssl_encoder",
+        "segment_ssl_method": f"segment_{objective}",
+        "ssl_objective": objective,
+        "branch": branch,
+        "base_seed": seed,
+        "effective_seed": ssl_config.seed,
+        "fold_index": fold.fold_index,
+        "test_subject_id": fold.test_subject_id,
+        "excluded_subject_id": fold.test_subject_id,
+        "ssl_data_scope": args.data_scope,
+        "feature_kind": args.segment_feature_kind,
+        "encoder_kind": "cnn",
+        "embedding_dim": args.embedding_dim,
+        "dropout": args.dropout,
+        "projection_dim": args.projection_dim,
+        "pretrain_epochs": args.pretrain_epochs,
+        "pretrain_lr": args.pretrain_lr,
+        "batch_size": args.pretrain_batch_size,
+        "feature_mask_prob": args.feature_mask_prob,
+        "noise_std": args.noise_std,
+        "lambda_latent": args.lambda_latent,
+        "lambda_local": args.lambda_local,
+        "masked_latent_loss": args.masked_latent_loss,
+        "barlow_offdiag_weight": args.barlow_offdiag_weight,
+        "n_ssl_segments": len(fold_segments),
+        "source_feature_manifest_hash": segment_records_manifest_hash(fold_segments),
+    }
+
+
+def _checkpoint_reuse_history(
+    *,
+    objective: str,
+    feature_kind: str,
+    fold_segments,
+    ssl_config: SegmentSSLTrainingConfig,
+    checkpoint_paths: dict,
+) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "epoch": 0,
+                "objective": objective,
+                "feature_kind": feature_kind,
+                "n_segments": len(fold_segments),
+                "batch_size": ssl_config.batch_size,
+                "embedding_dim": ssl_config.embedding_dim,
+                "projection_dim": ssl_config.projection_dim,
+                "learning_rate": ssl_config.lr,
+                "feature_mask_prob": ssl_config.feature_mask_prob,
+                "noise_std": ssl_config.noise_std,
+                "lambda_latent": ssl_config.lambda_latent,
+                "lambda_local": ssl_config.lambda_local,
+                "loss": pd.NA,
+                "alignment_loss": pd.NA,
+                "masked_latent_loss": pd.NA,
+                "local_reconstruction_loss": pd.NA,
+                "barlow_on_diag_loss": pd.NA,
+                "barlow_off_diag_loss": pd.NA,
+                "vicreg_invariance_loss": pd.NA,
+                "vicreg_variance_loss": pd.NA,
+                "vicreg_covariance_loss": pd.NA,
+                "checkpoint_reused": True,
+                "checkpoint_paths": ";".join(str(path) for path in checkpoint_paths.values()),
+            }
+        ]
+    )
 
 
 if __name__ == "__main__":

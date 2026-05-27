@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
 from pathlib import Path
 import re
 from typing import Iterable, Mapping
@@ -349,6 +351,56 @@ def run_segment_ssl_pretraining(
         )
 
     return model.pretrained_state(), pd.DataFrame(rows)
+
+
+def extract_branch_encoder_state(
+    pretrained_state: Mapping[str, torch.Tensor],
+    branch: str,
+) -> dict[str, torch.Tensor]:
+    if branch not in {"psd", "wpli", "icoh"}:
+        raise ValueError("branch must be 'psd', 'wpli', or 'icoh'.")
+    prefix = f"branch_models.{branch}.encoder."
+    extracted = {
+        key.removeprefix(prefix): value.detach().cpu().clone()
+        for key, value in pretrained_state.items()
+        if key.startswith(prefix)
+    }
+    if not extracted:
+        raise ValueError(f"Pretrained state does not contain encoder weights for branch {branch!r}.")
+    return extracted
+
+
+def segment_records_manifest_hash(records: Iterable[SegmentSSLRecord]) -> str:
+    manifest_rows = [
+        {
+            "group": record.group,
+            "subject_id": record.subject_id,
+            "subject_key": record.subject_key,
+            "stage": record.stage,
+            "state": record.state,
+            "segment_index": record.segment_index,
+            "branches": sorted(record.features),
+            "source_path": str(record.source_path),
+        }
+        for record in records
+    ]
+    payload = json.dumps(
+        sorted(
+            manifest_rows,
+            key=lambda row: (
+                row["group"],
+                row["subject_key"],
+                row["stage"],
+                row["state"],
+                row["segment_index"],
+                row["source_path"],
+            ),
+        ),
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def segment_ssl_transfer_run_name(

@@ -13,8 +13,10 @@ from eeg_recovery.training.train_segment_ssl import (
     SegmentSSLTrainingConfig,
     augment_segment_batch,
     barlow_twins_loss,
+    extract_branch_encoder_state,
     masked_latent_prediction_loss,
     run_segment_ssl_pretraining,
+    segment_records_manifest_hash,
     segment_ssl_transfer_run_name,
     vicreg_loss,
 )
@@ -125,6 +127,39 @@ def test_segment_ssl_pretraining_returns_loadable_encoder_state_with_masked_late
     assert not incompatible.unexpected_keys
 
 
+def test_extract_branch_encoder_state_removes_full_model_prefix() -> None:
+    config = SegmentSSLTrainingConfig(
+        objective="barlow",
+        feature_kind="psd-fc-wpli",
+        epochs=1,
+        batch_size=2,
+        embedding_dim=4,
+        projection_dim=4,
+        lambda_latent=0.0,
+        lambda_local=0.0,
+        device="cpu",
+        seed=26,
+    )
+
+    pretrained_state, _ = run_segment_ssl_pretraining(_records(), config)
+    psd_encoder_state = extract_branch_encoder_state(pretrained_state, "psd")
+
+    assert psd_encoder_state
+    assert all(not key.startswith("branch_models.") for key in psd_encoder_state)
+    assert any(key.startswith("encoder.network.") for key in psd_encoder_state)
+
+
+def test_segment_records_manifest_hash_tracks_source_pool() -> None:
+    records = _records()
+
+    first_hash = segment_records_manifest_hash(records)
+    second_hash = segment_records_manifest_hash(list(reversed(records)))
+    changed_hash = segment_records_manifest_hash(records[:-1])
+
+    assert first_hash == second_hash
+    assert first_hash != changed_hash
+
+
 def test_segment_ssl_pretraining_can_use_vicreg() -> None:
     config = SegmentSSLTrainingConfig(
         objective="vicreg",
@@ -185,5 +220,31 @@ def test_segment_ssl_transfer_script_help_runs_from_project_root() -> None:
     assert "vicreg" in result.stdout
     assert "--lambda-latent" in result.stdout
     assert "--seeds" in result.stdout
+    assert "--save-ssl-encoders" in result.stdout
+    assert "--reuse-ssl-encoders" in result.stdout
+    assert "--ssl-checkpoint-dir" in result.stdout
+    assert "--force-retrain-ssl" in result.stdout
+    assert "--reuse-only" in result.stdout
+    assert "--checkpoint-tag" in result.stdout
     assert "fc-wpli" in result.stdout
     assert "psd-fc-wpli" in result.stdout
+
+
+def test_dual_segment_barlow_transfer_script_help_runs_from_project_root() -> None:
+    project_root = Path(__file__).resolve().parents[1]
+
+    result = subprocess.run(
+        [sys.executable, "-B", "scripts/18_train_dual_segment_barlow_transfer.py", "--help"],
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert "--experiment-set" in result.stdout
+    assert "dual-finetune" in result.stdout
+    assert "dual-freeze" in result.stdout
+    assert "dual-low-lr" in result.stdout
+    assert "--reuse-ssl-encoders" in result.stdout
+    assert "--allow-mismatched-ssl-seeds" in result.stdout

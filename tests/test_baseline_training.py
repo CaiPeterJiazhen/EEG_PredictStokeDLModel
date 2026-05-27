@@ -335,6 +335,7 @@ def test_metrics_return_nan_when_auc_is_undefined():
 
     assert np.isnan(values["roc_auc"])
     assert np.isnan(values["pr_auc"])
+    assert values["brier_score"] == pytest.approx(0.34)
 
 
 def test_train_ml_baselines_script_help_runs_from_project_root():

@@ -7,6 +7,7 @@ from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
     balanced_accuracy_score,
+    brier_score_loss,
     confusion_matrix,
     f1_score,
     precision_score,
@@ -40,6 +41,7 @@ def binary_classification_metrics(
             "specificity": float(specificity),
             "precision": float(precision_score(y_true_array, y_pred, zero_division=0)),
             "f1": float(f1_score(y_true_array, y_pred, zero_division=0)),
+            "brier_score": float(brier_score_loss(y_true_array, y_score_array)),
         }
     if np.unique(y_true_array).size < 2:
         metrics["roc_auc"] = np.nan
