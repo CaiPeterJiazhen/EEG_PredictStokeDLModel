@@ -1,0 +1,2 @@
+model,ensemble_size,accuracy,balanced_accuracy,sensitivity,specificity,precision,f1,roc_auc,pr_auc,run_name,segment_ssl,segment_ssl_objective,ssl_data_scope,seed
+seed_ensemble,4,0.8421052631578947,0.8333333333333333,1.0,0.6666666666666666,0.7692307692307693,0.8695652173913043,0.8555555555555556,0.8548523698523698,segssl_barlow_all-patient_psd-fc-wpli_finetune_seedensemble4_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100,True,barlow,all-patient,ensemble

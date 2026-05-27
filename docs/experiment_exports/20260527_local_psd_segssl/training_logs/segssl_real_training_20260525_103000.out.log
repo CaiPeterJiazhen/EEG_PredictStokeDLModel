@@ -1,0 +1,49 @@
+[segssl] objective=barlow seed=0 fold=0 test=sub01 segments=16318
+[segssl] objective=barlow seed=0 fold=1 test=sub05 segments=16319
+[segssl] objective=barlow seed=0 fold=2 test=sub07 segments=16316
+[segssl] objective=barlow seed=0 fold=3 test=sub08 segments=16371
+[segssl] objective=barlow seed=0 fold=4 test=sub09 segments=16494
+[segssl] objective=barlow seed=0 fold=5 test=sub10 segments=16426
+[segssl] objective=barlow seed=0 fold=6 test=sub11 segments=16420
+[segssl] objective=barlow seed=0 fold=7 test=sub13 segments=16452
+[segssl] objective=barlow seed=0 fold=8 test=sub14 segments=16443
+[segssl] objective=barlow seed=0 fold=9 test=sub15 segments=16361
+[segssl] objective=barlow seed=0 fold=10 test=sub16 segments=16355
+[segssl] objective=barlow seed=0 fold=11 test=sub17 segments=16322
+[segssl] objective=barlow seed=0 fold=12 test=sub18 segments=16392
+[segssl] objective=barlow seed=0 fold=13 test=sub20 segments=16432
+[segssl] objective=barlow seed=0 fold=14 test=sub22 segments=16411
+[segssl] objective=barlow seed=0 fold=15 test=sub24 segments=16385
+[segssl] objective=barlow seed=0 fold=16 test=sub27 segments=16299
+[segssl] objective=barlow seed=0 fold=17 test=sub28 segments=16344
+[segssl] objective=barlow seed=0 fold=18 test=sub29 segments=16460
+Wrote predictions: F:\CJZProjectFile\EEG_PredictStokeDLModel\results\predictions\dl_loso_predictions_segssl_barlow_all-patient_psd-fc-wpli_finetune_seed0_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote metrics: F:\CJZProjectFile\EEG_PredictStokeDLModel\results\metrics\dl_model_comparison_segssl_barlow_all-patient_psd-fc-wpli_finetune_seed0_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote SSL history: F:\CJZProjectFile\EEG_PredictStokeDLModel\results\ssl\segment_ssl_history_segssl_barlow_all-patient_psd-fc-wpli_finetune_seed0_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+[segssl] objective=barlow seed=1 fold=0 test=sub01 segments=16318
+[segssl] objective=barlow seed=1 fold=1 test=sub05 segments=16319
+[segssl] objective=barlow seed=1 fold=2 test=sub07 segments=16316
+[segssl] objective=barlow seed=1 fold=3 test=sub08 segments=16371
+[segssl] objective=barlow seed=1 fold=4 test=sub09 segments=16494
+[segssl] objective=barlow seed=1 fold=5 test=sub10 segments=16426
+[segssl] objective=barlow seed=1 fold=6 test=sub11 segments=16420
+[segssl] objective=barlow seed=1 fold=7 test=sub13 segments=16452
+[segssl] objective=barlow seed=1 fold=8 test=sub14 segments=16443
+[segssl] objective=barlow seed=1 fold=9 test=sub15 segments=16361
+[segssl] objective=barlow seed=1 fold=10 test=sub16 segments=16355
+[segssl] objective=barlow seed=1 fold=11 test=sub17 segments=16322
+[segssl] objective=barlow seed=1 fold=12 test=sub18 segments=16392
+[segssl] objective=barlow seed=1 fold=13 test=sub20 segments=16432
+[segssl] objective=barlow seed=1 fold=14 test=sub22 segments=16411
+[segssl] objective=barlow seed=1 fold=15 test=sub24 segments=16385
+[segssl] objective=barlow seed=1 fold=16 test=sub27 segments=16299
+[segssl] objective=barlow seed=1 fold=17 test=sub28 segments=16344
+[segssl] objective=barlow seed=1 fold=18 test=sub29 segments=16460
+Wrote predictions: F:\CJZProjectFile\EEG_PredictStokeDLModel\results\predictions\dl_loso_predictions_segssl_barlow_all-patient_psd-fc-wpli_finetune_seed1_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote metrics: F:\CJZProjectFile\EEG_PredictStokeDLModel\results\metrics\dl_model_comparison_segssl_barlow_all-patient_psd-fc-wpli_finetune_seed1_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+Wrote SSL history: F:\CJZProjectFile\EEG_PredictStokeDLModel\results\ssl\segment_ssl_history_segssl_barlow_all-patient_psd-fc-wpli_finetune_seed1_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100.csv
+[segssl] objective=barlow seed=2 fold=0 test=sub01 segments=16318
+[segssl] objective=barlow seed=2 fold=1 test=sub05 segments=16319
+[segssl] objective=barlow seed=2 fold=2 test=sub07 segments=16316
+[segssl] objective=barlow seed=2 fold=3 test=sub08 segments=16371
+[segssl] objective=barlow seed=2 fold=4 test=sub09 segments=16494

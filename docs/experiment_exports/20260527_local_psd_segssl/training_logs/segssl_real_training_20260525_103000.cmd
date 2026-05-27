@@ -1,0 +1,26 @@
+@echo off
+cd /d F:\CJZProjectFile\EEG_PredictStokeDLModel
+"D:\anaconda\python.exe" -B -u scripts\17_train_segment_ssl_transfer.py ^
+  --config configs\paths.example.yaml ^
+  --data-scope all-patient ^
+  --device cuda ^
+  --objective barlow vicreg ^
+  --segment-feature-kind psd ^
+  --supervised-feature-kind psd-fc-wpli ^
+  --pretrain-epochs 20 ^
+  --pretrain-batch-size 16 ^
+  --embedding-dim 32 ^
+  --projection-dim 32 ^
+  --feature-mask-prob 0.03 ^
+  --noise-std 0.02 ^
+  --lambda-latent 1.0 ^
+  --lambda-local 0.1 ^
+  --supervised-epochs 100 ^
+  --patience 100 ^
+  --supervised-lr 0.002 ^
+  --supervised-weight-decay 0.00001 ^
+  --dropout 0 ^
+  --transfer-mode finetune ^
+  --seeds 0 1 2 3 7 13 ^
+  > results\training_logs\segssl_real_training_20260525_103000.out.log ^
+  2> results\training_logs\segssl_real_training_20260525_103000.err.log
