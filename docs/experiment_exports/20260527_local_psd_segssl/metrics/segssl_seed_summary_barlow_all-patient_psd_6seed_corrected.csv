@@ -1,0 +1,7 @@
+metric,seed_mean,seed_std,seed_min,seed_max,n_seeds,note
+accuracy,0.7982456140350878,0.0707215591956013,0.6842105263157895,0.8947368421052632,6,Corrected from six individual Barlow seed files; original unsuffixed summary covered only the four resumed seeds.
+balanced_accuracy,0.7888888888888889,0.0730719246553661,0.6722222222222223,0.8888888888888888,6,Corrected from six individual Barlow seed files; original unsuffixed summary covered only the four resumed seeds.
+sensitivity,0.9666666666666667,0.04714045207910316,0.9,1.0,6,Corrected from six individual Barlow seed files; original unsuffixed summary covered only the four resumed seeds.
+specificity,0.611111111111111,0.12422599874998833,0.4444444444444444,0.7777777777777778,6,Corrected from six individual Barlow seed files; original unsuffixed summary covered only the four resumed seeds.
+roc_auc,0.7796296296296296,0.05421215247520164,0.7222222222222222,0.8888888888888888,6,Corrected from six individual Barlow seed files; original unsuffixed summary covered only the four resumed seeds.
+pr_auc,0.751073926073926,0.0650997623331935,0.7021320346320346,0.891976911976912,6,Corrected from six individual Barlow seed files; original unsuffixed summary covered only the four resumed seeds.

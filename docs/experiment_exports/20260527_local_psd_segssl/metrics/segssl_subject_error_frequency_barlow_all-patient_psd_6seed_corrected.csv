@@ -1,0 +1,20 @@
+subject_id,y_true,n_seeds,n_errors,error_frequency,note
+sub05,0,6,6,1.0,Corrected six-seed Barlow error frequency.
+sub09,0,6,6,1.0,Corrected six-seed Barlow error frequency.
+sub14,0,6,5,0.8333333333333334,Corrected six-seed Barlow error frequency.
+sub07,0,6,2,0.3333333333333333,Corrected six-seed Barlow error frequency.
+sub08,0,6,2,0.3333333333333333,Corrected six-seed Barlow error frequency.
+sub28,1,6,2,0.3333333333333333,Corrected six-seed Barlow error frequency.
+sub01,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub10,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub11,0,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub13,0,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub15,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub16,0,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub17,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub18,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub20,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub22,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub24,0,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub27,1,6,0,0.0,Corrected six-seed Barlow error frequency.
+sub29,1,6,0,0.0,Corrected six-seed Barlow error frequency.
