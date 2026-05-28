@@ -81,3 +81,5 @@ def test_compute_per_subject_error_frequency_reports_score_spread() -> None:
     assert sub02["error_rate"] == 0.5
     assert sub02["repeatedly_wrong_flag"] is True
     assert "borderline_label_flag" in errors.columns
+    assert sub02["residual"] == pytest.approx(0.0 - 0.4)
+    assert sub02["distance_to_threshold"] == pytest.approx(0.1)

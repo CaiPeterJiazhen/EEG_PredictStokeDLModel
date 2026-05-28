@@ -29,6 +29,7 @@ from eeg_recovery.training.train_segment_ssl import (
     run_segment_ssl_pretraining,
     segment_records_manifest_hash,
     segment_ssl_transfer_run_name,
+    write_segment_ssl_only_cache_history,
     summarize_seed_metrics,
     write_segment_ssl_transfer_outputs,
 )
@@ -37,6 +38,7 @@ from eeg_recovery.training.ssl_checkpointing import (
     make_ssl_checkpoint_name,
     prefix_branch_encoder_state_dict,
     save_ssl_encoder_checkpoint,
+    update_ssl_checkpoint_manifest,
 )
 from eeg_recovery.training.train_ssl import SSL_DATA_SCOPES
 from eeg_recovery.training.train_supervised import (
@@ -196,16 +198,13 @@ def main() -> None:
                 )
                 if args.output_tag:
                     run_name = f"{run_name}_{args.output_tag}"
-                safe_history_path = (
-                    Path(path_config.output_root)
-                    / "results"
-                    / "ssl"
-                    / f"segment_ssl_history_{run_name}_ssl_only_cache.csv"
-                )
-                safe_history_path.parent.mkdir(parents=True, exist_ok=True)
                 ssl_history_all["run_name"] = run_name
                 ssl_history_all["ssl_only_cache"] = True
-                ssl_history_all.to_csv(safe_history_path, index=False)
+                safe_history_path = write_segment_ssl_only_cache_history(
+                    output_root=path_config.output_root,
+                    run_name=run_name,
+                    ssl_history=ssl_history_all,
+                )
                 print(f"Wrote SSL-only cache history: {safe_history_path}")
                 continue
 
@@ -398,11 +397,20 @@ def _run_or_load_segment_ssl_pretraining(
         loaded_state: dict = {}
         missing_branches = []
         for branch, checkpoint_path in checkpoint_paths.items():
-            checkpoint = load_reusable_ssl_encoder_checkpoint(
-                checkpoint_path,
-                expected_metadata=expected_metadata[branch],
-                reuse_only=False,
-            )
+            try:
+                checkpoint = load_reusable_ssl_encoder_checkpoint(
+                    checkpoint_path,
+                    expected_metadata=expected_metadata[branch],
+                    reuse_only=False,
+                )
+            except ValueError as exc:
+                if not (args.ssl_only_cache and args.save_ssl_encoders):
+                    raise
+                print(
+                    f"[segssl] existing checkpoint is not reusable and will be regenerated "
+                    f"during explicit ssl-only cache refresh: {checkpoint_path} ({exc})"
+                )
+                checkpoint = None
             if checkpoint is None:
                 missing_branches.append(branch)
                 continue
@@ -411,6 +419,13 @@ def _run_or_load_segment_ssl_pretraining(
                 raise ValueError(f"SSL checkpoint {checkpoint_path} is missing encoder_state_dict.")
             loaded_state.update(prefix_branch_encoder_state_dict(branch, encoder_state))
         if not missing_branches and loaded_state:
+            for branch, checkpoint_path in checkpoint_paths.items():
+                update_ssl_checkpoint_manifest(
+                    checkpoint_dir,
+                    checkpoint_path,
+                    expected_metadata[branch],
+                    status="reused",
+                )
             return loaded_state, _checkpoint_reuse_history(
                 objective=objective,
                 feature_kind=args.segment_feature_kind,
@@ -438,6 +453,12 @@ def _run_or_load_segment_ssl_pretraining(
                 metadata,
                 encoder_state,
                 prefixed_state_dict=prefix_branch_encoder_state_dict(branch, encoder_state),
+            )
+            update_ssl_checkpoint_manifest(
+                checkpoint_dir,
+                checkpoint_path,
+                metadata,
+                status="saved",
             )
     return pretrained_state, ssl_history
 

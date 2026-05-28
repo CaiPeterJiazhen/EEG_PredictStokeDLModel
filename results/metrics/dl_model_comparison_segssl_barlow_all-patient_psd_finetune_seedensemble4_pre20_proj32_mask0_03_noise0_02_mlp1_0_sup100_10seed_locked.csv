@@ -1,0 +1,2 @@
+model,ensemble_size,accuracy,balanced_accuracy,sensitivity,specificity,precision,f1,brier_score,roc_auc,pr_auc,run_name,segment_ssl,segment_ssl_objective,segment_ssl_feature_kind,ssl_data_scope,seed
+seed_ensemble,4,0.7894736842105263,0.7777777777777778,1.0,0.5555555555555556,0.7142857142857143,0.8333333333333334,0.21192479231072553,0.8333333333333334,0.8613170163170162,segssl_barlow_all-patient_psd_finetune_seedensemble4_pre20_proj32_mask0_03_noise0_02_mlp1_0_sup100_10seed_locked,True,barlow,psd,all-patient,ensemble

@@ -38,6 +38,16 @@ def _bag(subject_id: str, label: int, value: float) -> WPLISegmentBagRecord:
     )
 
 
+def _locked_segment_barlow_metadata_fields(fold: LOSOFold, *, seed: int = 0) -> dict[str, object]:
+    return {
+        "effective_seed": seed + fold.fold_index,
+        "historical_unlabeled_pretraining": True,
+        "batch_size": 16,
+        "lambda_latent": 1.0,
+        "lambda_local": 0.1,
+    }
+
+
 def test_fold_local_segment_scaler_uses_only_fit_subjects() -> None:
     fit_bag = _bag("sub01", 0, 1.0)
     val_bag = _bag("sub02", 1, 50.0)
@@ -95,6 +105,7 @@ def test_wpli_segment_barlow_checkpoint_metadata_mismatch_raises(tmp_path: Path)
         "ssl_objective": "barlow",
         "segment_ssl_method": "segment_barlow",
         "base_seed": 0,
+        **_locked_segment_barlow_metadata_fields(fold),
         "fold_index": fold.fold_index,
         "test_subject_id": fold.test_subject_id,
         "excluded_subject_id": fold.test_subject_id,
@@ -149,6 +160,7 @@ def test_wpli_segment_barlow_checkpoint_loader_supports_tagged_pure_wpli_checkpo
         "ssl_objective": "barlow",
         "segment_ssl_method": "segment_barlow",
         "base_seed": 0,
+        **_locked_segment_barlow_metadata_fields(fold),
         "fold_index": fold.fold_index,
         "test_subject_id": fold.test_subject_id,
         "excluded_subject_id": fold.test_subject_id,
@@ -198,6 +210,7 @@ def test_wpli_segment_barlow_resolver_extracts_dual_checkpoint_when_branch_speci
                 "ssl_objective": "barlow",
                 "segment_ssl_method": "dual_segment_barlow",
                 "base_seed": 0,
+                **_locked_segment_barlow_metadata_fields(fold),
                 "fold_index": fold.fold_index,
                 "test_subject_id": fold.test_subject_id,
                 "excluded_subject_id": fold.test_subject_id,
@@ -237,6 +250,7 @@ def test_wpli_segment_barlow_resolver_extracts_dual_checkpoint_when_branch_speci
     torch.testing.assert_close(resolution.encoder_state_dict["encoder.network.0.weight"], torch.full((1,), 5.0))
     saved = torch.load(resolution.checkpoint_path, map_location="cpu")
     assert saved["metadata"]["branch"] == "wpli"
+    assert saved["metadata"]["effective_seed"] == 4
     assert saved["metadata"]["source_feature_manifest_hash"] == "wpli-manifest"
 
 

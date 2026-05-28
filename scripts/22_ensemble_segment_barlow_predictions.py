@@ -20,6 +20,7 @@ from eeg_recovery.training.segment_barlow_model_selection import (
     evaluate_prediction_frame,
     leave_one_seed_thresholds,
     load_required_prediction_csv,
+    validate_locked_seed_summary,
 )
 
 
@@ -60,9 +61,9 @@ def main() -> None:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--config", default=PROJECT_ROOT / "configs" / "paths.example.yaml")
-    parser.add_argument("--psd-results-dir", required=True)
-    parser.add_argument("--wpli-results-dir", required=True)
-    parser.add_argument("--no-ssl-results-dir", default=None)
+    parser.add_argument("--psd-results-dir", nargs="+", default=None)
+    parser.add_argument("--wpli-results-dir", nargs="+", default=None)
+    parser.add_argument("--no-ssl-results-dir", nargs="+", default=None)
     parser.add_argument("--seeds", type=int, nargs="+", default=DEFAULT_SEEDS)
     parser.add_argument(
         "--ensemble",
@@ -70,10 +71,16 @@ def main() -> None:
         choices=sorted(ENSEMBLE_DEFINITIONS),
         default=["psd_wpli", "no_ssl_wpli", "no_ssl_psd_wpli"],
     )
-    parser.add_argument("--threshold-method", nargs="+", choices=("fixed", "oof"), default=["fixed", "oof"])
+    parser.add_argument(
+        "--threshold-method",
+        nargs="+",
+        choices=("fixed", "oof", "leave_one_seed_out_oof"),
+        default=["fixed", "leave_one_seed_out_oof"],
+    )
     parser.add_argument("--output-tag", default="segment_barlow_model_selection")
     parser.add_argument("--calibration-metric", choices=("balanced_accuracy", "accuracy", "f1"), default="balanced_accuracy")
     args = parser.parse_args()
+    threshold_methods = _normalize_threshold_methods(args.threshold_method)
 
     path_config = load_path_config(args.config)
     output_root = Path(path_config.output_root)
@@ -83,12 +90,15 @@ def main() -> None:
     metric_dir.mkdir(parents=True, exist_ok=True)
 
     seed_frames_by_model: dict[str, dict[int, pd.DataFrame]] = {
-        "psd": _load_seed_frames(Path(args.psd_results_dir), args.seeds, model_kind="psd"),
-        "wpli": _load_seed_frames(Path(args.wpli_results_dir), args.seeds, model_kind="wpli"),
+        "psd": _load_seed_frames(_result_roots(args.psd_results_dir, output_root, default_export="20260527_local_psd_segssl"), args.seeds, model_kind="psd"),
+        "wpli": _load_seed_frames(_result_roots(args.wpli_results_dir, output_root, default_export="20260527_remote_fc_wpli_segssl"), args.seeds, model_kind="wpli"),
     }
-    no_ssl_root = Path(args.no_ssl_results_dir) if args.no_ssl_results_dir else output_root
     try:
-        seed_frames_by_model["no_ssl"] = _load_seed_frames(no_ssl_root, args.seeds, model_kind="no_ssl")
+        seed_frames_by_model["no_ssl"] = _load_seed_frames(
+            _result_roots(args.no_ssl_results_dir, output_root),
+            args.seeds,
+            model_kind="no_ssl",
+        )
     except FileNotFoundError as exc:
         print(f"[segment-barlow-selection] no-SSL predictions unavailable: {exc}")
 
@@ -125,7 +135,7 @@ def main() -> None:
         group_labels[model_group] = (definition["label"], "equal")
         ensemble_predictions = pd.concat(per_seed.values(), ignore_index=True)
         ensemble_predictions["y_pred_fixed_0.5"] = (ensemble_predictions["y_score"].to_numpy(dtype=float) >= 0.5).astype(int)
-        ensemble_path = prediction_dir / definition["output"]
+        ensemble_path = prediction_dir / _tagged_output_name(definition["output"], output_tag=args.output_tag)
         ensemble_predictions.to_csv(ensemble_path, index=False)
         ensemble_output_paths[model_group] = ensemble_path
 
@@ -137,7 +147,7 @@ def main() -> None:
 
     for model_group, per_seed in model_groups.items():
         ensemble_members, ensemble_weighting = group_labels[model_group]
-        threshold_map = leave_one_seed_thresholds(per_seed, metric=args.calibration_metric) if "oof" in args.threshold_method else {}
+        threshold_map = leave_one_seed_thresholds(per_seed, metric=args.calibration_metric) if "leave_one_seed_out_oof" in threshold_methods else {}
         if threshold_map:
             for seed, threshold in threshold_map.items():
                 threshold_rows.append(
@@ -153,7 +163,7 @@ def main() -> None:
                     }
                 )
 
-        for method in args.threshold_method:
+        for method in threshold_methods:
             seed_metric_rows = []
             prediction_frames_for_errors = []
             if method == "fixed":
@@ -250,18 +260,21 @@ def main() -> None:
             ]
 
     for model_group, rows in ensemble_metric_rows.items():
-        path = metric_dir / _ensemble_metric_filename(model_group)
+        path = metric_dir / _tagged_output_name(_ensemble_metric_filename(model_group), output_tag=args.output_tag)
         pd.DataFrame(rows).to_csv(path, index=False)
 
-    pd.DataFrame(metrics_rows).to_csv(metric_dir / "segment_barlow_ensemble_metrics_all.csv", index=False)
-    pd.DataFrame(threshold_rows).to_csv(metric_dir / "segment_barlow_ensemble_threshold_summary.csv", index=False)
-    pd.DataFrame(summary_rows).to_csv(metric_dir / "segment_barlow_model_selection_summary.csv", index=False)
+    summary_frame = pd.DataFrame(summary_rows)
+    if _output_tag_token(args.output_tag) == "10seed":
+        validate_locked_seed_summary(summary_frame, expected_n_seeds=len(args.seeds))
+    pd.DataFrame(metrics_rows).to_csv(metric_dir / _tagged_output_name("segment_barlow_ensemble_metrics_all.csv", output_tag=args.output_tag), index=False)
+    pd.DataFrame(threshold_rows).to_csv(metric_dir / _tagged_output_name("segment_barlow_ensemble_threshold_summary.csv", output_tag=args.output_tag), index=False)
+    summary_frame.to_csv(metric_dir / _tagged_output_name("segment_barlow_model_selection_summary.csv", output_tag=args.output_tag), index=False)
     if error_frequency_frames:
         errors_all = pd.concat(error_frequency_frames, ignore_index=True)
-        errors_all.to_csv(metric_dir / "segment_barlow_subject_error_frequency.csv", index=False)
+        errors_all.to_csv(metric_dir / _tagged_output_name("segment_barlow_subject_error_frequency.csv", output_tag=args.output_tag), index=False)
     if sub_focus_frames:
         sub_focus = pd.concat(sub_focus_frames, ignore_index=True)
-        sub_focus.to_csv(metric_dir / "sub09_sub14_model_scores_summary.csv", index=False)
+        sub_focus.to_csv(metric_dir / _tagged_output_name("sub09_sub14_model_scores_summary.csv", output_tag=args.output_tag), index=False)
 
     exploratory = pd.DataFrame(
         [
@@ -272,23 +285,42 @@ def main() -> None:
             }
         ]
     )
-    exploratory.to_csv(metric_dir / "segment_barlow_exploratory_disabled.csv", index=False)
-    print(f"Wrote model selection summary: {metric_dir / 'segment_barlow_model_selection_summary.csv'}")
+    exploratory.to_csv(metric_dir / _tagged_output_name("segment_barlow_exploratory_disabled.csv", output_tag=args.output_tag), index=False)
+    print(f"Wrote model selection summary: {metric_dir / _tagged_output_name('segment_barlow_model_selection_summary.csv', output_tag=args.output_tag)}")
 
 
-def _load_seed_frames(root: Path, seeds: list[int], *, model_kind: str) -> dict[int, pd.DataFrame]:
+def _load_seed_frames(roots: list[Path], seeds: list[int], *, model_kind: str) -> dict[int, pd.DataFrame]:
     frames: dict[int, pd.DataFrame] = {}
     for seed in seeds:
-        path = _find_seed_prediction(root, seed=seed, model_kind=model_kind)
+        path = _find_seed_prediction(roots, seed=seed, model_kind=model_kind)
         frame = load_required_prediction_csv(path, model_name=model_kind)
         frame["seed"] = seed
         frames[seed] = frame
     return frames
 
 
-def _find_seed_prediction(root: Path, *, seed: int, model_kind: str) -> Path:
+def _find_seed_prediction(roots: list[Path], *, seed: int, model_kind: str) -> Path:
+    all_matches: list[Path] = []
+    for root in roots:
+        matched = _find_seed_prediction_in_root(root, seed=seed, model_kind=model_kind)
+        if len(matched) == 1:
+            return matched[0]
+        if len(matched) > 1:
+            joined = "\n".join(str(path) for path in matched[:10])
+            raise FileNotFoundError(
+                f"Expected exactly one {model_kind} prediction CSV for seed {seed} under {root}, "
+                f"found {len(matched)}.\n{joined}"
+            )
+        all_matches.extend(matched)
+    searched = "\n".join(str(root) for root in roots)
+    raise FileNotFoundError(
+        f"Expected exactly one {model_kind} prediction CSV for seed {seed}; searched:\n{searched}"
+    )
+
+
+def _find_seed_prediction_in_root(root: Path, *, seed: int, model_kind: str) -> list[Path]:
     search_dirs = [path for path in (root, root / "predictions", root / "results" / "predictions") if path.exists()]
-    paths = []
+    paths: list[Path] = []
     for search_dir in search_dirs:
         paths.extend(search_dir.glob("*.csv"))
     candidates = [
@@ -298,7 +330,7 @@ def _find_seed_prediction(root: Path, *, seed: int, model_kind: str) -> Path:
         and f"seed{seed}_" in path.name
         and "seedensemble" not in path.name
     ]
-    matched = []
+    matched: list[Path] = []
     for path in candidates:
         name = path.name
         if model_kind == "no_ssl":
@@ -319,13 +351,7 @@ def _find_seed_prediction(root: Path, *, seed: int, model_kind: str) -> Path:
             matched.append(path)
         elif model_kind == "wpli" and feature_kind == "fc-wpli":
             matched.append(path)
-    if len(matched) != 1:
-        joined = "\n".join(str(path) for path in matched[:10])
-        raise FileNotFoundError(
-            f"Expected exactly one {model_kind} prediction CSV for seed {seed} under {root}, "
-            f"found {len(matched)}.\n{joined}"
-        )
-    return matched[0]
+    return matched
 
 
 def _annotate_model_frame(frame: pd.DataFrame, *, model_group: str, seed: int) -> pd.DataFrame:
@@ -376,6 +402,49 @@ def _ensemble_metric_filename(model_group: str) -> str:
     if model_group == "no_ssl_psd_wpli_equal_weight":
         return "ensemble_metrics_no_ssl_psd_wpli_equal_weight.csv"
     return f"ensemble_metrics_{model_group}.csv"
+
+
+def _normalize_threshold_methods(methods: list[str]) -> list[str]:
+    normalized = []
+    for method in methods:
+        resolved = "leave_one_seed_out_oof" if method == "oof" else method
+        if resolved not in normalized:
+            normalized.append(resolved)
+    return normalized
+
+
+def _result_roots(values: list[str] | None, output_root: Path, *, default_export: str | None = None) -> list[Path]:
+    if values:
+        return [Path(value) for value in values]
+    roots = [output_root]
+    if default_export is not None:
+        export_root = PROJECT_ROOT / "docs" / "experiment_exports" / default_export
+        if export_root.exists():
+            roots.append(export_root)
+    return roots
+
+
+def _tagged_output_name(filename: str, *, output_tag: str | None) -> str:
+    token = _output_tag_token(output_tag)
+    if token is None:
+        return filename
+    if filename == "sub09_sub14_model_scores_summary.csv" and token == "10seed":
+        return "sub09_sub14_10seed_model_scores_summary.csv"
+    path = Path(filename)
+    stem = path.stem
+    if stem.startswith("segment_barlow_"):
+        stem = stem.replace("segment_barlow_", f"segment_barlow_{token}_", 1)
+    else:
+        stem = f"{stem}_{token}"
+    return f"{stem}{path.suffix}"
+
+
+def _output_tag_token(output_tag: str | None) -> str | None:
+    if not output_tag or output_tag == "segment_barlow_model_selection":
+        return None
+    if output_tag in {"10seed", "10seed_locked"}:
+        return "10seed"
+    return "".join(character if character.isalnum() else "_" for character in output_tag).strip("_")
 
 
 if __name__ == "__main__":

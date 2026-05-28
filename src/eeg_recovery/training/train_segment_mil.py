@@ -188,6 +188,9 @@ def load_wpli_segment_barlow_encoder_for_fold(
     source_feature_manifest_hash: str,
     dropout: float = 0.0,
     pretrain_lr: float = 1e-3,
+    pretrain_batch_size: int = 16,
+    lambda_latent: float = 1.0,
+    lambda_local: float = 0.1,
     checkpoint_tag: str | None = None,
     reuse_only: bool = True,
     train_if_missing: Callable[[Path, dict[str, object]], None] | None = None,
@@ -212,6 +215,9 @@ def load_wpli_segment_barlow_encoder_for_fold(
         source_feature_manifest_hash=source_feature_manifest_hash,
         dropout=dropout,
         pretrain_lr=pretrain_lr,
+        pretrain_batch_size=pretrain_batch_size,
+        lambda_latent=lambda_latent,
+        lambda_local=lambda_local,
     )
     if not checkpoint_path.exists():
         if reuse_only or train_if_missing is None:
@@ -240,6 +246,9 @@ def resolve_existing_wpli_segment_barlow_encoder_for_fold(
     dual_source_feature_manifest_hash: str | None = None,
     dropout: float = 0.0,
     pretrain_lr: float = 1e-3,
+    pretrain_batch_size: int = 16,
+    lambda_latent: float = 1.0,
+    lambda_local: float = 0.1,
     dual_checkpoint_dir: str | Path | None = None,
 ) -> WPLIEncoderCheckpointResolution:
     """Resolve an existing strict LOSO WPLI SSL encoder without training.
@@ -261,6 +270,9 @@ def resolve_existing_wpli_segment_barlow_encoder_for_fold(
         source_feature_manifest_hash=source_feature_manifest_hash,
         dropout=dropout,
         pretrain_lr=pretrain_lr,
+        pretrain_batch_size=pretrain_batch_size,
+        lambda_latent=lambda_latent,
+        lambda_local=lambda_local,
     )
     rejection_messages: list[str] = []
     for tag in (None, FOLDSTRICT_WPLI_CHECKPOINT_TAG):
@@ -286,6 +298,9 @@ def resolve_existing_wpli_segment_barlow_encoder_for_fold(
                 source_feature_manifest_hash=source_feature_manifest_hash,
                 dropout=dropout,
                 pretrain_lr=pretrain_lr,
+                pretrain_batch_size=pretrain_batch_size,
+                lambda_latent=lambda_latent,
+                lambda_local=lambda_local,
                 checkpoint_tag=tag,
                 reuse_only=True,
             )
@@ -308,6 +323,9 @@ def resolve_existing_wpli_segment_barlow_encoder_for_fold(
             source_feature_manifest_hash=dual_source_feature_manifest_hash,
             dropout=dropout,
             pretrain_lr=pretrain_lr,
+            pretrain_batch_size=pretrain_batch_size,
+            lambda_latent=lambda_latent,
+            lambda_local=lambda_local,
         )
         extracted_path = wpli_segment_barlow_checkpoint_path(
             checkpoint_dir=checkpoint_root,
@@ -360,6 +378,9 @@ def expected_wpli_segment_barlow_metadata(
     source_feature_manifest_hash: str,
     dropout: float,
     pretrain_lr: float,
+    pretrain_batch_size: int = 16,
+    lambda_latent: float = 1.0,
+    lambda_local: float = 0.1,
 ) -> dict[str, object]:
     return {
         "checkpoint_type": "segment_ssl_encoder",
@@ -367,10 +388,12 @@ def expected_wpli_segment_barlow_metadata(
         "ssl_objective": "barlow",
         "segment_ssl_method": "segment_barlow",
         "base_seed": seed,
+        "effective_seed": seed + fold.fold_index,
         "fold_index": fold.fold_index,
         "test_subject_id": fold.test_subject_id,
         "excluded_subject_id": fold.test_subject_id,
         "ssl_data_scope": ssl_data_scope,
+        "historical_unlabeled_pretraining": ssl_data_scope in {"all-patient", "all-patient-health"},
         "segment_feature_kind": "fc-wpli",
         "supervised_feature_kind": "psd-fc-wpli",
         "feature_kind": "fc-wpli",
@@ -380,8 +403,11 @@ def expected_wpli_segment_barlow_metadata(
         "projection_dim": 32,
         "pretrain_epochs": pretrain_epochs,
         "pretrain_lr": pretrain_lr,
+        "batch_size": pretrain_batch_size,
         "feature_mask_prob": 0.03,
         "noise_std": 0.02,
+        "lambda_latent": lambda_latent,
+        "lambda_local": lambda_local,
         "source_feature_manifest_hash": source_feature_manifest_hash,
     }
 
@@ -396,6 +422,9 @@ def expected_dual_segment_barlow_metadata(
     source_feature_manifest_hash: str,
     dropout: float,
     pretrain_lr: float,
+    pretrain_batch_size: int = 16,
+    lambda_latent: float = 1.0,
+    lambda_local: float = 0.1,
 ) -> dict[str, object]:
     return {
         "checkpoint_type": "dual_segment_ssl_encoder",
@@ -403,10 +432,12 @@ def expected_dual_segment_barlow_metadata(
         "ssl_objective": "barlow",
         "segment_ssl_method": "dual_segment_barlow",
         "base_seed": seed,
+        "effective_seed": seed + fold.fold_index,
         "fold_index": fold.fold_index,
         "test_subject_id": fold.test_subject_id,
         "excluded_subject_id": fold.test_subject_id,
         "ssl_data_scope": ssl_data_scope,
+        "historical_unlabeled_pretraining": ssl_data_scope in {"all-patient", "all-patient-health"},
         "segment_feature_kind": "psd-fc-wpli",
         "supervised_feature_kind": "psd-fc-wpli",
         "feature_kind": "psd-fc-wpli",
@@ -416,8 +447,11 @@ def expected_dual_segment_barlow_metadata(
         "projection_dim": 32,
         "pretrain_epochs": pretrain_epochs,
         "pretrain_lr": pretrain_lr,
+        "batch_size": pretrain_batch_size,
         "feature_mask_prob": 0.03,
         "noise_std": 0.02,
+        "lambda_latent": lambda_latent,
+        "lambda_local": lambda_local,
         "source_feature_manifest_hash": source_feature_manifest_hash,
     }
 

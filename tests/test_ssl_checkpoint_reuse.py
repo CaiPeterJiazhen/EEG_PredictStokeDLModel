@@ -3,10 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 import subprocess
 
+import pandas as pd
 import pytest
 import torch
 
+from eeg_recovery.training.train_segment_ssl import write_segment_ssl_only_cache_history
 from eeg_recovery.training.ssl_checkpointing import (
+    REQUIRED_SSL_METADATA_FIELDS,
     load_reusable_ssl_encoder_checkpoint,
     load_ssl_encoder_checkpoint,
     save_ssl_encoder_checkpoint,
@@ -103,3 +106,33 @@ def test_checkpoint_extensions_are_gitignored() -> None:
     assert "example.pt" in result.stdout
     assert "example.pth" in result.stdout
     assert "example.ckpt" in result.stdout
+
+
+def test_checkpoint_metadata_requires_locked_protocol_fields() -> None:
+    required = set(REQUIRED_SSL_METADATA_FIELDS)
+
+    for field in (
+        "effective_seed",
+        "historical_unlabeled_pretraining",
+        "pretrain_lr",
+        "batch_size",
+        "lambda_latent",
+        "lambda_local",
+    ):
+        assert field in required
+
+
+def test_ssl_only_cache_history_writer_does_not_create_supervised_outputs(tmp_path: Path) -> None:
+    history = torch.tensor([1.0]).numpy()
+    frame = pd.DataFrame({"epoch": [1], "loss": history})
+
+    history_path = write_segment_ssl_only_cache_history(
+        output_root=tmp_path,
+        run_name="segssl_seed4_cache",
+        ssl_history=frame,
+    )
+
+    assert history_path.exists()
+    assert history_path.name.endswith("_ssl_only_cache.csv")
+    assert not (tmp_path / "results" / "predictions").exists()
+    assert not (tmp_path / "results" / "metrics").exists()

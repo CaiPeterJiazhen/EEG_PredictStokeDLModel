@@ -310,6 +310,8 @@ def compute_per_subject_error_frequency(
     summary["std_y_score"] = summary["std_y_score"].fillna(0.0)
     summary["repeatedly_wrong_flag"] = (summary["error_rate"] >= 0.5).map(bool).astype(object)
     summary["borderline_label_flag"] = pd.NA
+    summary["residual"] = summary["y_true"].astype(float) - summary["mean_y_score"].astype(float)
+    summary["distance_to_threshold"] = (summary["mean_y_score"].astype(float) - float(threshold)).abs()
     columns = [
         "subject_id",
         "y_true",
@@ -324,8 +326,48 @@ def compute_per_subject_error_frequency(
         "mean_y_pred",
         "repeatedly_wrong_flag",
         "borderline_label_flag",
+        "residual",
+        "distance_to_threshold",
     ]
     return summary[columns]
+
+
+def validate_locked_seed_summary(
+    summary: pd.DataFrame,
+    *,
+    expected_n_seeds: int = 10,
+    required_model_groups: Sequence[str] | None = None,
+) -> None:
+    required_columns = {"model_group", "aggregation", "threshold_method", "n_seeds"}
+    missing = required_columns - set(summary.columns)
+    if missing:
+        raise ValueError(f"Summary missing required column(s): {', '.join(sorted(missing))}")
+    model_groups = tuple(
+        required_model_groups
+        if required_model_groups is not None
+        else (
+            "no_ssl_stable_cnn",
+            "psd_segbarlow_ssl_cnn",
+            "wpli_segbarlow_ssl_cnn",
+            "psd_wpli_segbarlow_equal_weight",
+        )
+    )
+    primary = summary.loc[
+        (summary["aggregation"] == "seed_mean_probability")
+        & (summary["threshold_method"] == "fixed_0.5")
+        & (summary["model_group"].isin(model_groups))
+    ].copy()
+    found = set(primary["model_group"].astype(str))
+    missing_groups = sorted(set(model_groups) - found)
+    if missing_groups:
+        raise ValueError(f"Summary missing locked model group(s): {', '.join(missing_groups)}")
+    bad = primary.loc[primary["n_seeds"].astype(int) != int(expected_n_seeds)]
+    if not bad.empty:
+        details = ", ".join(
+            f"{row.model_group}={int(row.n_seeds)}"
+            for row in bad.itertuples(index=False)
+        )
+        raise ValueError(f"Expected {expected_n_seeds} locked seeds for primary rows, got {details}")
 
 
 def _normalize_prediction_frame(frame: pd.DataFrame) -> pd.DataFrame:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 from datetime import datetime, timezone
 from pathlib import Path
 import re
@@ -14,10 +15,12 @@ REQUIRED_SSL_METADATA_FIELDS = (
     "ssl_objective",
     "segment_ssl_method",
     "base_seed",
+    "effective_seed",
     "fold_index",
     "test_subject_id",
     "excluded_subject_id",
     "ssl_data_scope",
+    "historical_unlabeled_pretraining",
     "segment_feature_kind",
     "supervised_feature_kind",
     "encoder_kind",
@@ -25,8 +28,12 @@ REQUIRED_SSL_METADATA_FIELDS = (
     "dropout",
     "projection_dim",
     "pretrain_epochs",
+    "pretrain_lr",
+    "batch_size",
     "feature_mask_prob",
     "noise_std",
+    "lambda_latent",
+    "lambda_local",
     "source_feature_manifest_hash",
 )
 
@@ -59,6 +66,39 @@ DUAL_SEGMENT_BARLOW_REQUIRED_METADATA_FIELDS = (
 )
 
 WPLI_BRANCH_ENCODER_PREFIX = "branch_models.wpli.encoder."
+
+SSL_CHECKPOINT_MANIFEST_NAME = "segment_ssl_checkpoint_manifest.csv"
+SSL_CHECKPOINT_MANIFEST_COLUMNS = (
+    "checkpoint_path",
+    "status",
+    "updated_at",
+    "checkpoint_type",
+    "branch",
+    "ssl_objective",
+    "segment_ssl_method",
+    "base_seed",
+    "effective_seed",
+    "fold_index",
+    "test_subject_id",
+    "excluded_subject_id",
+    "ssl_data_scope",
+    "historical_unlabeled_pretraining",
+    "segment_feature_kind",
+    "supervised_feature_kind",
+    "encoder_kind",
+    "embedding_dim",
+    "dropout",
+    "projection_dim",
+    "pretrain_epochs",
+    "pretrain_lr",
+    "batch_size",
+    "feature_mask_prob",
+    "noise_std",
+    "lambda_latent",
+    "lambda_local",
+    "n_ssl_segments",
+    "source_feature_manifest_hash",
+)
 
 
 def make_ssl_checkpoint_name(
@@ -107,6 +147,43 @@ def save_ssl_encoder_checkpoint(
     payload["metadata"].setdefault("checkpoint_type", payload["checkpoint_type"])
     torch.save(payload, checkpoint_path)
     return checkpoint_path
+
+
+def update_ssl_checkpoint_manifest(
+    checkpoint_dir: str | Path,
+    checkpoint_path: str | Path,
+    metadata: Mapping[str, object],
+    *,
+    status: str,
+) -> Path:
+    manifest_path = Path(checkpoint_dir) / SSL_CHECKPOINT_MANIFEST_NAME
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    checkpoint_text = str(Path(checkpoint_path))
+    row = {
+        "checkpoint_path": checkpoint_text,
+        "status": status,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    for column in SSL_CHECKPOINT_MANIFEST_COLUMNS:
+        if column in row:
+            continue
+        value = metadata.get(column, "")
+        row[column] = str(value) if value is not None else ""
+
+    rows: list[dict[str, str]] = []
+    if manifest_path.exists():
+        with manifest_path.open("r", newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            for existing in reader:
+                if existing.get("checkpoint_path") != checkpoint_text:
+                    rows.append({column: existing.get(column, "") for column in SSL_CHECKPOINT_MANIFEST_COLUMNS})
+    rows.append({column: str(row.get(column, "")) for column in SSL_CHECKPOINT_MANIFEST_COLUMNS})
+    rows.sort(key=lambda item: (item.get("branch", ""), item.get("base_seed", ""), item.get("fold_index", ""), item.get("checkpoint_path", "")))
+    with manifest_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(SSL_CHECKPOINT_MANIFEST_COLUMNS))
+        writer.writeheader()
+        writer.writerows(rows)
+    return manifest_path
 
 
 def load_ssl_encoder_checkpoint(

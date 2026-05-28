@@ -453,6 +453,20 @@ def write_segment_ssl_transfer_outputs(
     return paths
 
 
+def write_segment_ssl_only_cache_history(
+    *,
+    output_root: str | Path,
+    run_name: str,
+    ssl_history: pd.DataFrame,
+) -> Path:
+    root = Path(output_root)
+    safe = _safe_run_name(run_name)
+    path = root / "results" / "ssl" / f"segment_ssl_history_{safe}_ssl_only_cache.csv"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ssl_history.to_csv(path, index=False)
+    return path
+
+
 def summarize_seed_metrics(metrics_frames: Iterable[pd.DataFrame]) -> pd.DataFrame:
     frames = [frame.copy() for frame in metrics_frames]
     if not frames:

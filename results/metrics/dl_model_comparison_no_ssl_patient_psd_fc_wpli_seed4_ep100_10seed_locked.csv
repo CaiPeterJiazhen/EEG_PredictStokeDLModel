@@ -1,0 +1,2 @@
+model,architecture,feature_kind,fusion,encoder_kind,pretrained,pretrained_transfer_mode,status,skip_reason,learning_rate,weight_decay,positive_class_weight,negative_class_weight,embedding_dim,dropout,seed,accuracy,balanced_accuracy,sensitivity,specificity,precision,f1,brier_score,roc_auc,pr_auc
+multimodal_psd-fc-wpli_gated_cnn,multimodal,psd-fc-wpli,gated,cnn,False,none,trained,,0.002,1e-05,1.0,1.0,32,0.0,4,0.6842105263157895,0.6722222222222223,0.9,0.4444444444444444,0.6428571428571429,0.75,0.23715938320394603,0.7333333333333334,0.7786796536796536

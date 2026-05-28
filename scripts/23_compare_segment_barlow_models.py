@@ -21,10 +21,15 @@ from eeg_recovery.training.segment_barlow_model_selection import (
 
 
 BOOTSTRAP_METRICS = ["accuracy", "balanced_accuracy", "roc_auc", "pr_auc", "brier_score"]
+SSL_ONLY_MODEL_GROUPS = {
+    "psd_segbarlow_ssl_cnn",
+    "wpli_segbarlow_ssl_cnn",
+    "psd_wpli_segbarlow_equal_weight",
+}
 PAIRED_COMPARISONS = [
-    ("no_ssl_stable_cnn", "wpli_segbarlow_ssl_cnn"),
     ("no_ssl_stable_cnn", "psd_segbarlow_ssl_cnn"),
-    ("wpli_segbarlow_ssl_cnn", "psd_segbarlow_ssl_cnn"),
+    ("no_ssl_stable_cnn", "wpli_segbarlow_ssl_cnn"),
+    ("no_ssl_stable_cnn", "psd_wpli_segbarlow_equal_weight"),
     ("wpli_segbarlow_ssl_cnn", "psd_wpli_segbarlow_equal_weight"),
 ]
 
@@ -39,6 +44,7 @@ def main() -> None:
     parser.add_argument("--bootstrap", type=int, default=5000)
     parser.add_argument("--permutation", type=int, default=5000)
     parser.add_argument("--random-seed", type=int, default=20260527)
+    parser.add_argument("--output-tag", default=None)
     args = parser.parse_args()
 
     path_config = load_path_config(args.config)
@@ -75,19 +81,27 @@ def main() -> None:
             continue
         rows.extend(_paired_comparison_rows(predictions[model_a], predictions[model_b], model_a=model_a, model_b=model_b, rng=rng))
 
-    selected_row = _select_final_candidate(primary)
-    if selected_row is not None and selected_row["model_group"] in predictions:
+    seen_permutation_models = set()
+    for selection_scope, selected_row in _selected_permutation_rows(primary):
+        if selected_row is None or selected_row["model_group"] not in predictions:
+            continue
+        model_group = str(selected_row["model_group"])
+        if model_group in seen_permutation_models and selection_scope != "overall_selected":
+            continue
+        seen_permutation_models.add(model_group)
+        permutation_row = _permutation_random_label_row(
+            predictions[model_group],
+            model_group=model_group,
+            threshold=float(selected_row["threshold"]),
+            n_permutations=args.permutation,
+            rng=rng,
+        )
+        permutation_row["selection_scope"] = selection_scope
         rows.append(
-            _permutation_random_label_row(
-                predictions[selected_row["model_group"]],
-                model_group=str(selected_row["model_group"]),
-                threshold=float(selected_row["threshold"]),
-                n_permutations=args.permutation,
-                rng=rng,
-            )
+            permutation_row
         )
 
-    output_path = metric_dir / "segment_barlow_statistical_comparison.csv"
+    output_path = metric_dir / _tagged_output_name("segment_barlow_statistical_comparison.csv", output_tag=args.output_tag)
     pd.DataFrame(rows).to_csv(output_path, index=False)
     print(f"Wrote statistical comparison: {output_path}")
 
@@ -172,12 +186,7 @@ def _paired_comparison_rows(
     a_only = int((correct_a & ~correct_b).sum())
     discordant = b_only + a_only
     sign_p = float(binomtest(b_only, discordant, p=0.5).pvalue) if discordant else 1.0
-    score_diff = aligned["y_score_b"].to_numpy(dtype=float) - aligned["y_score_a"].to_numpy(dtype=float)
-    boot = []
-    for _ in range(5000):
-        indices = rng.integers(0, len(aligned), size=len(aligned))
-        boot.append(float(score_diff[indices].mean()))
-    return [
+    rows = [
         {
             "analysis_type": "paired_correctness_sign_test",
             "model_a": model_a,
@@ -190,17 +199,45 @@ def _paired_comparison_rows(
             "p_value": sign_p,
             "n_subjects": len(aligned),
         },
+    ]
+    rows.extend(_paired_metric_bootstrap_rows(aligned, model_a=model_a, model_b=model_b, rng=rng))
+    return rows
+
+
+def _paired_metric_bootstrap_rows(
+    aligned: pd.DataFrame,
+    *,
+    model_a: str,
+    model_b: str,
+    rng: np.random.Generator,
+    n_resamples: int = 5000,
+) -> list[dict[str, object]]:
+    y_true = aligned["y_true_a"].to_numpy(dtype=int)
+    score_a = aligned["y_score_a"].to_numpy(dtype=float)
+    score_b = aligned["y_score_b"].to_numpy(dtype=float)
+    metrics = ("roc_auc", "pr_auc", "brier_score")
+    observed_a = classification_metrics_from_scores(y_true, score_a, threshold=0.5)
+    observed_b = classification_metrics_from_scores(y_true, score_b, threshold=0.5)
+    values = {metric: [] for metric in metrics}
+    for _ in range(n_resamples):
+        indices = rng.integers(0, len(aligned), size=len(aligned))
+        boot_a = classification_metrics_from_scores(y_true[indices], score_a[indices], threshold=0.5)
+        boot_b = classification_metrics_from_scores(y_true[indices], score_b[indices], threshold=0.5)
+        for metric in metrics:
+            values[metric].append(float(boot_b[metric]) - float(boot_a[metric]))
+    return [
         {
             "analysis_type": "paired_score_bootstrap",
             "model_a": model_a,
             "model_b": model_b,
-            "metric": "mean_score_b_minus_a",
-            "observed": float(score_diff.mean()),
-            "ci_low": _nanpercentile(np.asarray(boot), 2.5),
-            "ci_high": _nanpercentile(np.asarray(boot), 97.5),
-            "n_resamples": 5000,
+            "metric": f"{metric}_b_minus_a",
+            "observed": float(observed_b[metric]) - float(observed_a[metric]),
+            "ci_low": _nanpercentile(np.asarray(values[metric], dtype=float), 2.5),
+            "ci_high": _nanpercentile(np.asarray(values[metric], dtype=float), 97.5),
+            "n_resamples": n_resamples,
             "n_subjects": len(aligned),
-        },
+        }
+        for metric in metrics
     ]
 
 
@@ -212,6 +249,14 @@ def _select_final_candidate(primary: pd.DataFrame) -> pd.Series | None:
     if candidate.empty:
         return None
     return candidate.iloc[0]
+
+
+def _selected_permutation_rows(primary: pd.DataFrame) -> list[tuple[str, pd.Series | None]]:
+    ssl_primary = primary.loc[primary["model_group"].isin(SSL_ONLY_MODEL_GROUPS)].copy()
+    return [
+        ("overall_selected", _select_final_candidate(primary)),
+        ("ssl_only_selected", _select_final_candidate(ssl_primary) if not ssl_primary.empty else None),
+    ]
 
 
 def _permutation_random_label_row(
@@ -249,6 +294,27 @@ def _nanpercentile(values: np.ndarray, percentile: float) -> float:
     if np.isfinite(values).any():
         return float(np.nanpercentile(values, percentile))
     return float("nan")
+
+
+def _tagged_output_name(filename: str, *, output_tag: str | None) -> str:
+    token = _output_tag_token(output_tag)
+    if token is None:
+        return filename
+    path = Path(filename)
+    stem = path.stem
+    if stem.startswith("segment_barlow_"):
+        stem = stem.replace("segment_barlow_", f"segment_barlow_{token}_", 1)
+    else:
+        stem = f"{stem}_{token}"
+    return f"{stem}{path.suffix}"
+
+
+def _output_tag_token(output_tag: str | None) -> str | None:
+    if not output_tag:
+        return None
+    if output_tag in {"10seed", "10seed_locked"}:
+        return "10seed"
+    return "".join(character if character.isalnum() else "_" for character in output_tag).strip("_")
 
 
 if __name__ == "__main__":
