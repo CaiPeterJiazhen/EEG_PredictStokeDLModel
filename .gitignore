@@ -8,8 +8,15 @@ __pycache__/
 
 data/processed/
 data/features/
+data/features_*/
+runs/*/data/
+runs/*/data/features/
+runs/*/data/features_*/
+runs/*/logs/
 results/
 checkpoints/
+configs/paths.*.yaml
+!configs/paths.example.yaml
 
 *.pt
 *.pth

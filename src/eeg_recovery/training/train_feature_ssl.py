@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 from collections import defaultdict
 from dataclasses import dataclass
+import hashlib
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -32,7 +33,18 @@ from eeg_recovery.training.train_supervised import (
     resolve_device,
 )
 
-FEATURE_SSL_OBJECTIVES = {"ntxent", "vicreg", "barlow", "byol"}
+FEATURE_SSL_OBJECTIVES = {
+    "ntxent",
+    "vicreg",
+    "barlow",
+    "branch-barlow",
+    "masked-barlow",
+    "masked-vicreg",
+    "masked-reconstruction",
+    "masked-reconstruction-vicreg",
+    "byol",
+    "simsiam",
+}
 
 
 @dataclass(frozen=True)
@@ -68,6 +80,8 @@ class FeatureSSLTrainingConfig:
     vicreg_eps: float = 1e-4
     barlow_offdiag_weight: float = 0.005
     barlow_eps: float = 1e-9
+    branch_barlow_weight: float = 0.5
+    latent_modality_mask_prob: float = 0.5
     byol_momentum: float = 0.99
     byol_predictor_hidden_dim: int = 64
     device: str = "auto"
@@ -211,6 +225,7 @@ def run_feature_ssl_pretraining(
     training_config: FeatureSSLTrainingConfig,
 ) -> tuple[dict[str, torch.Tensor], pd.DataFrame]:
     config = _validate_feature_ssl_config(training_config)
+    _seed_feature_ssl_training(config.seed)
     pairs = list(pairs)
     if not pairs:
         raise ValueError("Feature SSL pretraining requires at least one EO/EC pair.")
@@ -227,13 +242,32 @@ def run_feature_ssl_pretraining(
     ).to(device)
     projection_input_dim = config.embedding_dim * len(branches_for_feature_kind(config.feature_kind))
     projection_head = nn.Linear(projection_input_dim, config.projection_dim).to(device)
-    predictor_head = _build_byol_predictor(config).to(device) if config.ssl_objective == "byol" else None
+    reconstruction_head = (
+        nn.Linear(projection_input_dim, _feature_reconstruction_output_dim(records[0], model.branches)).to(device)
+        if config.ssl_objective in {"masked-reconstruction", "masked-reconstruction-vicreg"}
+        else None
+    )
+    branch_projection_heads = (
+        nn.ModuleDict(
+            {
+                branch: nn.Linear(config.embedding_dim, config.projection_dim)
+                for branch in branches_for_feature_kind(config.feature_kind)
+            }
+        ).to(device)
+        if config.ssl_objective == "branch-barlow"
+        else None
+    )
+    predictor_head = _build_byol_predictor(config).to(device) if config.ssl_objective in {"byol", "simsiam"} else None
     target_model = copy.deepcopy(model).to(device) if config.ssl_objective == "byol" else None
     target_projection_head = copy.deepcopy(projection_head).to(device) if config.ssl_objective == "byol" else None
     if target_model is not None and target_projection_head is not None:
         _freeze_module(target_model)
         _freeze_module(target_projection_head)
     optimizer_parameters = [*model.branch_models.parameters(), *projection_head.parameters()]
+    if reconstruction_head is not None:
+        optimizer_parameters.extend(reconstruction_head.parameters())
+    if branch_projection_heads is not None:
+        optimizer_parameters.extend(branch_projection_heads.parameters())
     if predictor_head is not None:
         optimizer_parameters.extend(predictor_head.parameters())
     optimizer = torch.optim.Adam(
@@ -253,9 +287,16 @@ def run_feature_ssl_pretraining(
         vicreg_covariance_losses: list[float] = []
         barlow_on_diag_losses: list[float] = []
         barlow_off_diag_losses: list[float] = []
+        global_barlow_losses: list[float] = []
+        branch_barlow_losses: list[float] = []
         byol_losses: list[float] = []
+        reconstruction_losses: list[float] = []
         model.train()
         projection_head.train()
+        if reconstruction_head is not None:
+            reconstruction_head.train()
+        if branch_projection_heads is not None:
+            branch_projection_heads.train()
         if predictor_head is not None:
             predictor_head.train()
         for start in range(0, len(order), config.batch_size):
@@ -275,7 +316,27 @@ def run_feature_ssl_pretraining(
             )
 
             optimizer.zero_grad()
-            if config.ssl_objective == "byol":
+            if config.ssl_objective in {"masked-reconstruction", "masked-reconstruction-vicreg"}:
+                if reconstruction_head is None:
+                    raise ValueError("Masked reconstruction objective requires a reconstruction head.")
+                if config.ssl_objective == "masked-reconstruction-vicreg":
+                    components = _feature_masked_reconstruction_vicreg_components(
+                        model,
+                        projection_head,
+                        reconstruction_head,
+                        batch,
+                        config,
+                        seed=config.seed + epoch * 100_000 + start + 20_000,
+                    )
+                else:
+                    components = _feature_masked_reconstruction_components(
+                        model,
+                        reconstruction_head,
+                        batch,
+                        config,
+                        seed=config.seed + epoch * 100_000 + start + 20_000,
+                    )
+            elif config.ssl_objective == "byol":
                 components = _feature_byol_components(
                     model,
                     projection_head,
@@ -285,12 +346,64 @@ def run_feature_ssl_pretraining(
                     view_a,
                     view_b,
                 )
+            elif config.ssl_objective == "simsiam":
+                components = _feature_simsiam_components(
+                    model,
+                    projection_head,
+                    predictor_head,
+                    view_a,
+                    view_b,
+                )
             else:
-                embedding_a = model.extract_embedding(view_a)
-                embedding_b = model.extract_embedding(view_b)
-                projection_a = projection_head(embedding_a)
-                projection_b = projection_head(embedding_b)
-                components = _feature_alignment_components(projection_a, projection_b, config, loss_fn)
+                if config.ssl_objective in {"branch-barlow", "masked-barlow", "masked-vicreg"}:
+                    branch_embeddings_a = model.extract_branch_embeddings(view_a)
+                    branch_embeddings_b = model.extract_branch_embeddings(view_b)
+                    if config.ssl_objective in {"masked-barlow", "masked-vicreg"}:
+                        generator_a = torch.Generator(device=device)
+                        generator_a.manual_seed(config.seed + epoch * 100_000 + start + 10_000)
+                        generator_b = torch.Generator(device=device)
+                        generator_b.manual_seed(config.seed + epoch * 100_000 + start + 10_001)
+                        embedding_a = _apply_latent_modality_mask(
+                            branch_embeddings_a,
+                            branches=model.branches,
+                            mask_prob=config.latent_modality_mask_prob,
+                            generator=generator_a,
+                        )
+                        embedding_b = _apply_latent_modality_mask(
+                            branch_embeddings_b,
+                            branches=model.branches,
+                            mask_prob=config.latent_modality_mask_prob,
+                            generator=generator_b,
+                        )
+                    else:
+                        embedding_a = torch.cat([branch_embeddings_a[branch] for branch in model.branches], dim=1)
+                        embedding_b = torch.cat([branch_embeddings_b[branch] for branch in model.branches], dim=1)
+                    projection_a = projection_head(embedding_a)
+                    projection_b = projection_head(embedding_b)
+                    if config.ssl_objective in {"masked-barlow", "masked-vicreg"}:
+                        components = _feature_alignment_components(projection_a, projection_b, config, loss_fn)
+                    else:
+                        branch_projection_a = {
+                            branch: branch_projection_heads[branch](branch_embeddings_a[branch])
+                            for branch in model.branches
+                        }
+                        branch_projection_b = {
+                            branch: branch_projection_heads[branch](branch_embeddings_b[branch])
+                            for branch in model.branches
+                        }
+                        components = _feature_branch_barlow_twins_components(
+                            projection_a,
+                            projection_b,
+                            branch_projection_a,
+                            branch_projection_b,
+                            config,
+                        )
+                else:
+                    embedding_a = model.extract_embedding(view_a)
+                    embedding_b = model.extract_embedding(view_b)
+                    projection_a = projection_head(embedding_a)
+                    projection_b = projection_head(embedding_b)
+                    components = _feature_alignment_components(projection_a, projection_b, config, loss_fn)
             loss = components["loss"]
             loss.backward()
             optimizer.step()
@@ -304,7 +417,10 @@ def run_feature_ssl_pretraining(
             vicreg_covariance_losses.append(float(components["covariance"].detach().cpu().item()))
             barlow_on_diag_losses.append(float(components["on_diag"].detach().cpu().item()))
             barlow_off_diag_losses.append(float(components["off_diag"].detach().cpu().item()))
+            global_barlow_losses.append(float(components.get("global_barlow", components["on_diag"] + components["off_diag"]).detach().cpu().item()))
+            branch_barlow_losses.append(float(components.get("branch_barlow", torch.zeros((), device=loss.device)).detach().cpu().item()))
             byol_losses.append(float(components["byol"].detach().cpu().item()))
+            reconstruction_losses.append(float(components.get("reconstruction", torch.zeros((), device=loss.device)).detach().cpu().item()))
 
         rows.append(
             {
@@ -318,7 +434,12 @@ def run_feature_ssl_pretraining(
                 "vicreg_covariance_loss": float(np.mean(vicreg_covariance_losses)),
                 "barlow_on_diag_loss": float(np.mean(barlow_on_diag_losses)),
                 "barlow_off_diag_loss": float(np.mean(barlow_off_diag_losses)),
+                "global_barlow_loss": float(np.mean(global_barlow_losses)),
+                "branch_barlow_loss": float(np.mean(branch_barlow_losses)),
+                "branch_barlow_weight": config.branch_barlow_weight,
+                "latent_modality_mask_prob": config.latent_modality_mask_prob,
                 "byol_loss": float(np.mean(byol_losses)),
+                "reconstruction_loss": float(np.mean(reconstruction_losses)),
                 "data_scope": normalize_ssl_data_scope(config.data_scope),
                 "feature_kind": config.feature_kind,
                 "fusion": config.fusion,
@@ -337,6 +458,16 @@ def run_feature_ssl_pretraining(
         if key.startswith("branch_models.")
     }
     return pretrained_state, pd.DataFrame(rows)
+
+
+def _seed_feature_ssl_training(seed: int) -> None:
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    if hasattr(torch.backends, "cudnn"):
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
 
 
 def aggregate_seed_ensemble_predictions(
@@ -430,6 +561,27 @@ def feature_ssl_transfer_run_name(
     dropout: float = 0.0,
     pretrain_lr: float = 1e-3,
     supervised_lr: float = 1e-3,
+    encoder_lr_multiplier: float = 1.0,
+    transfer_head_lr_multiplier: float = 1.0,
+    freeze_pretrained_encoder_epochs: int = 0,
+    ssl_bridge_enabled: bool = False,
+    ssl_consistency_weight: float = 0.0,
+    ssl_two_head_enabled: bool = False,
+    ssl_aux_head_weight: float = 0.5,
+    ssl_fusion_weight: float = 0.5,
+    ssl_residual_enabled: bool = False,
+    ssl_residual_weight: float = 0.14,
+    bridge_residual_weight: float = 0.04,
+    ssl_residual_random_main: bool = False,
+    ssl_residual_main_loss_only: bool = False,
+    ssl_residual_preserve_main: bool = False,
+    ssl_residual_select_weights_on_val: bool = False,
+    ssl_residual_logit_preservation_weight: float = 0.0,
+    ssl_residual_logit_delta_enabled: bool = False,
+    ssl_residual_logit_delta_scale: float = 0.5,
+    embedding_adapter_dim: int = 0,
+    embedding_adapter_scale: float = 1.0,
+    latent_modality_mask_prob: float = 0.0,
 ) -> str:
     objective_token = "" if ssl_objective == "ntxent" else f"_{ssl_objective}"
     tuning_tokens = []
@@ -443,6 +595,46 @@ def feature_ssl_transfer_run_name(
         tuning_tokens.append(f"plr{_number_token(pretrain_lr)}")
     if supervised_lr != 1e-3:
         tuning_tokens.append(f"slr{_number_token(supervised_lr)}")
+    if encoder_lr_multiplier != 1.0:
+        tuning_tokens.append(f"encLRx{_number_token(encoder_lr_multiplier)}")
+    if transfer_head_lr_multiplier != 1.0:
+        tuning_tokens.append(f"headLRx{_number_token(transfer_head_lr_multiplier)}")
+    if freeze_pretrained_encoder_epochs != 0:
+        tuning_tokens.append(f"frzenc{freeze_pretrained_encoder_epochs}")
+    if ssl_bridge_enabled:
+        tuning_tokens.append("sslbridge")
+    if ssl_consistency_weight != 0:
+        tuning_tokens.append(f"sslcons{_number_token(ssl_consistency_weight)}")
+    if ssl_two_head_enabled:
+        tuning_tokens.append("ssltwohead")
+    if ssl_residual_enabled:
+        tuning_tokens.append("sslresidual")
+    if ssl_residual_enabled and ssl_residual_random_main:
+        tuning_tokens.append("randommain")
+    if ssl_residual_enabled and ssl_residual_main_loss_only:
+        tuning_tokens.append("mainloss")
+    if ssl_residual_enabled and ssl_residual_preserve_main:
+        tuning_tokens.append("preservemain")
+    if ssl_residual_enabled and ssl_residual_select_weights_on_val:
+        tuning_tokens.append("valtune")
+    if ssl_residual_enabled and ssl_residual_logit_preservation_weight != 0:
+        tuning_tokens.append(f"logitpres{_number_token(ssl_residual_logit_preservation_weight)}")
+    if ssl_residual_enabled and ssl_residual_logit_delta_enabled:
+        tuning_tokens.append(f"logitdelta{_number_token(ssl_residual_logit_delta_scale)}")
+    if ssl_aux_head_weight != 0.5:
+        tuning_tokens.append(f"sslaux{_number_token(ssl_aux_head_weight)}")
+    if ssl_fusion_weight != 0.5:
+        tuning_tokens.append(f"sslfuse{_number_token(ssl_fusion_weight)}")
+    if ssl_residual_enabled and ssl_residual_weight != 0.14:
+        tuning_tokens.append(f"sslres{_number_token(ssl_residual_weight)}")
+    if ssl_residual_enabled and bridge_residual_weight != 0.04:
+        tuning_tokens.append(f"bridgeres{_number_token(bridge_residual_weight)}")
+    if embedding_adapter_dim != 0:
+        tuning_tokens.append(f"adapter{embedding_adapter_dim}")
+    if embedding_adapter_scale != 1.0:
+        tuning_tokens.append(f"adapterscale{_number_token(embedding_adapter_scale)}")
+    if latent_modality_mask_prob != 0:
+        tuning_tokens.append(f"latentmask{_number_token(latent_modality_mask_prob)}")
     tuning_token = "" if not tuning_tokens else "_" + "_".join(tuning_tokens)
     return (
         f"feature_ssl_{data_scope}_{feature_kind}_{fusion}_{encoder_kind}"
@@ -501,6 +693,182 @@ def _augment_feature_batch(
     return augmented
 
 
+def _apply_latent_modality_mask(
+    branch_embeddings: Mapping[str, torch.Tensor],
+    *,
+    branches: tuple[str, ...],
+    mask_prob: float,
+    generator: torch.Generator | None = None,
+) -> torch.Tensor:
+    if not branches:
+        raise ValueError("Latent modality masking requires at least one branch.")
+    if not 0 <= mask_prob <= 1:
+        raise ValueError("mask_prob must be between 0 and 1.")
+    missing = [branch for branch in branches if branch not in branch_embeddings]
+    if missing:
+        raise KeyError(f"Missing branch embedding(s): {', '.join(missing)}")
+    first = branch_embeddings[branches[0]]
+    batch_size = first.shape[0]
+    device = first.device
+    if len(branches) == 1 or mask_prob == 0:
+        return torch.cat([branch_embeddings[branch] for branch in branches], dim=1)
+
+    keep = torch.rand(
+        (batch_size, len(branches)),
+        generator=generator,
+        device=device,
+    ) >= mask_prob
+    dropped_all = ~keep.any(dim=1)
+    if dropped_all.any():
+        rescue = torch.randint(
+            len(branches),
+            (int(dropped_all.sum().item()),),
+            generator=generator,
+            device=device,
+        )
+        keep[dropped_all] = False
+        keep[dropped_all, rescue] = True
+
+    masked: list[torch.Tensor] = []
+    for branch_index, branch in enumerate(branches):
+        embedding = branch_embeddings[branch]
+        if embedding.shape[0] != batch_size:
+            raise ValueError("All branch embeddings must have the same batch size.")
+        branch_keep = keep[:, branch_index].to(dtype=embedding.dtype).unsqueeze(1)
+        masked.append(embedding * branch_keep)
+    return torch.cat(masked, dim=1)
+
+
+def _feature_reconstruction_output_dim(
+    record: SupervisedFeatureRecord,
+    branches: tuple[str, ...],
+) -> int:
+    total = 0
+    for branch in branches:
+        if branch not in record.modalities:
+            raise KeyError(f"Missing modality {branch!r} for masked reconstruction.")
+        eo, ec = record.modalities[branch]
+        total += int(np.prod(eo.shape))
+        total += int(np.prod(ec.shape))
+    return total
+
+
+def _feature_masked_reconstruction_components(
+    model: MultimodalEEGModel,
+    reconstruction_head: nn.Module,
+    batch: dict[str, torch.Tensor],
+    config: FeatureSSLTrainingConfig,
+    *,
+    seed: int,
+) -> dict[str, torch.Tensor]:
+    corrupted_batch, target, reconstruction_mask = _masked_reconstruction_batch(
+        batch,
+        branches=model.branches,
+        noise_std=config.noise_std,
+        feature_mask_prob=config.feature_mask_prob,
+        seed=seed,
+    )
+    embedding = model.extract_embedding(corrupted_batch)
+    reconstructed = reconstruction_head(embedding)
+    reconstruction_loss = _masked_reconstruction_loss(reconstructed, target, reconstruction_mask)
+    zero = torch.zeros((), device=target.device)
+    return {
+        "loss": reconstruction_loss,
+        "invariance": zero,
+        "variance": zero,
+        "covariance": zero,
+        "on_diag": zero,
+        "off_diag": zero,
+        "byol": zero,
+        "reconstruction": reconstruction_loss,
+    }
+
+
+def _feature_masked_reconstruction_vicreg_components(
+    model: MultimodalEEGModel,
+    projection_head: nn.Module,
+    reconstruction_head: nn.Module,
+    batch: dict[str, torch.Tensor],
+    config: FeatureSSLTrainingConfig,
+    *,
+    seed: int,
+) -> dict[str, torch.Tensor]:
+    corrupted_a, target_a, mask_a = _masked_reconstruction_batch(
+        batch,
+        branches=model.branches,
+        noise_std=config.noise_std,
+        feature_mask_prob=config.feature_mask_prob,
+        seed=seed,
+    )
+    corrupted_b, target_b, mask_b = _masked_reconstruction_batch(
+        batch,
+        branches=model.branches,
+        noise_std=config.noise_std,
+        feature_mask_prob=config.feature_mask_prob,
+        seed=seed + 1,
+    )
+    embedding_a = model.extract_embedding(corrupted_a)
+    embedding_b = model.extract_embedding(corrupted_b)
+    reconstruction = 0.5 * (
+        _masked_reconstruction_loss(reconstruction_head(embedding_a), target_a, mask_a)
+        + _masked_reconstruction_loss(reconstruction_head(embedding_b), target_b, mask_b)
+    )
+    vicreg = _feature_vicreg_loss(projection_head(embedding_a), projection_head(embedding_b), config)
+    loss = reconstruction + vicreg["loss"]
+    zero = torch.zeros((), device=loss.device)
+    return {
+        "loss": loss,
+        "invariance": vicreg["invariance"],
+        "variance": vicreg["variance"],
+        "covariance": vicreg["covariance"],
+        "on_diag": zero,
+        "off_diag": zero,
+        "byol": zero,
+        "reconstruction": reconstruction,
+    }
+
+
+def _masked_reconstruction_loss(
+    reconstructed: torch.Tensor,
+    target: torch.Tensor,
+    reconstruction_mask: torch.Tensor,
+) -> torch.Tensor:
+    if reconstructed.shape != target.shape:
+        raise ValueError("Reconstruction output shape does not match flattened feature target.")
+    if reconstruction_mask.any():
+        return F.mse_loss(reconstructed[reconstruction_mask], target[reconstruction_mask])
+    return F.mse_loss(reconstructed, target)
+
+
+def _masked_reconstruction_batch(
+    batch: dict[str, torch.Tensor],
+    *,
+    branches: tuple[str, ...],
+    noise_std: float,
+    feature_mask_prob: float,
+    seed: int,
+) -> tuple[dict[str, torch.Tensor], torch.Tensor, torch.Tensor]:
+    corrupted: dict[str, torch.Tensor] = {}
+    target_parts: list[torch.Tensor] = []
+    mask_parts: list[torch.Tensor] = []
+    for branch in branches:
+        for state in ("eo", "ec"):
+            key = f"{branch}_{state}"
+            if key not in batch:
+                raise KeyError(f"Masked reconstruction batch is missing key {key!r}.")
+            value = batch[key].float()
+            generator = torch.Generator(device=value.device)
+            generator.manual_seed(seed + _stable_key_offset(key))
+            mask = torch.rand(value.shape, generator=generator, device=value.device) < feature_mask_prob
+            view = value.masked_fill(mask, 0.0)
+            if noise_std > 0:
+                view = view + torch.randn(value.shape, generator=generator, device=value.device) * noise_std
+            corrupted[key] = view
+            target_parts.append(value.flatten(start_dim=1))
+            mask_parts.append(mask.flatten(start_dim=1))
+    return corrupted, torch.cat(target_parts, dim=1), torch.cat(mask_parts, dim=1)
+
+
 def _load_cached_supervised_baseline_features(
     config: PathConfig,
     record: EEGFileRecord,
@@ -535,8 +903,8 @@ def _validate_feature_ssl_config(config: FeatureSSLTrainingConfig) -> FeatureSSL
     branches_for_feature_kind(config.feature_kind)
     if config.fusion not in {"concat", "gated"}:
         raise ValueError("fusion must be 'concat' or 'gated'.")
-    if config.encoder_kind not in {"cnn", "linear"}:
-        raise ValueError("encoder_kind must be 'cnn' or 'linear'.")
+    if config.encoder_kind not in {"cnn", "linear", "gncnn", "rescnn"}:
+        raise ValueError("encoder_kind must be 'cnn', 'linear', 'gncnn', or 'rescnn'.")
     if config.epochs < 1:
         raise ValueError("epochs must be at least 1.")
     if config.batch_size < 1:
@@ -559,6 +927,10 @@ def _validate_feature_ssl_config(config: FeatureSSLTrainingConfig) -> FeatureSSL
         raise ValueError("vicreg_variance_target and vicreg_eps must be positive.")
     if config.barlow_offdiag_weight < 0 or config.barlow_eps <= 0:
         raise ValueError("barlow_offdiag_weight must be non-negative and barlow_eps must be positive.")
+    if config.branch_barlow_weight < 0:
+        raise ValueError("branch_barlow_weight must be non-negative.")
+    if not 0 <= config.latent_modality_mask_prob <= 1:
+        raise ValueError("latent_modality_mask_prob must be between 0 and 1.")
     if not 0 <= config.byol_momentum < 1:
         raise ValueError("byol_momentum must be in [0, 1).")
     if config.byol_predictor_hidden_dim <= 0:
@@ -575,6 +947,10 @@ def _safe_run_name(run_name: str) -> str:
     safe = safe.strip("_-")
     if not safe:
         raise ValueError("run_name must contain at least one filename-safe character.")
+    if len(safe) > 120:
+        digest = hashlib.sha1(safe.encode("utf-8")).hexdigest()[:12]
+        prefix = safe[: 120 - len(digest) - 1].rstrip("_-")
+        safe = f"{prefix}_{digest}" if prefix else digest
     return safe
 
 
@@ -600,10 +976,10 @@ def _feature_alignment_components(
             "off_diag": zero,
             "byol": zero,
         }
-    if config.ssl_objective == "vicreg":
+    if config.ssl_objective in {"vicreg", "masked-vicreg"}:
         components = _feature_vicreg_loss(projection_a, projection_b, config)
         return {**components, "on_diag": zero, "off_diag": zero, "byol": zero}
-    if config.ssl_objective == "barlow":
+    if config.ssl_objective in {"barlow", "masked-barlow"}:
         components = _feature_barlow_twins_loss(projection_a, projection_b, config)
         return {
             "loss": components["loss"],
@@ -614,6 +990,8 @@ def _feature_alignment_components(
             "off_diag": components["off_diag"],
             "byol": zero,
         }
+    if config.ssl_objective == "branch-barlow":
+        raise ValueError("Branch-aware Barlow requires branch projections.")
     raise ValueError(f"Unsupported feature SSL objective: {config.ssl_objective}")
 
 
@@ -677,6 +1055,38 @@ def _feature_barlow_twins_loss(
     return {"loss": loss, "on_diag": on_diag, "off_diag": off_diag}
 
 
+def _feature_branch_barlow_twins_components(
+    projection_a: torch.Tensor,
+    projection_b: torch.Tensor,
+    branch_projection_a: Mapping[str, torch.Tensor],
+    branch_projection_b: Mapping[str, torch.Tensor],
+    config: FeatureSSLTrainingConfig,
+) -> dict[str, torch.Tensor]:
+    global_components = _feature_barlow_twins_loss(projection_a, projection_b, config)
+    if set(branch_projection_a) != set(branch_projection_b):
+        raise ValueError("Branch projection keys must match for branch-aware Barlow.")
+    if not branch_projection_a:
+        raise ValueError("Branch-aware Barlow requires at least one branch projection.")
+    branch_losses = [
+        _feature_barlow_twins_loss(branch_projection_a[branch], branch_projection_b[branch], config)["loss"]
+        for branch in sorted(branch_projection_a)
+    ]
+    branch_barlow = torch.stack(branch_losses).mean()
+    loss = global_components["loss"] + config.branch_barlow_weight * branch_barlow
+    zero = torch.zeros((), device=projection_a.device)
+    return {
+        "loss": loss,
+        "invariance": zero,
+        "variance": zero,
+        "covariance": zero,
+        "on_diag": global_components["on_diag"],
+        "off_diag": global_components["off_diag"],
+        "global_barlow": global_components["loss"],
+        "branch_barlow": branch_barlow,
+        "byol": zero,
+    }
+
+
 def _standardize_feature_projection(projection: torch.Tensor, eps: float) -> torch.Tensor:
     return (projection - projection.mean(dim=0)) / (projection.std(dim=0, unbiased=False) + eps)
 
@@ -700,6 +1110,35 @@ def _feature_byol_components(
     loss = 0.5 * (
         _feature_negative_cosine_similarity(prediction_a, target_b.detach())
         + _feature_negative_cosine_similarity(prediction_b, target_a.detach())
+    )
+    zero = torch.zeros((), device=prediction_a.device)
+    return {
+        "loss": loss,
+        "invariance": zero,
+        "variance": zero,
+        "covariance": zero,
+        "on_diag": zero,
+        "off_diag": zero,
+        "byol": loss,
+    }
+
+
+def _feature_simsiam_components(
+    model: MultimodalEEGModel,
+    projection_head: nn.Module,
+    predictor_head: nn.Module | None,
+    view_a: dict[str, torch.Tensor],
+    view_b: dict[str, torch.Tensor],
+) -> dict[str, torch.Tensor]:
+    if predictor_head is None:
+        raise ValueError("SimSiam objective requires an online predictor.")
+    projection_a = projection_head(model.extract_embedding(view_a))
+    projection_b = projection_head(model.extract_embedding(view_b))
+    prediction_a = predictor_head(projection_a)
+    prediction_b = predictor_head(projection_b)
+    loss = 0.5 * (
+        _feature_negative_cosine_similarity(prediction_a, projection_b.detach())
+        + _feature_negative_cosine_similarity(prediction_b, projection_a.detach())
     )
     zero = torch.zeros((), device=prediction_a.device)
     return {
@@ -742,4 +1181,4 @@ def _update_target_module(target_module: nn.Module, online_module: nn.Module, mo
 
 
 def _feature_ssl_objective_label(ssl_objective: str) -> str:
-    return "feature_contrastive" if ssl_objective == "ntxent" else f"feature_{ssl_objective}"
+    return "feature_contrastive" if ssl_objective == "ntxent" else f"feature_{ssl_objective.replace('-', '_')}"

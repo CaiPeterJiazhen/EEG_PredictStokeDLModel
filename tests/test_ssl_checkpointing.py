@@ -108,6 +108,20 @@ def test_merge_psd_wpli_checkpoints() -> None:
     assert merged_metadata["wpli"]["branch"] == "wpli"
 
 
+def test_merge_allows_branch_specific_source_feature_hashes() -> None:
+    psd_checkpoint = _checkpoint("psd")
+    wpli_checkpoint = _checkpoint("wpli")
+    psd_checkpoint["metadata"]["source_feature_manifest_hash"] = "psd-manifest"
+    wpli_checkpoint["metadata"]["source_feature_manifest_hash"] = "wpli-manifest"
+
+    merged_state, merged_metadata = merge_branch_pretrained_states(psd_checkpoint, wpli_checkpoint)
+
+    assert "branch_models.psd.encoder.encoder.network.0.weight" in merged_state
+    assert "branch_models.wpli.encoder.encoder.network.0.weight" in merged_state
+    assert merged_metadata["psd"]["source_feature_manifest_hash"] == "psd-manifest"
+    assert merged_metadata["wpli"]["source_feature_manifest_hash"] == "wpli-manifest"
+
+
 def test_merge_can_load_checkpoint_paths() -> None:
     scratch = Path("results") / "checkpoints" / "ssl_encoders" / "test_io"
     scratch.mkdir(parents=True, exist_ok=True)

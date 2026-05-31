@@ -41,6 +41,7 @@ class MaskedSSLConfig:
     fc_node_mask_prob: float = 0.05
     fc_edge_mask_prob: float = 0.15
     fc_band_mask_prob: float = 0.05
+    fc_graph_smoothness_weight: float = 0.0
     eo_ec_consistency_weight: float = 0.0
     contrastive_weight: float = 0.0
     contrastive_temperature: float = 0.2
@@ -267,6 +268,7 @@ def _pretrain_multitask_masked_contrastive(
         losses: list[float] = []
         psd_reconstruction_losses: list[float] = []
         fc_reconstruction_losses: list[float] = []
+        fc_graph_smoothness_losses: list[float] = []
         alignment_losses: list[float] = []
         vicreg_invariance_losses: list[float] = []
         vicreg_variance_losses: list[float] = []
@@ -320,8 +322,8 @@ def _pretrain_multitask_masked_contrastive(
                 if epoch <= config.psd_epochs
                 else torch.zeros((), device=device)
             )
-            fc_reconstruction_loss = (
-                _multitask_fc_reconstruction_loss(
+            fc_components = (
+                _multitask_fc_reconstruction_components(
                     model,
                     batch_wpli_pairs,
                     edge_index,
@@ -331,8 +333,13 @@ def _pretrain_multitask_masked_contrastive(
                     start,
                 )
                 if epoch <= config.fc_epochs
-                else torch.zeros((), device=device)
+                else {
+                    "reconstruction": torch.zeros((), device=device),
+                    "graph_smoothness": torch.zeros((), device=device),
+                }
             )
+            fc_reconstruction_loss = fc_components["reconstruction"]
+            fc_graph_smoothness_loss = fc_components["graph_smoothness"]
             consistency_loss = _multitask_consistency_loss(
                 model,
                 batch_psd_pairs,
@@ -343,6 +350,7 @@ def _pretrain_multitask_masked_contrastive(
             loss = (
                 psd_reconstruction_loss
                 + fc_reconstruction_loss
+                + config.fc_graph_smoothness_weight * fc_graph_smoothness_loss
                 + config.contrastive_weight * alignment_components["loss"]
                 + config.eo_ec_consistency_weight * consistency_loss
             )
@@ -354,6 +362,7 @@ def _pretrain_multitask_masked_contrastive(
             losses.append(float(loss.detach().cpu().item()))
             psd_reconstruction_losses.append(float(psd_reconstruction_loss.detach().cpu().item()))
             fc_reconstruction_losses.append(float(fc_reconstruction_loss.detach().cpu().item()))
+            fc_graph_smoothness_losses.append(float(fc_graph_smoothness_loss.detach().cpu().item()))
             alignment_losses.append(float(alignment_components["loss"].detach().cpu().item()))
             vicreg_invariance_losses.append(float(alignment_components["invariance"].detach().cpu().item()))
             vicreg_variance_losses.append(float(alignment_components["variance"].detach().cpu().item()))
@@ -368,6 +377,7 @@ def _pretrain_multitask_masked_contrastive(
                 losses,
                 psd_reconstruction_losses,
                 fc_reconstruction_losses,
+                fc_graph_smoothness_losses,
                 alignment_losses,
                 vicreg_invariance_losses,
                 vicreg_variance_losses,
@@ -647,6 +657,26 @@ def _multitask_fc_reconstruction_loss(
     epoch: int,
     start: int,
 ) -> torch.Tensor:
+    return _multitask_fc_reconstruction_components(
+        model,
+        batch_pairs,
+        edge_index,
+        config,
+        device,
+        epoch,
+        start,
+    )["reconstruction"]
+
+
+def _multitask_fc_reconstruction_components(
+    model: _MultitaskMaskedContrastiveModel,
+    batch_pairs: list[tuple[np.ndarray, np.ndarray]],
+    edge_index: np.ndarray,
+    config: MaskedSSLConfig,
+    device: torch.device,
+    epoch: int,
+    start: int,
+) -> dict[str, torch.Tensor]:
     batch_arrays = [state for pair in batch_pairs for state in pair]
     masked_views, masks = zip(
         *[
@@ -665,7 +695,16 @@ def _multitask_fc_reconstruction_loss(
     target = torch.as_tensor(np.stack(batch_arrays), device=device)
     masked = torch.as_tensor(np.stack(masked_views), device=device)
     mask = torch.as_tensor(np.stack(masks), device=device)
-    return _masked_mse(model.reconstruct_wpli(masked), target, mask)
+    reconstruction = model.reconstruct_wpli(masked)
+    graph_smoothness = (
+        _fc_graph_smoothness_loss(reconstruction, edge_index)
+        if config.fc_graph_smoothness_weight > 0
+        else torch.zeros((), device=device)
+    )
+    return {
+        "reconstruction": _masked_mse(reconstruction, target, mask),
+        "graph_smoothness": graph_smoothness,
+    }
 
 
 def _multitask_consistency_loss(
@@ -788,6 +827,7 @@ def _pretrain_fc_masked_autoencoder(
         order = rng.permutation(len(pair_states))
         losses: list[float] = []
         reconstruction_losses: list[float] = []
+        graph_smoothness_losses: list[float] = []
         consistency_losses: list[float] = []
         model.train()
         for start in range(0, len(order), config.batch_size):
@@ -811,13 +851,24 @@ def _pretrain_fc_masked_autoencoder(
             masked = torch.as_tensor(np.stack(masked_views), device=device)
             mask = torch.as_tensor(np.stack(masks), device=device)
             optimizer.zero_grad()
-            reconstruction_loss = _masked_mse(model(masked), target, mask)
+            reconstruction = model(masked)
+            reconstruction_loss = _masked_mse(reconstruction, target, mask)
+            graph_smoothness_loss = (
+                _fc_graph_smoothness_loss(reconstruction, edge_index)
+                if config.fc_graph_smoothness_weight > 0
+                else torch.zeros((), device=device)
+            )
             consistency_loss = _pair_consistency_loss(model.encoder, batch_pairs, device)
-            loss = reconstruction_loss + config.eo_ec_consistency_weight * consistency_loss
+            loss = (
+                reconstruction_loss
+                + config.fc_graph_smoothness_weight * graph_smoothness_loss
+                + config.eo_ec_consistency_weight * consistency_loss
+            )
             loss.backward()
             optimizer.step()
             losses.append(float(loss.detach().cpu().item()))
             reconstruction_losses.append(float(reconstruction_loss.detach().cpu().item()))
+            graph_smoothness_losses.append(float(graph_smoothness_loss.detach().cpu().item()))
             consistency_losses.append(float(consistency_loss.detach().cpu().item()))
         rows.append(
             _history_row(
@@ -828,6 +879,7 @@ def _pretrain_fc_masked_autoencoder(
                 consistency_losses,
                 len(arrays),
                 config,
+                graph_smoothness_losses=graph_smoothness_losses,
             )
         )
     return _encoder_state(model.encoder), rows
@@ -853,6 +905,50 @@ def _masked_mse(reconstruction: torch.Tensor, target: torch.Tensor, mask: torch.
     mask_float = mask.to(dtype=reconstruction.dtype)
     squared = (reconstruction - target).pow(2) * mask_float
     return squared.sum() / mask_float.sum().clamp_min(1.0)
+
+
+def _fc_graph_smoothness_loss(
+    reconstruction: torch.Tensor,
+    edge_index: np.ndarray,
+) -> torch.Tensor:
+    """Penalize WPLI edge reconstructions that deviate from incident-node means."""
+
+    if reconstruction.ndim != 3:
+        raise ValueError(
+            "FC graph smoothness expects reconstruction shaped "
+            f"(batch, edges, bands), got {tuple(reconstruction.shape)}."
+        )
+    edge_array = np.asarray(edge_index, dtype=np.int64)
+    if edge_array.ndim != 2 or edge_array.shape[1] != 2:
+        raise ValueError(f"edge_index must have shape (edges, 2), got {edge_array.shape}.")
+    if edge_array.shape[0] != reconstruction.shape[1]:
+        raise ValueError(
+            "edge_index edge count must match reconstruction edge dimension; "
+            f"got {edge_array.shape[0]} and {reconstruction.shape[1]}."
+        )
+    if edge_array.size == 0:
+        return torch.zeros((), device=reconstruction.device, dtype=reconstruction.dtype)
+
+    values = reconstruction.float()
+    device = values.device
+    edges = torch.as_tensor(edge_array, device=device, dtype=torch.long)
+    src = edges[:, 0]
+    dst = edges[:, 1]
+    n_nodes = int(edges.max().item()) + 1
+    node_sum = torch.zeros(
+        (values.shape[0], n_nodes, values.shape[2]),
+        device=device,
+        dtype=values.dtype,
+    )
+    node_count = torch.zeros(n_nodes, device=device, dtype=values.dtype)
+    node_sum.index_add_(1, src, values)
+    node_sum.index_add_(1, dst, values)
+    ones = torch.ones(values.shape[1], device=device, dtype=values.dtype)
+    node_count.index_add_(0, src, ones)
+    node_count.index_add_(0, dst, ones)
+    node_mean = node_sum / node_count.clamp_min(1.0).view(1, -1, 1)
+    expected = 0.5 * (node_mean[:, src, :] + node_mean[:, dst, :])
+    return F.mse_loss(values, expected)
 
 
 def _scaled_branch_pair_states(
@@ -909,17 +1005,23 @@ def _history_row(
     consistency_losses: list[float],
     n_samples: int,
     config: MaskedSSLConfig,
+    *,
+    graph_smoothness_losses: list[float] | None = None,
 ) -> dict[str, object]:
     objective = (
         "masked_local_reconstruction_with_eo_ec_consistency"
         if config.eo_ec_consistency_weight > 0
         else "masked_local_reconstruction"
     )
+    if branch == "wpli_masked" and config.fc_graph_smoothness_weight > 0:
+        objective = f"{objective}_with_graph_smoothness"
+    graph_smoothness_loss = 0.0 if graph_smoothness_losses is None else float(np.mean(graph_smoothness_losses))
     return {
         "branch": branch,
         "epoch": epoch,
         "loss": float(np.mean(losses)),
         "reconstruction_loss": float(np.mean(reconstruction_losses)),
+        "fc_graph_smoothness_loss": graph_smoothness_loss,
         "consistency_loss": float(np.mean(consistency_losses)),
         "objective": objective,
         "n_samples": n_samples,
@@ -934,6 +1036,7 @@ def _history_row(
         "fc_node_mask_prob": config.fc_node_mask_prob,
         "fc_edge_mask_prob": config.fc_edge_mask_prob,
         "fc_band_mask_prob": config.fc_band_mask_prob,
+        "fc_graph_smoothness_weight": config.fc_graph_smoothness_weight,
         "contrastive_weight": config.contrastive_weight,
         "contrastive_temperature": config.contrastive_temperature,
         "projection_dim": config.projection_dim,
@@ -955,6 +1058,7 @@ def _multitask_history_row(
     losses: list[float],
     psd_reconstruction_losses: list[float],
     fc_reconstruction_losses: list[float],
+    fc_graph_smoothness_losses: list[float],
     alignment_losses: list[float],
     vicreg_invariance_losses: list[float],
     vicreg_variance_losses: list[float],
@@ -977,6 +1081,8 @@ def _multitask_history_row(
     )
     if config.eo_ec_consistency_weight > 0:
         objective = f"{objective}_and_eo_ec_consistency"
+    if config.fc_graph_smoothness_weight > 0:
+        objective = f"{objective}_with_graph_smoothness"
     alignment_loss = float(np.mean(alignment_losses))
     return {
         "branch": "psd_wpli_multitask",
@@ -992,6 +1098,7 @@ def _multitask_history_row(
         ),
         "psd_reconstruction_loss": float(np.mean(psd_reconstruction_losses)),
         "fc_reconstruction_loss": float(np.mean(fc_reconstruction_losses)),
+        "fc_graph_smoothness_loss": float(np.mean(fc_graph_smoothness_losses)),
         "contrastive_loss": alignment_loss,
         "alignment_loss": alignment_loss,
         "alignment_method": config.alignment_method,
@@ -1028,6 +1135,7 @@ def _multitask_history_row(
         "fc_node_mask_prob": config.fc_node_mask_prob,
         "fc_edge_mask_prob": config.fc_edge_mask_prob,
         "fc_band_mask_prob": config.fc_band_mask_prob,
+        "fc_graph_smoothness_weight": config.fc_graph_smoothness_weight,
     }
 
 
@@ -1051,6 +1159,8 @@ def _validate_masked_ssl_config(config: MaskedSSLConfig) -> None:
         raise ValueError("dropout must be non-negative.")
     if config.eo_ec_consistency_weight < 0:
         raise ValueError("eo_ec_consistency_weight must be non-negative.")
+    if config.fc_graph_smoothness_weight < 0:
+        raise ValueError("fc_graph_smoothness_weight must be non-negative.")
     if config.contrastive_weight < 0:
         raise ValueError("contrastive_weight must be non-negative.")
     if config.alignment_method not in ALIGNMENT_METHODS:

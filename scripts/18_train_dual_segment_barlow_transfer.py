@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
+import json
 from pathlib import Path
 import sys
 
@@ -128,7 +130,8 @@ def main() -> None:
             if args.limit_segments is not None:
                 psd_segments = psd_segments[: args.limit_segments]
                 wpli_segments = wpli_segments[: args.limit_segments]
-            shared_manifest_hash = _dual_source_manifest_hash(psd_segments, wpli_segments)
+            psd_manifest_hash = segment_records_manifest_hash(psd_segments)
+            wpli_manifest_hash = segment_records_manifest_hash(wpli_segments)
             psd_checkpoint, psd_history = _run_or_load_branch_checkpoint(
                 args=args,
                 path_config=path_config,
@@ -137,7 +140,7 @@ def main() -> None:
                 fold_segments=psd_segments,
                 fold=fold,
                 seed=seed,
-                source_feature_manifest_hash=shared_manifest_hash,
+                source_feature_manifest_hash=psd_manifest_hash,
             )
             wpli_checkpoint, wpli_history = _run_or_load_branch_checkpoint(
                 args=args,
@@ -147,7 +150,7 @@ def main() -> None:
                 fold_segments=wpli_segments,
                 fold=fold,
                 seed=seed,
-                source_feature_manifest_hash=shared_manifest_hash,
+                source_feature_manifest_hash=wpli_manifest_hash,
             )
             merged_state, _ = merge_branch_pretrained_states(
                 psd_checkpoint,
@@ -322,6 +325,14 @@ def _run_or_load_branch_checkpoint(
         device=args.device,
         seed=seed + fold.fold_index,
     )
+    expected_source_feature_manifest_hash = source_feature_manifest_hash
+    if args.reuse_ssl_encoders and checkpoint_path.exists() and not args.force_retrain_ssl:
+        expected_source_feature_manifest_hash = _source_manifest_hash_for_checkpoint_reuse(
+            fold_segments,
+            output_root=Path(path_config.output_root),
+            checkpoint_path=checkpoint_path,
+            current_hash=source_feature_manifest_hash,
+        )
     expected_metadata = _checkpoint_metadata(
         args=args,
         branch=branch,
@@ -330,7 +341,7 @@ def _run_or_load_branch_checkpoint(
         fold=fold,
         seed=seed,
         ssl_config=ssl_config,
-        source_feature_manifest_hash=source_feature_manifest_hash,
+        source_feature_manifest_hash=expected_source_feature_manifest_hash,
     )
     if args.reuse_ssl_encoders and checkpoint_path.exists() and not args.force_retrain_ssl:
         checkpoint = load_ssl_encoder_checkpoint(checkpoint_path, expected_metadata)
@@ -399,6 +410,9 @@ def _checkpoint_metadata(
         "test_subject_id": fold.test_subject_id,
         "excluded_subject_id": fold.test_subject_id,
         "ssl_data_scope": args.ssl_data_scope,
+        "historical_unlabeled_pretraining": args.ssl_data_scope in {"all-patient", "all-patient-health"},
+        "segment_feature_kind": feature_kind,
+        "supervised_feature_kind": "psd-fc-wpli",
         "feature_kind": feature_kind,
         "encoder_kind": "cnn",
         "embedding_dim": args.embedding_dim,
@@ -457,6 +471,113 @@ def _checkpoint_reuse_history(
 
 def _dual_source_manifest_hash(psd_segments, wpli_segments) -> str:
     return segment_records_manifest_hash([*psd_segments, *wpli_segments])
+
+
+def _source_manifest_hash_for_checkpoint_reuse(
+    records,
+    *,
+    output_root: Path,
+    checkpoint_path: Path,
+    current_hash: str,
+) -> str:
+    observed_hash = _checkpoint_source_manifest_hash(checkpoint_path)
+    if not observed_hash or observed_hash == current_hash:
+        return current_hash
+    for source_root in _legacy_source_roots_from_checkpoint_manifest(checkpoint_path):
+        legacy_hash = _segment_records_manifest_hash_with_source_root(
+            records,
+            output_root=output_root,
+            source_root=source_root,
+        )
+        if legacy_hash == observed_hash:
+            return legacy_hash
+    return current_hash
+
+
+def _checkpoint_source_manifest_hash(checkpoint_path: Path) -> str | None:
+    try:
+        checkpoint = load_ssl_encoder_checkpoint(checkpoint_path)
+    except (EOFError, OSError, RuntimeError, ValueError):
+        return None
+    metadata = checkpoint.get("metadata")
+    if not isinstance(metadata, dict):
+        return None
+    value = metadata.get("source_feature_manifest_hash")
+    return value if isinstance(value, str) and value else None
+
+
+def _legacy_source_roots_from_checkpoint_manifest(checkpoint_path: Path) -> list[Path]:
+    manifest_path = checkpoint_path.parent / "segment_ssl_checkpoint_manifest.csv"
+    if not manifest_path.exists():
+        return []
+    try:
+        manifest = pd.read_csv(manifest_path, usecols=["checkpoint_path"])
+    except (OSError, ValueError):
+        return []
+
+    roots: list[Path] = []
+    seen: set[str] = set()
+    for checkpoint_text in manifest["checkpoint_path"].dropna().astype(str):
+        if Path(checkpoint_text).name != checkpoint_path.name:
+            continue
+        root = _project_root_from_checkpoint_text(checkpoint_text)
+        if root is None:
+            continue
+        root_key = str(root)
+        if root_key not in seen:
+            roots.append(root)
+            seen.add(root_key)
+    return roots
+
+
+def _project_root_from_checkpoint_text(checkpoint_text: str) -> Path | None:
+    normalized = checkpoint_text.replace("/", "\\")
+    marker = "\\results\\checkpoints\\ssl_encoders\\"
+    index = normalized.lower().find(marker)
+    if index < 0:
+        return None
+    return Path(normalized[:index])
+
+
+def _segment_records_manifest_hash_with_source_root(records, *, output_root: Path, source_root: Path) -> str:
+    output_root = Path(output_root).resolve()
+    source_root = Path(source_root)
+    manifest_rows = []
+    for record in records:
+        record_source_path = Path(record.source_path).resolve()
+        try:
+            source_path = source_root / record_source_path.relative_to(output_root)
+        except ValueError:
+            source_path = record_source_path
+        manifest_rows.append(
+            {
+                "group": record.group,
+                "subject_id": record.subject_id,
+                "subject_key": record.subject_key,
+                "stage": record.stage,
+                "state": record.state,
+                "segment_index": record.segment_index,
+                "branches": sorted(record.features),
+                "source_path": str(source_path),
+            }
+        )
+    payload = json.dumps(
+        sorted(
+            manifest_rows,
+            key=lambda row: (
+                row["group"],
+                row["subject_key"],
+                row["stage"],
+                row["state"],
+                row["segment_index"],
+                row["source_path"],
+            ),
+        ),
+        ensure_ascii=True,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
 
 
 def _dual_run_name(experiment_key: str, seed: int | str, supervised_lr: float) -> str:

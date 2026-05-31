@@ -39,13 +39,15 @@ def main() -> None:
         default="psd",
     )
     parser.add_argument("--fusion", choices=("concat", "gated"), default="concat")
-    parser.add_argument("--encoder", choices=("cnn", "linear"), default="cnn")
+    parser.add_argument("--encoder", choices=("cnn", "linear", "gncnn", "rescnn"), default="cnn")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--patience", type=int, default=10)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--weight-decay", type=float, default=0.0)
     parser.add_argument("--embedding-dim", type=int, default=16)
+    parser.add_argument("--embedding-adapter-dim", type=int, default=0)
+    parser.add_argument("--embedding-adapter-scale", type=float, default=1.0)
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
@@ -73,6 +75,8 @@ def main() -> None:
         lr=args.lr,
         weight_decay=args.weight_decay,
         embedding_dim=args.embedding_dim,
+        embedding_adapter_dim=args.embedding_adapter_dim,
+        embedding_adapter_scale=args.embedding_adapter_scale,
         dropout=args.dropout,
         seed=args.seed,
     )

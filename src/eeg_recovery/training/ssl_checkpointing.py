@@ -46,7 +46,6 @@ MERGED_METADATA_FIELDS = (
     "embedding_dim",
     "dropout",
     "ssl_data_scope",
-    "source_feature_manifest_hash",
 )
 
 DUAL_SEGMENT_BARLOW_REQUIRED_METADATA_FIELDS = (

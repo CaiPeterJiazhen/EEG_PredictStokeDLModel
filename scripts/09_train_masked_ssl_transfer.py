@@ -51,6 +51,12 @@ def main() -> None:
     parser.add_argument("--fc-node-mask-prob", type=float, default=0.05)
     parser.add_argument("--fc-edge-mask-prob", type=float, default=0.15)
     parser.add_argument("--fc-band-mask-prob", type=float, default=0.05)
+    parser.add_argument(
+        "--fc-graph-smoothness-weight",
+        type=float,
+        default=0.0,
+        help="Optional graph smoothness penalty for WPLI edge reconstructions.",
+    )
     parser.add_argument("--eo-ec-consistency-weight", type=float, default=0.0)
     parser.add_argument(
         "--contrastive-weight",
@@ -147,6 +153,7 @@ def main() -> None:
             fc_node_mask_prob=args.fc_node_mask_prob,
             fc_edge_mask_prob=args.fc_edge_mask_prob,
             fc_band_mask_prob=args.fc_band_mask_prob,
+            fc_graph_smoothness_weight=args.fc_graph_smoothness_weight,
             eo_ec_consistency_weight=args.eo_ec_consistency_weight,
             contrastive_weight=args.contrastive_weight,
             contrastive_temperature=args.contrastive_temperature,
@@ -228,6 +235,7 @@ def main() -> None:
         frame["fc_node_mask_prob"] = args.fc_node_mask_prob
         frame["fc_edge_mask_prob"] = args.fc_edge_mask_prob
         frame["fc_band_mask_prob"] = args.fc_band_mask_prob
+        frame["fc_graph_smoothness_weight"] = args.fc_graph_smoothness_weight
         frame["eo_ec_consistency_weight"] = args.eo_ec_consistency_weight
         frame["contrastive_weight"] = args.contrastive_weight
         frame["contrastive_temperature"] = args.contrastive_temperature
@@ -273,6 +281,7 @@ def _supervised_run_suffix(args: argparse.Namespace) -> str:
     dropout = getattr(args, "dropout", 0.0)
     ssl_lr = getattr(args, "ssl_lr", 1e-3)
     eo_ec_consistency_weight = getattr(args, "eo_ec_consistency_weight", 0.0)
+    fc_graph_smoothness_weight = getattr(args, "fc_graph_smoothness_weight", 0.0)
     psd_channel_mask_prob = getattr(args, "psd_channel_mask_prob", 0.15)
     psd_frequency_mask_prob = getattr(args, "psd_frequency_mask_prob", 0.15)
     psd_element_mask_prob = getattr(args, "psd_element_mask_prob", 0.02)
@@ -287,6 +296,8 @@ def _supervised_run_suffix(args: argparse.Namespace) -> str:
         suffix += f"_ssllr{_number_token(ssl_lr)}"
     if eo_ec_consistency_weight != 0.0:
         suffix += f"_cons{_number_token(eo_ec_consistency_weight)}"
+    if fc_graph_smoothness_weight != 0.0:
+        suffix += f"_fgs{_number_token(fc_graph_smoothness_weight)}"
     if psd_channel_mask_prob != 0.15:
         suffix += f"_pcm{_number_token(psd_channel_mask_prob)}"
     if psd_frequency_mask_prob != 0.15:
