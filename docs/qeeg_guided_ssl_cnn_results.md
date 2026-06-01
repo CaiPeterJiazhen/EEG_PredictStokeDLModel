@@ -63,11 +63,11 @@ Not enough. The watched-subject table shows persistent errors in this group; the
 
 11. Is improvement mainly qEEG, SSL, or combination?
 
-This run suggests the qEEG scalar is the main signal: the qEEG-only logistic baseline had better seedmean ROC AUC, PR AUC, and Brier than the qEEG-guided SSL-CNN. The SSL combination improves over the weak no-SSL+qEEG branch but does not reproduce the earlier qEEG residual calibration gain.
+This run did not support promoting the qEEG-guided branch as the main model. The SSL combination improved over the weak no-SSL+qEEG branch but did not outperform the active EEG-only final model package.
 
 12. Should this be main model, supplementary model, or hypothesis-generating candidate?
 
-Supplementary/hypothesis-generating model test. It gives a seedmean score-level improvement over the prior no-SSL reference, but not the requested 10-seed mean-accuracy or hard-negative stability improvement, and it is weaker than the one-feature qEEG-only score ranking.
+Supplementary/hypothesis-generating model test. It gives a seedmean score-level improvement over the prior no-SSL reference, but not the requested 10-seed mean-accuracy or hard-negative stability improvement.
 
 ## Output Files
 

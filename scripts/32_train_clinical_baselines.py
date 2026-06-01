@@ -19,7 +19,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from eeg_recovery.config import load_path_config
-from eeg_recovery.metadata.labels import load_supervised_label_table
 from eeg_recovery.metadata.subjects import normalize_subject_id
 from eeg_recovery.training.metrics import binary_classification_metrics
 
@@ -44,7 +43,10 @@ class ClinicalModelSpec:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Train leakage-safe LOSO clinical baselines and collect reference EEG baselines.",
+        description=(
+            "Collect locked EEG reference baselines. Clinical and qEEG-only "
+            "baseline rows are intentionally excluded from current reports."
+        ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("--config", default=PROJECT_ROOT / "configs" / "paths.example.yaml")
@@ -52,13 +54,7 @@ def main() -> None:
 
     path_config = load_path_config(args.config)
     output_root = Path(path_config.output_root)
-    label_table = load_supervised_label_table(path_config)
-    predictions, metrics = run_clinical_baselines_loso(label_table, specs=clinical_model_specs())
-    reference_predictions, reference_metrics = collect_reference_model_rows(output_root)
-    if not reference_predictions.empty:
-        predictions = pd.concat([predictions, reference_predictions], ignore_index=True)
-    if not reference_metrics.empty:
-        metrics = pd.concat([metrics, reference_metrics], ignore_index=True)
+    predictions, metrics = collect_reference_model_rows(output_root)
 
     metrics_dir = output_root / "results" / "metrics"
     prediction_dir = output_root / "results" / "predictions"
@@ -66,11 +62,11 @@ def main() -> None:
     metrics_dir.mkdir(parents=True, exist_ok=True)
     prediction_dir.mkdir(parents=True, exist_ok=True)
     docs_dir.mkdir(parents=True, exist_ok=True)
-    metrics.to_csv(metrics_dir / "clinical_baseline_model_comparison.csv", index=False)
-    predictions.to_csv(prediction_dir / "clinical_baseline_predictions.csv", index=False)
-    write_clinical_baseline_doc(metrics, docs_dir / "clinical_baseline_results.md")
-    print(f"Wrote {metrics_dir / 'clinical_baseline_model_comparison.csv'}")
-    print(f"Wrote {prediction_dir / 'clinical_baseline_predictions.csv'}")
+    metrics.to_csv(metrics_dir / "eeg_reference_model_comparison.csv", index=False)
+    predictions.to_csv(prediction_dir / "eeg_reference_model_predictions.csv", index=False)
+    write_eeg_reference_baseline_doc(metrics, docs_dir / "eeg_reference_baseline_results.md")
+    print(f"Wrote {metrics_dir / 'eeg_reference_model_comparison.csv'}")
+    print(f"Wrote {prediction_dir / 'eeg_reference_model_predictions.csv'}")
 
 
 def clinical_model_specs() -> tuple[ClinicalModelSpec, ...]:
@@ -179,7 +175,6 @@ def collect_reference_model_rows(output_root: Path) -> tuple[pd.DataFrame, pd.Da
     prediction_frames = []
     metric_rows = []
     references = [
-        ("qEEG_only_logistic", output_root / "results" / "predictions" / "dl_loso_predictions_qeeg_only_ec_slowfastbsi.csv", "qEEG_reference"),
         (
             "no_SSL_CNN_updated_sub05_sub28_seedensemble10",
             output_root / "results" / "predictions" / "dl_loso_predictions_updated_sub05_sub28_10seed_no_ssl_psdfcwpli_gated_schemeA_seedensemble10.csv",
@@ -247,7 +242,7 @@ def collect_reference_model_rows(output_root: Path) -> tuple[pd.DataFrame, pd.Da
     return predictions, pd.DataFrame(metric_rows)
 
 
-def write_clinical_baseline_doc(metrics: pd.DataFrame, path: Path) -> None:
+def write_eeg_reference_baseline_doc(metrics: pd.DataFrame, path: Path) -> None:
     display = metrics[
         [
             "model",
@@ -261,13 +256,13 @@ def write_clinical_baseline_doc(metrics: pd.DataFrame, path: Path) -> None:
         ]
     ].copy()
     lines = [
-        "# Clinical Baseline Results",
+        "# EEG Reference Baseline Results",
         "",
-        "All clinical baselines used patient-level LOSO-CV. Numeric imputation/scaling and categorical imputation/one-hot encoding were fit on the 18 training subjects within each fold only. Post-treatment variables (`FMA_post`, `MBI_post`, observed delta, residual, and label) were not used as predictors.",
+        "This table keeps only the current EEG-reference rows used for manuscript comparison. Deprecated clinical logistic and qEEG-only logistic baselines are intentionally excluded from the committed report.",
         "",
         display.to_markdown(index=False),
         "",
-        "Reference rows include qEEG-only, updated_sub05_sub28 PSD/WPLI ML baselines, updated_sub05_sub28 no-SSL CNN, and the final residual-aware SSL-CNN where corresponding locked predictions already existed. These rows are included for manuscript comparison only and do not change model selection.",
+        "Reference rows include updated_sub05_sub28 PSD/WPLI ML baselines, updated_sub05_sub28 no-SSL CNN, and the final residual-aware SSL-CNN where corresponding locked predictions already existed. These rows do not change model selection.",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
 

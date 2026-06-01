@@ -14,7 +14,7 @@ Define residual, the locked threshold `1.5`, binary labels, and fixed inference 
 
 ## Predictors
 
-Main predictors are baseline PSD EO/EC and WPLI EO/EC. Clinical variables and qEEG are reported as baselines/supporting analyses, not part of the final deep model.
+Main predictors are baseline PSD EO/EC and WPLI EO/EC. Clinical variables and qEEG are not part of the final deep model or the current committed EEG-reference baseline table.
 
 ## EEG Preprocessing
 

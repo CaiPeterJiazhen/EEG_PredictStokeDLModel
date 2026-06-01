@@ -22,9 +22,8 @@ Predict whether 19 supervised stroke patients achieve proportional upper-limb re
 ## Baselines
 
 - ML EEG baselines are reported from the `updated_sub05_sub28` PSD+WPLI feature set, with both no-selector and fold-local SelectK=100 variants.
-- Clinical LOSO baselines now include FMA_pre-only, MBI_pre-only, age/sex/duration, and baseline clinical-only logistic models.
-- qEEG-only logistic is retained as biomarker/supporting analysis, not as the main deep model.
 - no-SSL CNN reference rows use the `updated_sub05_sub28` PSD+WPLI EO/EC gated CNN result where available.
+- Clinical logistic and qEEG-only logistic baseline result rows were removed from the current committed comparison package because they are not part of the active EEG baseline set.
 
 ## SSL Attempts
 
@@ -62,6 +61,5 @@ The explanation target is the classification logit. The committed attribution su
 ## Pending Manuscript Tasks
 
 - Write manuscript text around the locked final model.
-- Decide how to present strong clinical-only baseline performance without overclaiming EEG superiority.
 - Keep SSL data scope wording conservative because `all-patient` SSL pretraining is historical unlabeled pretraining, not a fully prospective baseline-only setting.
 - Emphasize pilot/exploratory status and need for external validation.

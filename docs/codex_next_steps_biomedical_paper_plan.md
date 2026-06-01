@@ -1051,9 +1051,9 @@ label
 创建或扩展：
 
 ```text
-scripts/16_train_clinical_baselines.py
-src/eeg_recovery/training/train_clinical_baselines.py
-tests/test_clinical_baselines.py
+scripts/32_train_clinical_baselines.py
+results/metrics/eeg_reference_model_comparison.csv
+results/predictions/eeg_reference_model_predictions.csv
 ```
 
 模型：
@@ -1093,8 +1093,8 @@ label
 输出：
 
 ```text
-results/metrics/clinical_baseline_comparison.csv
-results/predictions/clinical_baseline_predictions.csv
+results/metrics/eeg_reference_model_comparison.csv
+results/predictions/eeg_reference_model_predictions.csv
 ```
 
 完成标准：

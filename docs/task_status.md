@@ -15,7 +15,7 @@
 
 ## Manuscript support package
 
-- Clinical baselines: `docs/clinical_baseline_results.md`
+- EEG reference baselines: `docs/eeg_reference_baseline_results.md`
 - Residual threshold sensitivity: `docs/residual_threshold_sensitivity.md`
 - SSL data scope note: `docs/ssl_data_scope_sensitivity.md`
 - Extended sanity note: `docs/explainability_sanity_check_extension.md`

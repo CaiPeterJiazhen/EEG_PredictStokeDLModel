@@ -16,15 +16,14 @@ Suggested title: **Residual-aware self-supervised multimodal EEG learning for pr
 - Features: PSD EO/EC `62 x 90`, WPLI EO/EC `1891 x 6`.
 - Validation: patient-level LOSO and 10 repeated seeds.
 - Model: Patient-level Barlow SSL-CNN with residual-aware auxiliary heads and SWA.
-- Baselines: clinical, qEEG-only, ML EEG, no-SSL CNN.
+- Baselines: updated_sub05_sub28 PSD/WPLI ML EEG and no-SSL CNN.
 - SSL data scope: fold-specific test-subject exclusion; historical unlabeled pretraining if `all-patient`.
 
 ## Results
 
 - Use `results/tables/model_performance_main_table.csv`.
 - Use `results/tables/seed_stability_table.csv`.
-- Report that clinical-only and FMA_pre-only baselines are strong.
-- Present final SSL-CNN as improving seed-level stability and Brier relative to the no-SSL rerun reference, not as universally superior to all clinical baselines.
+- Present final SSL-CNN as improving seed-level stability and Brier relative to the no-SSL rerun reference, not as universally superior across all possible baseline families.
 
 ## Explainability / Neurophysiological Interpretation
 
@@ -35,7 +34,7 @@ Suggested title: **Residual-aware self-supervised multimodal EEG learning for pr
 ## Discussion
 
 - Emphasize residual-aware training as a way to use continuous recovery information while keeping binary classification inference.
-- Discuss why no-SSL and clinical baselines remain strong.
+- Discuss why the no-SSL EEG baseline remains strong.
 - Discuss qEEG as supplementary biomarker evidence.
 
 ## Limitations

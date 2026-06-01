@@ -106,14 +106,12 @@ def _make_patient_characteristics(labels: pd.DataFrame) -> pd.DataFrame:
 
 
 def _make_model_performance_table(output_root: Path) -> pd.DataFrame:
-    source = pd.read_csv(output_root / "results" / "metrics" / "clinical_baseline_model_comparison.csv")
+    source = pd.read_csv(output_root / "results" / "metrics" / "eeg_reference_model_comparison.csv")
     order = [
         ("ML_EEG_updated_no_selector_logistic_l1", "Logistic L1 (updated, no selector)"),
         ("ML_EEG_updated_no_selector_logistic_l2", "Logistic L2 (updated, no selector)"),
         ("ML_EEG_updated_selectk100_logistic_l2", "Logistic L2 (updated, SelectK=100)"),
         ("ML_EEG_updated_selectk100_svm_rbf", "SVM RBF (updated, SelectK=100)"),
-        ("baseline_clinical_only_logistic", "Clinical-only logistic"),
-        ("qEEG_only_logistic", "qEEG-only logistic"),
         ("no_SSL_CNN_updated_sub05_sub28_seedensemble10", "no-SSL CNN (updated)"),
         ("residual_aware_SSL_CNN_seedmean10", "Residual-aware SSL-CNN"),
     ]
