@@ -108,11 +108,13 @@ def _make_patient_characteristics(labels: pd.DataFrame) -> pd.DataFrame:
 def _make_model_performance_table(output_root: Path) -> pd.DataFrame:
     source = pd.read_csv(output_root / "results" / "metrics" / "clinical_baseline_model_comparison.csv")
     order = [
-        ("ML_EEG_logistic_l1", "Logistic L1"),
-        ("ML_EEG_logistic_l2", "Logistic L2"),
+        ("ML_EEG_updated_no_selector_logistic_l1", "Logistic L1 (updated, no selector)"),
+        ("ML_EEG_updated_no_selector_logistic_l2", "Logistic L2 (updated, no selector)"),
+        ("ML_EEG_updated_selectk100_logistic_l2", "Logistic L2 (updated, SelectK=100)"),
+        ("ML_EEG_updated_selectk100_svm_rbf", "SVM RBF (updated, SelectK=100)"),
         ("baseline_clinical_only_logistic", "Clinical-only logistic"),
         ("qEEG_only_logistic", "qEEG-only logistic"),
-        ("no_SSL_CNN_seedmean10", "no-SSL CNN"),
+        ("no_SSL_CNN_updated_sub05_sub28_seedensemble10", "no-SSL CNN (updated)"),
         ("residual_aware_SSL_CNN_seedmean10", "Residual-aware SSL-CNN"),
     ]
     rows = []
@@ -144,10 +146,10 @@ def _make_model_performance_table(output_root: Path) -> pd.DataFrame:
 def _make_seed_stability_table(output_root: Path) -> pd.DataFrame:
     rows = []
     rows.append(
-        _stability_from_summary(
-            output_root / "results" / "metrics" / "no_ssl_psdfcwpli_gated_cnn_rerun_20260531_10seed_summary.csv",
-            "no-SSL CNN",
-            model_column=None,
+        _stability_from_method_summary(
+            output_root / "results" / "metrics" / "updated_sub05_sub28_10seed_no_ssl_barlow_cnn_summary.csv",
+            "no_ssl_schemeA",
+            "no-SSL CNN (updated)",
         )
     )
     rows.append(
@@ -292,7 +294,16 @@ def _box_figure(path: Path, title: str, labels: list[str]) -> None:
 
 
 def _plot_metric_bars(performance: pd.DataFrame, path: Path) -> None:
-    subset = performance[performance["model"].isin(["Clinical-only logistic", "qEEG-only logistic", "no-SSL CNN", "Residual-aware SSL-CNN"])]
+    subset = performance[
+        performance["model"].isin(
+            [
+                "Clinical-only logistic",
+                "qEEG-only logistic",
+                "no-SSL CNN (updated)",
+                "Residual-aware SSL-CNN",
+            ]
+        )
+    ]
     fig, ax = plt.subplots(figsize=(9, 4))
     x = np.arange(len(subset))
     ax.bar(x - 0.2, subset["accuracy"], width=0.2, label="Accuracy")

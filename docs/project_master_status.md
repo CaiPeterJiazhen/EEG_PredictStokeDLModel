@@ -21,10 +21,10 @@ Predict whether 19 supervised stroke patients achieve proportional upper-limb re
 
 ## Baselines
 
-- ML EEG baselines include Logistic L1, Logistic L2, and SVM RBF.
+- ML EEG baselines are reported from the `updated_sub05_sub28` PSD+WPLI feature set, with both no-selector and fold-local SelectK=100 variants.
 - Clinical LOSO baselines now include FMA_pre-only, MBI_pre-only, age/sex/duration, and baseline clinical-only logistic models.
 - qEEG-only logistic is retained as biomarker/supporting analysis, not as the main deep model.
-- no-SSL CNN remains an important reference with the same PSD+WPLI EO/EC gated CNN input structure.
+- no-SSL CNN reference rows use the `updated_sub05_sub28` PSD+WPLI EO/EC gated CNN result where available.
 
 ## SSL Attempts
 

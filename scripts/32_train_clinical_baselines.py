@@ -180,7 +180,11 @@ def collect_reference_model_rows(output_root: Path) -> tuple[pd.DataFrame, pd.Da
     metric_rows = []
     references = [
         ("qEEG_only_logistic", output_root / "results" / "predictions" / "dl_loso_predictions_qeeg_only_ec_slowfastbsi.csv", "qEEG_reference"),
-        ("no_SSL_CNN_seedmean10", output_root / "results" / "predictions" / "seedmean_no_ssl_psdfcwpli_gated_cnn_rerun_20260531_10seed.csv", "EEG_CNN_reference"),
+        (
+            "no_SSL_CNN_updated_sub05_sub28_seedensemble10",
+            output_root / "results" / "predictions" / "dl_loso_predictions_updated_sub05_sub28_10seed_no_ssl_psdfcwpli_gated_schemeA_seedensemble10.csv",
+            "EEG_CNN_reference",
+        ),
         ("residual_aware_SSL_CNN_seedmean10", output_root / "results" / "predictions" / "seedmean_patient_barlow_residualaware_highrank_swa_clsalpha1_10seed.csv", "EEG_CNN_reference"),
     ]
     for model_name, path, family in references:
@@ -198,20 +202,42 @@ def collect_reference_model_rows(output_root: Path) -> tuple[pd.DataFrame, pd.Da
                 **_metrics_with_ci(frame["y_true"].to_numpy(int), frame["y_score"].to_numpy(float)),
             }
         )
-    ml_path = output_root / "results" / "predictions" / "ml_baseline_loso_predictions.csv"
-    if ml_path.exists():
-        ml = pd.read_csv(ml_path)
-        for model_name in ("logistic_l1", "logistic_l2", "svm_rbf"):
-            subset = ml[(ml["model"] == model_name) & (ml.get("status", "trained") == "trained")].copy()
+    ml_reference_files = [
+        (
+            "updated_no_selector",
+            output_root / "results" / "predictions" / "ml_baseline_loso_predictions_updated_sub05_sub28_psdfcwpli_no_selector.csv",
+            "PSD/WPLI updated_sub05_sub28 ML baseline; no feature selector",
+        ),
+        (
+            "updated_selectk100",
+            output_root / "results" / "predictions" / "ml_baseline_loso_predictions_updated_sub05_sub28_psdfcwpli_selectk100.csv",
+            "PSD/WPLI updated_sub05_sub28 ML baseline; SelectK=100 inside LOSO folds",
+        ),
+    ]
+    for tag, path, feature_description in ml_reference_files:
+        if not path.exists():
+            continue
+        ml = pd.read_csv(path)
+        trained = ml[ml.get("status", "trained") == "trained"].copy()
+        for model_name in sorted(trained["model"].unique()):
+            subset = trained[trained["model"] == model_name].copy()
             if subset.empty:
                 continue
-            frame = _normalize_prediction_frame(subset, f"ML_EEG_{model_name}")
-            prediction_frames.append(frame.assign(model=f"ML_EEG_{model_name}", model_family="ML_EEG_reference", status="reference", skip_reason=""))
+            output_model_name = f"ML_EEG_{tag}_{model_name}"
+            frame = _normalize_prediction_frame(subset, output_model_name)
+            prediction_frames.append(
+                frame.assign(
+                    model=output_model_name,
+                    model_family="ML_EEG_updated_sub05_sub28_reference",
+                    status="reference",
+                    skip_reason="",
+                )
+            )
             metric_rows.append(
                 {
-                    "model": f"ML_EEG_{model_name}",
-                    "model_family": "ML_EEG_reference",
-                    "features": "PSD/WPLI ML baseline",
+                    "model": output_model_name,
+                    "model_family": "ML_EEG_updated_sub05_sub28_reference",
+                    "features": feature_description,
                     "status": "reference",
                     "skip_reason": "",
                     **_metrics_with_ci(frame["y_true"].to_numpy(int), frame["y_score"].to_numpy(float)),
@@ -241,7 +267,7 @@ def write_clinical_baseline_doc(metrics: pd.DataFrame, path: Path) -> None:
         "",
         display.to_markdown(index=False),
         "",
-        "Reference rows include qEEG-only, ML EEG baselines, no-SSL CNN, and the final residual-aware SSL-CNN where corresponding locked predictions already existed. These rows are included for manuscript comparison only and do not change model selection.",
+        "Reference rows include qEEG-only, updated_sub05_sub28 PSD/WPLI ML baselines, updated_sub05_sub28 no-SSL CNN, and the final residual-aware SSL-CNN where corresponding locked predictions already existed. These rows are included for manuscript comparison only and do not change model selection.",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -302,4 +328,3 @@ def _bootstrap_metric_ci(y_true: np.ndarray, y_score: np.ndarray, *, n_bootstrap
 
 if __name__ == "__main__":
     main()
-

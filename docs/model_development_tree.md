@@ -4,7 +4,7 @@ This document records the main modeling path so the manuscript does not look lik
 
 ## Baseline Layer
 
-- ML EEG baseline: Logistic L1, Logistic L2, SVM RBF.
+- ML EEG baseline: updated_sub05_sub28 PSD+WPLI Logistic/SVM/tree/naive Bayes/KNN baselines, including no-selector and fold-local SelectK=100 variants.
 - Clinical baseline: FMA_pre-only, MBI_pre-only, age/sex/duration, full baseline clinical logistic.
 - no-SSL CNN: PSD+WPLI EO/EC gated CNN without SSL.
 
