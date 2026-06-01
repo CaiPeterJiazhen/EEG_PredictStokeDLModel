@@ -1,0 +1,265 @@
+feature_id,k,n_selected,n_seeds,selection_frequency
+EO|F5|Beta High,10,8,10,0.8
+EO|C5|Beta High,10,7,10,0.7
+EO|FC5|Beta High,10,7,10,0.7
+EO|FPZ|Beta High,10,7,10,0.7
+EO|TP7|Beta High,10,7,10,0.7
+EO|F5|Delta,10,6,10,0.6
+EO|FC5|Delta,10,6,10,0.6
+EO|TP7|Delta,10,6,10,0.6
+EO|F7|Delta,10,4,10,0.4
+EO|P1|Theta,10,4,10,0.4
+EO|T7|Delta,10,4,10,0.4
+EO|O1|Beta High,10,3,10,0.3
+EO|C5|Delta,10,2,10,0.2
+EO|C5|Theta,10,2,10,0.2
+EO|CP3|Theta,10,2,10,0.2
+EO|FC4|Beta High,10,2,10,0.2
+EO|FP2|Beta Medium,10,2,10,0.2
+EC|C6|Delta,10,1,10,0.1
+EC|CP6|Delta,10,1,10,0.1
+EC|CPZ|Alpha,10,1,10,0.1
+EC|CZ|Beta High,10,1,10,0.1
+EC|F8|Alpha,10,1,10,0.1
+EC|FT7|Beta High,10,1,10,0.1
+EC|FT7|Beta Medium,10,1,10,0.1
+EC|FT8|Beta High,10,1,10,0.1
+EC|FT8|Beta Medium,10,1,10,0.1
+EC|FT8|Delta,10,1,10,0.1
+EO|C5|Beta Low,10,1,10,0.1
+EO|CP1|Theta,10,1,10,0.1
+EO|F2|Beta High,10,1,10,0.1
+EO|FP2|Beta High,10,1,10,0.1
+EO|FPZ|Beta Medium,10,1,10,0.1
+EO|FT7|Delta,10,1,10,0.1
+EO|OZ|Beta High,10,1,10,0.1
+EO|OZ|Delta,10,1,10,0.1
+EO|P3|Beta High,10,1,10,0.1
+EO|PZ|Beta Low,10,1,10,0.1
+EO|T7|Theta,10,1,10,0.1
+EO|F5|Beta High,20,9,10,0.9
+EO|FC5|Beta High,20,9,10,0.9
+EO|FPZ|Beta High,20,9,10,0.9
+EO|C5|Beta High,20,8,10,0.8
+EO|TP7|Beta High,20,8,10,0.8
+EO|TP7|Delta,20,8,10,0.8
+EO|F5|Delta,20,7,10,0.7
+EO|F7|Delta,20,7,10,0.7
+EO|P1|Theta,20,7,10,0.7
+EO|T7|Delta,20,7,10,0.7
+EO|FC4|Beta High,20,6,10,0.6
+EO|FC5|Delta,20,6,10,0.6
+EO|FT7|Delta,20,6,10,0.6
+EO|OZ|Delta,20,6,10,0.6
+EO|OZ|Beta High,20,5,10,0.5
+EO|C5|Delta,20,4,10,0.4
+EO|C5|Theta,20,4,10,0.4
+EO|FP2|Beta High,20,4,10,0.4
+EO|FP2|Beta Medium,20,4,10,0.4
+EO|O1|Beta High,20,4,10,0.4
+EO|C5|Beta Low,20,3,10,0.3
+EO|C5|Beta Medium,20,3,10,0.3
+EO|CP3|Theta,20,3,10,0.3
+EO|F2|Beta High,20,3,10,0.3
+EO|F4|Beta Medium,20,3,10,0.3
+EO|F5|Beta Medium,20,3,10,0.3
+EO|PZ|Beta Low,20,3,10,0.3
+EO|AF4|Beta High,20,2,10,0.2
+EO|FC4|Delta,20,2,10,0.2
+EO|FC5|Beta Low,20,2,10,0.2
+EO|FC5|Theta,20,2,10,0.2
+EO|FP1|Beta High,20,2,10,0.2
+EO|T7|Theta,20,2,10,0.2
+EC|C4|Beta High,20,1,10,0.1
+EC|C6|Beta High,20,1,10,0.1
+EC|C6|Delta,20,1,10,0.1
+EC|CP2|Beta High,20,1,10,0.1
+EC|CP2|Delta,20,1,10,0.1
+EC|CP6|Delta,20,1,10,0.1
+EC|CPZ|Alpha,20,1,10,0.1
+EC|CPZ|Delta,20,1,10,0.1
+EC|CZ|Beta High,20,1,10,0.1
+EC|CZ|Beta Medium,20,1,10,0.1
+EC|F8|Alpha,20,1,10,0.1
+EC|F8|Beta Medium,20,1,10,0.1
+EC|FT7|Beta High,20,1,10,0.1
+EC|FT7|Beta Low,20,1,10,0.1
+EC|FT7|Beta Medium,20,1,10,0.1
+EC|FT8|Beta High,20,1,10,0.1
+EC|FT8|Beta Low,20,1,10,0.1
+EC|FT8|Beta Medium,20,1,10,0.1
+EC|FT8|Delta,20,1,10,0.1
+EC|PO5|Beta High,20,1,10,0.1
+EC|TP8|Delta,20,1,10,0.1
+EO|AF3|Delta,20,1,10,0.1
+EO|CP1|Theta,20,1,10,0.1
+EO|CP5|Theta,20,1,10,0.1
+EO|F3|Beta High,20,1,10,0.1
+EO|F3|Delta,20,1,10,0.1
+EO|FC3|Beta High,20,1,10,0.1
+EO|FC3|Beta Low,20,1,10,0.1
+EO|FC4|Beta Medium,20,1,10,0.1
+EO|FC5|Beta Medium,20,1,10,0.1
+EO|FP1|Delta,20,1,10,0.1
+EO|FP2|Delta,20,1,10,0.1
+EO|FPZ|Beta Medium,20,1,10,0.1
+EO|FT7|Theta,20,1,10,0.1
+EO|P1|Delta,20,1,10,0.1
+EO|P3|Beta High,20,1,10,0.1
+EO|P7|Beta High,20,1,10,0.1
+EO|POZ|Delta,20,1,10,0.1
+EO|TP7|Theta,20,1,10,0.1
+EO|C5|Beta High,50,9,10,0.9
+EO|F5|Beta High,50,9,10,0.9
+EO|F7|Delta,50,9,10,0.9
+EO|FC3|Beta High,50,9,10,0.9
+EO|FC4|Beta High,50,9,10,0.9
+EO|FC4|Beta Medium,50,9,10,0.9
+EO|FC5|Beta High,50,9,10,0.9
+EO|FPZ|Beta High,50,9,10,0.9
+EO|T7|Delta,50,9,10,0.9
+EO|TP7|Beta High,50,9,10,0.9
+EO|TP7|Delta,50,9,10,0.9
+EO|C5|Delta,50,8,10,0.8
+EO|CP3|Theta,50,8,10,0.8
+EO|F2|Beta High,50,8,10,0.8
+EO|F4|Beta Medium,50,8,10,0.8
+EO|F5|Beta Medium,50,8,10,0.8
+EO|F5|Delta,50,8,10,0.8
+EO|FC5|Delta,50,8,10,0.8
+EO|FT7|Delta,50,8,10,0.8
+EO|P1|Delta,50,8,10,0.8
+EO|C5|Beta Medium,50,7,10,0.7
+EO|C5|Theta,50,7,10,0.7
+EO|F3|Delta,50,7,10,0.7
+EO|FC5|Beta Medium,50,7,10,0.7
+EO|FP2|Delta,50,7,10,0.7
+EO|OZ|Delta,50,7,10,0.7
+EO|P1|Theta,50,7,10,0.7
+EO|T7|Theta,50,7,10,0.7
+EO|C5|Beta Low,50,6,10,0.6
+EO|F3|Beta High,50,6,10,0.6
+EO|FP2|Beta High,50,6,10,0.6
+EO|OZ|Beta High,50,6,10,0.6
+EO|PZ|Beta Low,50,6,10,0.6
+EO|AF4|Beta High,50,5,10,0.5
+EO|CP3|Delta,50,5,10,0.5
+EO|F7|Beta High,50,5,10,0.5
+EO|F7|Theta,50,5,10,0.5
+EO|FC4|Delta,50,5,10,0.5
+EO|FC5|Beta Low,50,5,10,0.5
+EO|FC5|Theta,50,5,10,0.5
+EO|FP1|Beta High,50,5,10,0.5
+EO|FP2|Beta Medium,50,5,10,0.5
+EO|FT7|Theta,50,5,10,0.5
+EO|P7|Beta High,50,5,10,0.5
+EO|POZ|Beta Low,50,5,10,0.5
+EO|TP7|Beta Low,50,5,10,0.5
+EO|AF3|Delta,50,4,10,0.4
+EO|C4|Beta High,50,4,10,0.4
+EO|CP5|Theta,50,4,10,0.4
+EO|F2|Delta,50,4,10,0.4
+EO|F4|Beta High,50,4,10,0.4
+EO|FP1|Delta,50,4,10,0.4
+EO|O1|Beta High,50,4,10,0.4
+EO|P2|Beta Low,50,4,10,0.4
+EO|P3|Beta High,50,4,10,0.4
+EO|P7|Delta,50,4,10,0.4
+EO|POZ|Beta High,50,4,10,0.4
+EO|CP1|Theta,50,3,10,0.3
+EO|CP5|Beta Low,50,3,10,0.3
+EO|F2|Beta Medium,50,3,10,0.3
+EO|FC3|Beta Low,50,3,10,0.3
+EO|O2|Delta,50,3,10,0.3
+EO|P8|Beta High,50,3,10,0.3
+EO|POZ|Delta,50,3,10,0.3
+EO|T8|Beta High,50,3,10,0.3
+EC|TP8|Delta,50,2,10,0.2
+EO|AF4|Beta Medium,50,2,10,0.2
+EO|AF4|Delta,50,2,10,0.2
+EO|C3|Theta,50,2,10,0.2
+EO|C4|Beta Low,50,2,10,0.2
+EO|CP4|Beta Low,50,2,10,0.2
+EO|CP5|Beta Medium,50,2,10,0.2
+EO|CP5|Delta,50,2,10,0.2
+EO|F5|Beta Low,50,2,10,0.2
+EO|FC3|Beta Medium,50,2,10,0.2
+EO|FC4|Beta Low,50,2,10,0.2
+EO|FC6|Delta,50,2,10,0.2
+EO|FCZ|Beta High,50,2,10,0.2
+EO|FP1|Beta Medium,50,2,10,0.2
+EO|FZ|Beta High,50,2,10,0.2
+EO|P3|Delta,50,2,10,0.2
+EO|P7|Beta Low,50,2,10,0.2
+EO|T7|Beta High,50,2,10,0.2
+EO|T7|Beta Medium,50,2,10,0.2
+EO|TP7|Beta Medium,50,2,10,0.2
+EO|TP7|Theta,50,2,10,0.2
+EC|C4|Beta High,50,1,10,0.1
+EC|C6|Beta High,50,1,10,0.1
+EC|C6|Delta,50,1,10,0.1
+EC|CP1|Beta High,50,1,10,0.1
+EC|CP1|Beta Medium,50,1,10,0.1
+EC|CP2|Alpha,50,1,10,0.1
+EC|CP2|Beta High,50,1,10,0.1
+EC|CP2|Beta Medium,50,1,10,0.1
+EC|CP2|Delta,50,1,10,0.1
+EC|CP6|Delta,50,1,10,0.1
+EC|CPZ|Alpha,50,1,10,0.1
+EC|CPZ|Beta High,50,1,10,0.1
+EC|CPZ|Beta Low,50,1,10,0.1
+EC|CPZ|Beta Medium,50,1,10,0.1
+EC|CPZ|Delta,50,1,10,0.1
+EC|CZ|Alpha,50,1,10,0.1
+EC|CZ|Beta High,50,1,10,0.1
+EC|CZ|Beta Medium,50,1,10,0.1
+EC|CZ|Delta,50,1,10,0.1
+EC|F8|Alpha,50,1,10,0.1
+EC|F8|Beta High,50,1,10,0.1
+EC|F8|Beta Low,50,1,10,0.1
+EC|F8|Beta Medium,50,1,10,0.1
+EC|F8|Delta,50,1,10,0.1
+EC|F8|Theta,50,1,10,0.1
+EC|FC1|Delta,50,1,10,0.1
+EC|FT7|Alpha,50,1,10,0.1
+EC|FT7|Beta High,50,1,10,0.1
+EC|FT7|Beta Low,50,1,10,0.1
+EC|FT7|Beta Medium,50,1,10,0.1
+EC|FT8|Alpha,50,1,10,0.1
+EC|FT8|Beta High,50,1,10,0.1
+EC|FT8|Beta Low,50,1,10,0.1
+EC|FT8|Beta Medium,50,1,10,0.1
+EC|FT8|Delta,50,1,10,0.1
+EC|FT8|Theta,50,1,10,0.1
+EC|FZ|Delta,50,1,10,0.1
+EC|OZ|Beta High,50,1,10,0.1
+EC|P2|Beta High,50,1,10,0.1
+EC|P2|Beta Medium,50,1,10,0.1
+EC|PO3|Beta High,50,1,10,0.1
+EC|PO3|Delta,50,1,10,0.1
+EC|PO5|Beta High,50,1,10,0.1
+EC|PO5|Beta Low,50,1,10,0.1
+EC|PO5|Beta Medium,50,1,10,0.1
+EC|PZ|Beta Medium,50,1,10,0.1
+EC|PZ|Delta,50,1,10,0.1
+EC|T8|Delta,50,1,10,0.1
+EO|AF3|Beta High,50,1,10,0.1
+EO|C4|Delta,50,1,10,0.1
+EO|C5|Alpha,50,1,10,0.1
+EO|CP4|Delta,50,1,10,0.1
+EO|F3|Beta Low,50,1,10,0.1
+EO|F3|Beta Medium,50,1,10,0.1
+EO|F7|Beta Low,50,1,10,0.1
+EO|F7|Beta Medium,50,1,10,0.1
+EO|FP1|Beta Low,50,1,10,0.1
+EO|FP1|Theta,50,1,10,0.1
+EO|FPZ|Beta Medium,50,1,10,0.1
+EO|O1|Delta,50,1,10,0.1
+EO|OZ|Beta Low,50,1,10,0.1
+EO|OZ|Theta,50,1,10,0.1
+EO|P2|Alpha,50,1,10,0.1
+EO|P2|Delta,50,1,10,0.1
+EO|P6|Delta,50,1,10,0.1
+EO|PO8|Delta,50,1,10,0.1
+EO|POZ|Theta,50,1,10,0.1
+EO|T7|Beta Low,50,1,10,0.1

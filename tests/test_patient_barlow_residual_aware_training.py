@@ -75,3 +75,18 @@ def test_no_ssl_residual_aware_mode_is_not_marked_pretrained() -> None:
     assert metadata["pretrained"] is False
     assert metadata["pretrained_transfer_mode"] == "residual_aware_multitask_from_scratch"
     assert metadata["requires_checkpoint"] is False
+
+
+def test_supervised_checkpoint_path_uses_locked_model_group(tmp_path: Path) -> None:
+    module = _load_script()
+
+    path = module._supervised_checkpoint_path(
+        tmp_path,
+        checkpoint_tag="residualaware_highrank_swa_clsalpha1",
+        seed=7,
+        fold_index=3,
+        test_subject_id="sub08",
+    )
+
+    assert path.parent.name == "residualaware_highrank_swa_clsalpha1"
+    assert path.name == "residualaware_highrank_swa_clsalpha1_seed7_fold03_test_sub08.pt"

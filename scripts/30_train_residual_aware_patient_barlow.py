@@ -151,6 +151,8 @@ def main() -> None:
     parser.add_argument("--use-swa", action="store_true")
     parser.add_argument("--swa-start-epoch", type=int, default=50)
     parser.add_argument("--swa-lr", type=float, default=5e-4)
+    parser.add_argument("--save-supervised-fold-checkpoints", action="store_true")
+    parser.add_argument("--checkpoint-tag", default="")
     parser.add_argument("--output-prefix", default="patient_barlow_residualaware")
     args = parser.parse_args()
 
@@ -189,6 +191,8 @@ def main() -> None:
                 use_swa=args.use_swa,
                 swa_start_epoch=args.swa_start_epoch,
                 swa_lr=args.swa_lr,
+                save_supervised_fold_checkpoints=args.save_supervised_fold_checkpoints,
+                checkpoint_tag=args.checkpoint_tag or args.output_prefix,
                 reuse_ssl_encoders=args.reuse_ssl_encoders,
                 reuse_only=args.reuse_only,
             )
@@ -230,6 +234,8 @@ def _run_residual_aware_loso(
     use_swa: bool,
     swa_start_epoch: int,
     swa_lr: float,
+    save_supervised_fold_checkpoints: bool,
+    checkpoint_tag: str,
     reuse_ssl_encoders: bool,
     reuse_only: bool,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -385,6 +391,35 @@ def _run_residual_aware_loso(
             residual_probability = float(outputs["residual_probability"].detach().cpu().numpy()[0, 0])
             probability = selected_alpha * cls_probability + (1.0 - selected_alpha) * residual_probability
             residual_score = float(outputs["residual_score"].detach().cpu().numpy()[0, 0])
+        if save_supervised_fold_checkpoints:
+            _save_supervised_fold_checkpoint(
+                output_root=output_root,
+                checkpoint_tag=checkpoint_tag,
+                model=eval_model,
+                scaler=scaler,
+                seed=seed,
+                fold_index=fold.fold_index,
+                test_subject_id=fold.test_subject_id,
+                fit_subject_ids=fit_subjects,
+                val_subject_ids=val_subjects,
+                variant=variant,
+                pretraining_metadata=pretraining_metadata,
+                embedding_dim=embedding_dim,
+                dropout=dropout,
+                rank_margin=rank_margin,
+                residual_alpha=residual_alpha,
+                selected_alpha=selected_alpha,
+                alpha_candidates=alpha_candidates,
+                residual_probability_scale=residual_probability_scale,
+                use_swa=use_swa,
+                swa_start_epoch=swa_start_epoch,
+                swa_lr=swa_lr,
+                target_scaler={
+                    "mean": target_scaler.mean,
+                    "std": target_scaler.std,
+                    "tau": target_scaler.tau,
+                },
+            )
         test_record = record_by_subject[fold.test_subject_id]
         prediction_rows.append(
             {
@@ -527,6 +562,122 @@ def _pretraining_mode_metadata(pretraining_mode: str, variant: ResidualAwareVari
             "requires_checkpoint": False,
         }
     raise ValueError("pretraining_mode must be patient_barlow or no_ssl.")
+
+
+def _supervised_checkpoint_path(
+    output_root: str | Path,
+    *,
+    checkpoint_tag: str,
+    seed: int,
+    fold_index: int,
+    test_subject_id: str,
+) -> Path:
+    safe_tag = _safe_filename_token(checkpoint_tag)
+    safe_subject = _safe_filename_token(normalize_subject_id(test_subject_id))
+    return (
+        Path(output_root)
+        / "results"
+        / "checkpoints"
+        / "supervised"
+        / safe_tag
+        / f"{safe_tag}_seed{int(seed)}_fold{int(fold_index):02d}_test_{safe_subject}.pt"
+    )
+
+
+def _save_supervised_fold_checkpoint(
+    *,
+    output_root: str | Path,
+    checkpoint_tag: str,
+    model: nn.Module,
+    scaler: Any,
+    seed: int,
+    fold_index: int,
+    test_subject_id: str,
+    fit_subject_ids: list[str],
+    val_subject_ids: list[str],
+    variant: ResidualAwareVariant,
+    pretraining_metadata: Mapping[str, Any],
+    embedding_dim: int,
+    dropout: float,
+    rank_margin: float,
+    residual_alpha: float,
+    selected_alpha: float,
+    alpha_candidates: tuple[float, ...],
+    residual_probability_scale: float,
+    use_swa: bool,
+    swa_start_epoch: int,
+    swa_lr: float,
+    target_scaler: Mapping[str, float],
+) -> Path:
+    path = _supervised_checkpoint_path(
+        output_root,
+        checkpoint_tag=checkpoint_tag,
+        seed=seed,
+        fold_index=fold_index,
+        test_subject_id=test_subject_id,
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "checkpoint_type": "residual_aware_supervised_fold",
+        "state_dict": _model_state_dict_for_checkpoint(model),
+        "state_scaler": _scaler_to_checkpoint_payload(scaler),
+        "metadata": {
+            "model_group": checkpoint_tag,
+            "model_name": pretraining_metadata["model_name"],
+            "pretrained": bool(pretraining_metadata["pretrained"]),
+            "pretrained_transfer_mode": str(pretraining_metadata["pretrained_transfer_mode"]),
+            "variant": variant.name,
+            "lambda_reg": float(variant.lambda_reg),
+            "lambda_rank": float(variant.lambda_rank),
+            "lambda_soft": float(variant.lambda_soft),
+            "rank_margin": float(rank_margin),
+            "seed": int(seed),
+            "fold_index": int(fold_index),
+            "test_subject_id": normalize_subject_id(test_subject_id),
+            "fit_subject_ids": [normalize_subject_id(subject_id) for subject_id in fit_subject_ids],
+            "val_subject_ids": [normalize_subject_id(subject_id) for subject_id in val_subject_ids],
+            "architecture": "multimodal",
+            "feature_kind": "psd-fc-wpli",
+            "fusion": "gated",
+            "encoder_kind": "cnn",
+            "embedding_dim": int(embedding_dim),
+            "dropout": float(dropout),
+            "residual_alpha": float(residual_alpha),
+            "selected_alpha": float(selected_alpha),
+            "alpha_candidates": [float(candidate) for candidate in alpha_candidates],
+            "residual_probability_scale": float(residual_probability_scale),
+            "use_swa": bool(use_swa),
+            "swa_start_epoch": int(swa_start_epoch),
+            "swa_lr": float(swa_lr),
+            "target_scaler": dict(target_scaler),
+        },
+    }
+    torch.save(payload, path)
+    return path
+
+
+def _model_state_dict_for_checkpoint(model: nn.Module) -> dict[str, torch.Tensor]:
+    if hasattr(model, "module") and isinstance(getattr(model, "module"), nn.Module):
+        state_dict = getattr(model, "module").state_dict()
+    else:
+        state_dict = model.state_dict()
+    return {key: value.detach().cpu() for key, value in state_dict.items()}
+
+
+def _scaler_to_checkpoint_payload(scaler: Any) -> Any:
+    if isinstance(scaler, dict):
+        return {
+            key: {
+                "mean": torch.as_tensor(mean).detach().cpu(),
+                "std": torch.as_tensor(std).detach().cpu(),
+            }
+            for key, (mean, std) in scaler.items()
+        }
+    mean, std = scaler
+    return {
+        "mean": torch.as_tensor(mean).detach().cpu(),
+        "std": torch.as_tensor(std).detach().cpu(),
+    }
 
 
 def _make_residual_batch(
