@@ -48,6 +48,23 @@ def test_sample_from_metadata_uses_configured_output_root_for_predictions(tmp_pa
     assert sample.signed_distance == 1.25
 
 
+def test_explainability_targets_use_configurable_residual_threshold() -> None:
+    module = _load_explainability_script()
+    label_table = pd.DataFrame(
+        {
+            "subject_id": ["sub01", "sub02"],
+            "Residual": [0.5, 2.0],
+        }
+    )
+
+    targets_1p5 = module._compute_explainability_targets(label_table, threshold=1.5)
+    targets_3p0 = module._compute_explainability_targets(label_table, threshold=3.0)
+
+    assert targets_1p5.loc["sub01", "signed_distance"] == 1.0
+    assert targets_3p0.loc["sub01", "signed_distance"] == 2.5
+    assert targets_1p5.loc["sub02", "signed_distance"] != targets_3p0.loc["sub02", "signed_distance"]
+
+
 def _load_explainability_script():
     script_path = Path(__file__).resolve().parents[1] / "scripts" / "31_explain_residual_aware_ssl_cnn.py"
     spec = spec_from_file_location("explainability_script_path_test", script_path)
@@ -56,4 +73,3 @@ def _load_explainability_script():
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
     return module
-

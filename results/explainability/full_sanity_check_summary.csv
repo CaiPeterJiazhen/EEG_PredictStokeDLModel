@@ -1,0 +1,17 @@
+subject_id,seed,fold_index,sanity_check,psd_eo_correlation,wpli_eo_correlation,coverage_note
+sub01,0,0,classifier_randomization,0.6274505257606506,0.9974767565727234,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub01,0,0,input_permutation,0.1194325014948844,0.2532305717468261,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub05,0,1,classifier_randomization,0.9573293924331664,0.9662528038024902,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub05,0,1,input_permutation,0.1033342182636261,0.0675045624375343,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub07,0,2,classifier_randomization,0.8776893615722656,0.9275543689727784,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub07,0,2,input_permutation,0.2483210414648056,0.1166514605283737,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub08,0,3,classifier_randomization,-0.9282671809196472,0.8561167120933533,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub08,0,3,input_permutation,0.0696728006005287,0.1530523300170898,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub09,0,4,classifier_randomization,0.2186571508646011,0.2707867622375488,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub09,0,4,input_permutation,0.1689029186964035,0.246683657169342,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub10,0,5,classifier_randomization,0.9820432662963868,0.961850643157959,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub10,0,5,input_permutation,0.2978052198886871,0.1604407727718353,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub11,0,6,classifier_randomization,0.9106091856956482,-0.9945907592773438,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub11,0,6,input_permutation,0.178122192621231,0.1329627037048339,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub13,0,7,classifier_randomization,-0.938184142112732,-0.2210123389959335,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.
+sub13,0,7,input_permutation,0.301277756690979,0.2115290164947509,Existing sanity rows; rerun scripts/31 with --max-sanity-samples 0 for full 10 seeds x 19 folds.

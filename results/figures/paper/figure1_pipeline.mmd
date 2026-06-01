@@ -1,0 +1,7 @@
+flowchart LR
+  A["19 stroke patients baseline resting EEG"] --> B["PSD + WPLI, EO + EC"]
+  B --> C["Outer patient-level LOSO"]
+  C --> D["Traditional ML baseline"]
+  C --> E["No-SSL CNN"]
+  C --> F["Residual-aware SSL-CNN"]
+  F --> G["Statistics, calibration, ablations, explainability"]

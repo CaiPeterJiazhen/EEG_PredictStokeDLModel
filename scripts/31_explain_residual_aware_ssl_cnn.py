@@ -53,7 +53,7 @@ from eeg_recovery.training.train_supervised import (
 
 SEEDS_10 = (0, 1, 2, 3, 4, 5, 7, 13, 21, 42)
 INPUT_KEYS = ("psd_eo", "psd_ec", "wpli_eo", "wpli_ec")
-WATCHED_SUBJECTS = ("sub09", "sub14")
+WATCHED_SUBJECTS = ("sub05", "sub09", "sub14", "sub28")
 
 
 @dataclass(frozen=True)
@@ -86,6 +86,13 @@ def main() -> None:
     parser.add_argument("--occlusion-top-k", type=int, default=20)
     parser.add_argument("--biomarker-top-k", type=int, default=50)
     parser.add_argument("--max-folds", type=int, default=0)
+    parser.add_argument("--residual-threshold", type=float, default=1.5)
+    parser.add_argument(
+        "--max-sanity-samples",
+        type=int,
+        default=0,
+        help="0 means run sanity checks for every processed seed/fold sample.",
+    )
     args = parser.parse_args()
 
     if args.target != "classification_logit":
@@ -102,7 +109,7 @@ def main() -> None:
     label_table = label_table.copy()
     label_table["subject_id"] = label_table["subject_id"].map(normalize_subject_id)
     label_table = label_table.set_index("subject_id", drop=False)
-    targets = compute_signed_distance_from_label_table(label_table.reset_index(drop=True), threshold=1.5)
+    targets = _compute_explainability_targets(label_table.reset_index(drop=True), threshold=args.residual_threshold)
     records = load_supervised_feature_records(path_config, label_table.reset_index(drop=True), feature_kind="psd-fc-wpli")
     record_by_subject = {record.subject_id: record for record in records}
     frequency_bins = _load_frequency_bins(output_root, records[0].subject_id)
@@ -175,7 +182,7 @@ def main() -> None:
             )
             psd_seed_rows.append(_sample_psd_feature_scores(sample, attributions, frequency_bins))
             wpli_seed_rows.append(_sample_wpli_feature_scores(sample, attributions, edge_list, wpli_band_names))
-            if processed < 8:
+            if args.max_sanity_samples == 0 or processed < args.max_sanity_samples:
                 sanity_rows.extend(_sanity_check_rows(model, batch, sample, steps=max(8, args.ig_steps // 4)))
             processed += 1
         if args.max_folds and processed >= args.max_folds:
@@ -184,7 +191,9 @@ def main() -> None:
     prediction_frame = pd.DataFrame(prediction_rows)
     prediction_frame.to_csv(explain_root / "explained_predictions.csv", index=False)
     pd.DataFrame(gate_rows).to_csv(explain_root / "branch_state_gate_weights.csv", index=False)
-    pd.DataFrame(sanity_rows).to_csv(explain_root / "sanity_check_summary.csv", index=False)
+    sanity_frame = pd.DataFrame(sanity_rows)
+    sanity_frame.to_csv(explain_root / "sanity_check_summary.csv", index=False)
+    sanity_frame.to_csv(explain_root / "full_sanity_check_summary.csv", index=False)
 
     psd_long = pd.read_csv(psd_long_path)
     wpli_long = pd.read_csv(wpli_long_path)
@@ -218,6 +227,7 @@ def main() -> None:
         wpli_band_names=wpli_band_names,
         explain_root=explain_root,
     )
+    _write_paper_validation_aliases(explain_root, prediction_frame)
     _make_figures(explain_root, figure_root)
     _write_document(explain_root, figure_root, output_root)
     _write_task_status(explain_root, output_root, processed)
@@ -233,6 +243,18 @@ def _load_residual_training_module() -> Any:
     assert spec.loader is not None
     spec.loader.exec_module(module)
     return module
+
+
+def _compute_explainability_targets(label_table: pd.DataFrame, *, threshold: float) -> pd.DataFrame:
+    if "label" not in label_table.columns:
+        label_table = label_table.copy()
+        label_table["label"] = (pd.to_numeric(label_table["Residual"], errors="raise") <= float(threshold)).astype(int)
+    targets = compute_signed_distance_from_label_table(label_table, threshold=float(threshold))
+    if "subject_id" in targets.columns:
+        targets = targets.copy()
+        targets["subject_id"] = targets["subject_id"].map(normalize_subject_id)
+        targets = targets.set_index("subject_id", drop=False)
+    return targets
 
 
 def _build_model_from_metadata(metadata: Mapping[str, Any], state_dict: Mapping[str, torch.Tensor], device: torch.device) -> torch.nn.Module:
@@ -1231,6 +1253,72 @@ def _write_task_status(explain_root: Path, output_root: Path, processed: int) ->
         "- Checkpoints: supervised fold checkpoints are required locally and are not intended for commit.",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _write_paper_validation_aliases(explain_root: Path, prediction_frame: pd.DataFrame) -> None:
+    consistency_rows: list[pd.DataFrame] = []
+    stability_path = explain_root / "attribution_stability_summary.csv"
+    if stability_path.exists():
+        stability = pd.read_csv(stability_path)
+        stability["validation_source"] = "topk_selection_stability"
+        consistency_rows.append(stability)
+    occlusion_path = explain_root / "occlusion_branch_state.csv"
+    if occlusion_path.exists():
+        occlusion = pd.read_csv(occlusion_path)
+        summary = occlusion.groupby("group_name", as_index=False)["delta_probability"].mean()
+        summary["validation_source"] = "branch_state_occlusion"
+        consistency_rows.append(summary)
+    if consistency_rows:
+        pd.concat(consistency_rows, ignore_index=True, sort=False).to_csv(
+            explain_root / "ig_smoothgrad_occlusion_consistency.csv",
+            index=False,
+        )
+    else:
+        pd.DataFrame(columns=["validation_source", "note"]).to_csv(
+            explain_root / "ig_smoothgrad_occlusion_consistency.csv",
+            index=False,
+        )
+
+    biomarker_frames = []
+    for family, filename in (
+        ("psd", "psd_biomarker_validation.csv"),
+        ("wpli", "wpli_biomarker_validation.csv"),
+        ("network", "network_level_biomarker_validation.csv"),
+    ):
+        path = explain_root / filename
+        if path.exists():
+            frame = pd.read_csv(path)
+            frame["feature_family"] = family
+            biomarker_frames.append(frame)
+    if biomarker_frames:
+        pd.concat(biomarker_frames, ignore_index=True, sort=False).to_csv(
+            explain_root / "biomarker_group_difference_validation.csv",
+            index=False,
+        )
+    else:
+        pd.DataFrame(columns=["feature_family", "note"]).to_csv(
+            explain_root / "biomarker_group_difference_validation.csv",
+            index=False,
+        )
+
+    error_rows = []
+    for subject_id in WATCHED_SUBJECTS:
+        subject = prediction_frame[prediction_frame["subject_id"] == subject_id]
+        if subject.empty:
+            continue
+        error_rows.append(
+            {
+                "subject_id": subject_id,
+                "n_seed_folds": int(len(subject)),
+                "y_true": int(subject["y_true"].iloc[0]),
+                "mean_score": float(subject["y_score"].mean()),
+                "std_score": float(subject["y_score"].std(ddof=0)),
+                "error_rate": float(1.0 - subject["correct"].mean()),
+                "mean_residual": float(subject["residual"].mean()),
+                "mean_signed_distance": float(subject["signed_distance"].mean()),
+            }
+        )
+    pd.DataFrame(error_rows).to_csv(explain_root / "error_subject_explainability_summary.csv", index=False)
 
 
 def _gate_rows(sample: ExplainedSample, aux: Mapping[str, torch.Tensor]) -> list[dict[str, Any]]:

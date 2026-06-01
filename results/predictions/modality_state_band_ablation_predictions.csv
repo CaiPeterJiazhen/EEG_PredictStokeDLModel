@@ -1,0 +1,229 @@
+model,model_family,feature_selection,fold_index,subject_id,y_true,y_score,y_pred,status,skip_reason,ablation_name,ablation_description
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,0,sub01,1,0.9934044592811803,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,1,sub05,0,0.9649262803264885,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,2,sub07,0,0.00298748429120416,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,3,sub08,0,0.49340000894725805,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,4,sub09,0,0.009190875819950498,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,5,sub10,1,0.9175959009011903,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,6,sub11,0,0.9863644544648333,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,7,sub13,0,3.7567164307434394e-08,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,8,sub14,0,0.422523012824011,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,9,sub15,1,0.9977054487025334,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,10,sub16,0,9.108339212748266e-07,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,11,sub17,1,0.2958699169529637,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,12,sub18,1,0.9962400483319093,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,13,sub20,1,0.8903800658215142,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,14,sub22,1,0.9912898331272048,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,15,sub24,0,0.17015055294768938,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,16,sub27,1,0.9485894142098671,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,17,sub28,1,0.9385176688440852,1,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_psd_only_logistic_l2,ablation_psd_only,selectk100,18,sub29,1,0.11129524107939676,0,trained,,psd_only,"PSD only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,0,sub01,1,0.8465417709242615,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,1,sub05,0,0.673079256377529,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,2,sub07,0,0.6944341709900518,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,3,sub08,0,0.2999119273705414,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,4,sub09,0,0.787457756575202,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,5,sub10,1,0.8808411221308607,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,6,sub11,0,0.040567478566244465,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,7,sub13,0,0.33397024872757647,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,8,sub14,0,0.824194955736481,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,9,sub15,1,0.23965085359027616,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,10,sub16,0,0.23763175434951797,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,11,sub17,1,0.773461096505004,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,12,sub18,1,0.9162564632011185,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,13,sub20,1,0.4097524086268566,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,14,sub22,1,0.6393728206347885,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,15,sub24,0,0.07616747695602952,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,16,sub27,1,0.7279402648796258,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,17,sub28,1,0.2744195335514727,0,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_wpli_only_logistic_l2,ablation_wpli_only,selectk100,18,sub29,1,0.601492576890276,1,trained,,wpli_only,"WPLI only, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,0,sub01,1,0.8574585521957724,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,1,sub05,0,0.6013647921419836,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,2,sub07,0,0.6924161408402045,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,3,sub08,0,0.27612789845232294,0,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,4,sub09,0,0.7756692916475798,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,5,sub10,1,0.8968965251536316,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,6,sub11,0,0.0908050825304135,0,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,7,sub13,0,0.286283723314168,0,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,8,sub14,0,0.847446196169046,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,9,sub15,1,0.2897790104904557,0,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,10,sub16,0,0.23332957541274077,0,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,11,sub17,1,0.7183807800903813,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,12,sub18,1,0.8786261602505696,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,13,sub20,1,0.5952091297442927,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,14,sub22,1,0.7062941893714976,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,15,sub24,0,0.0879470997403367,0,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,16,sub27,1,0.7431189458740296,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,17,sub28,1,0.2846317396566817,0,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_psd_wpli_logistic_l2,ablation_psd_wpli,selectk100,18,sub29,1,0.7011113938850935,1,trained,,psd_wpli,"PSD + WPLI, EO+EC, all bands"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,0,sub01,1,0.18330050066974463,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,1,sub05,0,0.9413886855027666,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,2,sub07,0,0.13546997288059656,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,3,sub08,0,0.38738491508259687,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,4,sub09,0,0.9537943047150049,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,5,sub10,1,0.3365509685038199,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,6,sub11,0,0.25057189966857946,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,7,sub13,0,0.6678620802517167,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,8,sub14,0,0.9095213075186178,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,9,sub15,1,0.06540960799050366,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,10,sub16,0,0.795828273164818,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,11,sub17,1,0.8436506955037992,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,12,sub18,1,0.9453164946829015,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,13,sub20,1,0.22235564564780744,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,14,sub22,1,0.24212807042961254,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,15,sub24,0,0.8047119266176855,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,16,sub27,1,0.21504898517148194,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,17,sub28,1,0.04040341375137129,0,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_eo_only_logistic_l2,ablation_eo_only,selectk100,18,sub29,1,0.9182740998150783,1,trained,,eo_only,"EO only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,0,sub01,1,0.9685726532682809,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,1,sub05,0,0.2456192236645074,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,2,sub07,0,0.7238623651428168,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,3,sub08,0,0.518287345975857,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,4,sub09,0,0.18025665441702188,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,5,sub10,1,0.9753315068625451,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,6,sub11,0,0.10771530632960936,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,7,sub13,0,0.12592144673244354,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,8,sub14,0,0.8636676768128866,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,9,sub15,1,0.32793276308060637,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,10,sub16,0,0.044562881647239365,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,11,sub17,1,0.5497754498259975,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,12,sub18,1,0.8212608746538826,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,13,sub20,1,0.8087742632549413,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,14,sub22,1,0.19812362784830584,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,15,sub24,0,0.015879745945326054,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,16,sub27,1,0.9371386146581531,1,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,17,sub28,1,0.24502258404031133,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_ec_only_logistic_l2,ablation_ec_only,selectk100,18,sub29,1,0.2059004761269433,0,trained,,ec_only,"EC only, PSD+WPLI"
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,0,sub01,1,0.9877669166618063,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,1,sub05,0,0.9893439145109322,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,2,sub07,0,0.6461618537509135,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,3,sub08,0,0.9481702260360577,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,4,sub09,0,0.10792119005258735,0,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,5,sub10,1,0.7973293966334564,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,6,sub11,0,0.9129792422211943,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,7,sub13,0,3.3846798910594026e-07,0,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,8,sub14,0,0.040724754065197835,0,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,9,sub15,1,0.994096507608142,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,10,sub16,0,0.0944492994697116,0,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,11,sub17,1,0.13431637366217428,0,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,12,sub18,1,0.9943510110688354,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,13,sub20,1,0.6640025501735894,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,14,sub22,1,0.961012304778166,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,15,sub24,0,0.3995700258696509,0,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,16,sub27,1,0.9682347172700246,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,17,sub28,1,0.8839627104246566,1,trained,,psd_eo_only,PSD EO only
+ablation_psd_eo_only_logistic_l2,ablation_psd_eo_only,selectk100,18,sub29,1,0.08185804768134872,0,trained,,psd_eo_only,PSD EO only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,0,sub01,1,0.9655664617204484,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,1,sub05,0,0.33653177458595196,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,2,sub07,0,0.6820081351982915,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,3,sub08,0,0.550138181606861,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,4,sub09,0,0.2419755408303799,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,5,sub10,1,0.973037794773598,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,6,sub11,0,0.10088037468674345,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,7,sub13,0,0.26535023480150643,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,8,sub14,0,0.8063174252143516,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,9,sub15,1,0.3142328395587343,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,10,sub16,0,0.05146402428476345,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,11,sub17,1,0.5350291988911308,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,12,sub18,1,0.8150488266136052,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,13,sub20,1,0.7629106004582913,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,14,sub22,1,0.17406474304801983,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,15,sub24,0,0.01257440862082546,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,16,sub27,1,0.9381978820218045,1,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,17,sub28,1,0.22921804187952005,0,trained,,wpli_ec_only,WPLI EC only
+ablation_wpli_ec_only_logistic_l2,ablation_wpli_ec_only,selectk100,18,sub29,1,0.1895600803192064,0,trained,,wpli_ec_only,WPLI EC only
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,0,sub01,1,0.9668563357468886,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,1,sub05,0,0.37648011176800744,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,2,sub07,0,0.6820081351982915,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,3,sub08,0,0.6319397377188172,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,4,sub09,0,0.27710414911102155,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,5,sub10,1,0.9638394422352902,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,6,sub11,0,0.08024351883354791,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,7,sub13,0,0.24506429116583966,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,8,sub14,0,0.8200410872127334,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,9,sub15,1,0.3131260259846644,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,10,sub16,0,0.054683258825852475,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,11,sub17,1,0.43772291244164074,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,12,sub18,1,0.8223290257540131,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,13,sub20,1,0.7965375062250014,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,14,sub22,1,0.22407193366117528,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,15,sub24,0,0.012429434089142842,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,16,sub27,1,0.9415278409220573,1,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,17,sub28,1,0.2127973895598775,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_psd_eo_wpli_ec_logistic_l2,ablation_psd_eo_wpli_ec,selectk100,18,sub29,1,0.20266116256579236,0,trained,,psd_eo_wpli_ec,PSD EO plus WPLI EC
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,0,sub01,1,0.3940143781028478,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,1,sub05,0,0.8891972816340841,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,2,sub07,0,0.0786552516427826,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,3,sub08,0,0.6498915990641313,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,4,sub09,0,0.07974590652608796,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,5,sub10,1,0.7997377799523203,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,6,sub11,0,0.486857644278624,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,7,sub13,0,0.8843100771195607,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,8,sub14,0,0.48834834680595657,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,9,sub15,1,0.7293051869158245,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,10,sub16,0,0.42967834382681797,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,11,sub17,1,0.9221715764428093,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,12,sub18,1,0.9235651863257187,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,13,sub20,1,0.6051272017669219,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,14,sub22,1,0.8746472335418383,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,15,sub24,0,0.07555684642341771,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,16,sub27,1,0.7298352672429327,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,17,sub28,1,0.0004319114735386919,0,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_medium_only_logistic_l2,ablation_beta_medium_only,selectk100,18,sub29,1,0.965798167905964,1,trained,,beta_medium_only,"Beta medium band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,0,sub01,1,0.6513405327605746,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,1,sub05,0,0.9598821904894603,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,2,sub07,0,0.013374455750227117,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,3,sub08,0,0.025844271443133685,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,4,sub09,0,0.6550550026476559,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,5,sub10,1,0.3324334479351581,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,6,sub11,0,0.11717625565947627,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,7,sub13,0,0.8756255605441087,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,8,sub14,0,0.973757939652499,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,9,sub15,1,0.8130804551874837,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,10,sub16,0,0.4386178730215406,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,11,sub17,1,0.8848978770064356,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,12,sub18,1,0.480689238850895,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,13,sub20,1,0.8865879056800939,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,14,sub22,1,0.930501506198518,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,15,sub24,0,0.0002722346428684502,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,16,sub27,1,0.17817358604845765,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,17,sub28,1,0.007320373293842027,0,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_high_only_logistic_l2,ablation_beta_high_only,selectk100,18,sub29,1,0.5682261648167667,1,trained,,beta_high_only,"Beta high band only, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,0,sub01,1,0.529083009411584,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,1,sub05,0,0.9686528338038751,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,2,sub07,0,0.031677481434862494,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,3,sub08,0,0.1770928868014153,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,4,sub09,0,0.600253442620767,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,5,sub10,1,0.42497620176671735,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,6,sub11,0,0.09631459942833641,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,7,sub13,0,0.8719983917575135,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,8,sub14,0,0.9341255291893071,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,9,sub15,1,0.7828323731444214,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,10,sub16,0,0.44687793033311585,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,11,sub17,1,0.9093397919838444,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,12,sub18,1,0.6211903622145121,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,13,sub20,1,0.7183544315981668,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,14,sub22,1,0.7974823445281963,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,15,sub24,0,0.0009094292888889313,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,16,sub27,1,0.49737043968838746,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,17,sub28,1,0.0016268439561581555,0,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_beta_medium_beta_high_logistic_l2,ablation_beta_medium_beta_high,selectk100,18,sub29,1,0.8590099304558555,1,trained,,beta_medium_beta_high,"Beta medium + beta high bands, PSD+WPLI"
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,0,sub01,1,0.8234932044227143,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,1,sub05,0,0.6885199086678769,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,2,sub07,0,0.0064800057823439445,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,3,sub08,0,0.05663697750656767,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,4,sub09,0,0.8018200110802728,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,5,sub10,1,0.6010192506773192,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,6,sub11,0,0.02543979613856969,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,7,sub13,0,0.5398738136755378,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,8,sub14,0,0.7977516745169602,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,9,sub15,1,0.1703640476092714,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,10,sub16,0,0.3434233662165685,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,11,sub17,1,0.8701752076093033,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,12,sub18,1,0.9542481035479282,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,13,sub20,1,0.569476606079912,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,14,sub22,1,0.059229679300748704,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,15,sub24,0,0.17799739165192605,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,16,sub27,1,0.9091347193423951,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,17,sub28,1,0.11511831384234583,0,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
+ablation_motor_wpli_edges_logistic_l2,ablation_motor_wpli_edges,selectk100,18,sub29,1,0.9385138203121351,1,trained,,motor_wpli_edges,Motor/stimulation-side related WPLI edges around C3/C4 network
