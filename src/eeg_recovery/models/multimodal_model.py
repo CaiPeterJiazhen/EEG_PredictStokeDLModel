@@ -119,6 +119,86 @@ class MultimodalEEGModel(nn.Module):
         return embeddings
 
 
+class QEEGGuidedMultimodalEEGModel(MultimodalEEGModel):
+    """PSD/WPLI CNN with a compact fold-standardized qEEG biomarker branch."""
+
+    def __init__(
+        self,
+        feature_kind: str,
+        fusion: str = "concat",
+        embedding_dim: int = 16,
+        dropout: float = 0.1,
+        encoder_kind: str = "cnn",
+        qeeg_input_dim: int = 1,
+        qeeg_hidden_dim: int = 4,
+        qeeg_clip_value: float | None = 3.0,
+        primary_qeeg_only: bool = True,
+    ) -> None:
+        if primary_qeeg_only and qeeg_input_dim != 1:
+            raise ValueError("primary qEEG mode is locked to a single biomarker input.")
+        if qeeg_input_dim <= 0:
+            raise ValueError("qeeg_input_dim must be positive.")
+        if qeeg_hidden_dim <= 0:
+            raise ValueError("qeeg_hidden_dim must be positive.")
+        super().__init__(
+            feature_kind=feature_kind,
+            fusion=fusion,
+            embedding_dim=embedding_dim,
+            dropout=dropout,
+            encoder_kind=encoder_kind,
+        )
+        self.qeeg_input_dim = int(qeeg_input_dim)
+        self.qeeg_hidden_dim = int(qeeg_hidden_dim)
+        self.qeeg_clip_value = qeeg_clip_value
+        self.primary_qeeg_only = bool(primary_qeeg_only)
+        self.qeeg_encoder = nn.Sequential(
+            nn.Linear(self.qeeg_input_dim, self.qeeg_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(self.qeeg_hidden_dim, self.qeeg_hidden_dim),
+            nn.ReLU(),
+        )
+        cnn_embedding_dim = embedding_dim * len(self.branches)
+        classifier_input_dim = cnn_embedding_dim + self.qeeg_hidden_dim
+        self.classifier = nn.Sequential(
+            nn.Linear(classifier_input_dim, 16),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(16, 1),
+        )
+
+    def extract_embedding(
+        self,
+        batch: dict[str, torch.Tensor],
+        *,
+        return_aux: bool = False,
+    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        cnn_embedding, aux = super().extract_embedding(batch, return_aux=True)
+        qeeg_features = self._qeeg_features(batch)
+        qeeg_embedding = self.qeeg_encoder(qeeg_features)
+        combined = torch.cat([cnn_embedding, qeeg_embedding], dim=1)
+        if return_aux:
+            aux["cnn_embedding"] = cnn_embedding
+            aux["qeeg_embedding"] = qeeg_embedding
+            return combined, aux
+        return combined
+
+    def _qeeg_features(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
+        if "qeeg_features" not in batch:
+            raise KeyError("QEEG-guided model requires batch key 'qeeg_features'.")
+        qeeg = batch["qeeg_features"].float()
+        if qeeg.ndim != 2 or qeeg.shape[1] != self.qeeg_input_dim:
+            raise ValueError(
+                "qeeg_features tensor must have shape (batch, qeeg_input_dim); "
+                f"got {tuple(qeeg.shape)} for qeeg_input_dim={self.qeeg_input_dim}."
+            )
+        if self.qeeg_clip_value is not None:
+            clip_value = float(self.qeeg_clip_value)
+            qeeg = qeeg.clamp(-clip_value, clip_value)
+        if not torch.isfinite(qeeg).all():
+            raise ValueError("qeeg_features contains non-finite values.")
+        return qeeg
+
+
 class EEGSummaryGatedMultimodalEEGModel(MultimodalEEGModel):
     """PSD/WPLI CNN with a named EEG-summary branch and modality gates."""
 

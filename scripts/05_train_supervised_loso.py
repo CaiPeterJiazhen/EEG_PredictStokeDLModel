@@ -51,6 +51,16 @@ def main() -> None:
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
+        "--qeeg-features-enabled",
+        action="store_true",
+        help="Add the locked fold-scaled qEEG biomarker branch to the multimodal CNN.",
+    )
+    parser.add_argument(
+        "--qeeg-feature-name",
+        default="qeeg_ec_global_slow_fast_bsi",
+        help="Primary qEEG biomarker name. Primary mode accepts one feature only.",
+    )
+    parser.add_argument(
         "--output-tag",
         default=None,
         help="Optional filename-safe tag appended to prediction, metric, loss, and figure outputs.",
@@ -63,6 +73,8 @@ def main() -> None:
         config,
         label_table,
         feature_kind=args.feature_kind,
+        qeeg_features_enabled=args.qeeg_features_enabled,
+        qeeg_feature_names=(args.qeeg_feature_name,),
     )
     training_config = SupervisedTrainingConfig(
         architecture=args.architecture,
@@ -79,6 +91,11 @@ def main() -> None:
         embedding_adapter_scale=args.embedding_adapter_scale,
         dropout=args.dropout,
         seed=args.seed,
+        qeeg_features_enabled=args.qeeg_features_enabled,
+        qeeg_feature_names=(args.qeeg_feature_name,),
+        qeeg_primary_only=True,
+        qeeg_hidden_dim=4,
+        qeeg_clip_value=3.0,
     )
     predictions, metrics, loss_history = run_loso_supervised_with_history(records, training_config)
     prediction_path, metric_path = write_dl_outputs(

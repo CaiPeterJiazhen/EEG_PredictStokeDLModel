@@ -55,6 +55,7 @@ class FeatureSSLPairRecord:
     stage: str
     is_supervised_subject: bool
     modalities: dict[str, tuple[np.ndarray, np.ndarray]]
+    qeeg_target: float | None = None
 
 
 @dataclass(frozen=True)

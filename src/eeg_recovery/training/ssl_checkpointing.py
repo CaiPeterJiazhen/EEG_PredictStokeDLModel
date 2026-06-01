@@ -97,6 +97,14 @@ SSL_CHECKPOINT_MANIFEST_COLUMNS = (
     "lambda_local",
     "n_ssl_segments",
     "source_feature_manifest_hash",
+    "graph_smoothness_weight",
+    "qeeg_auxiliary_enabled",
+    "lambda_qeeg",
+    "qeeg_feature_name",
+    "qeeg_scaler_hash",
+    "qeeg_fit_subject_ids",
+    "data_scope",
+    "seed",
 )
 
 

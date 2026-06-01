@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass
+import hashlib
 from typing import Iterable
 
 import numpy as np
@@ -58,6 +59,10 @@ class MaskedSSLConfig:
     barlow_eps: float = 1e-9
     byol_momentum: float = 0.99
     byol_predictor_hidden_dim: int = 64
+    qeeg_auxiliary_enabled: bool = False
+    lambda_qeeg: float = 0.05
+    qeeg_huber_delta: float = 1.0
+    qeeg_feature_name: str = "qeeg_ec_global_slow_fast_bsi"
     device: str = "auto"
     seed: int = 42
 
@@ -196,8 +201,17 @@ class _MultitaskMaskedContrastiveModel(nn.Module):
             nn.Conv1d(hidden_dim, FC_SHAPE[1], kernel_size=1),
         )
 
+    def embed(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
+        embedding = self.backbone.extract_embedding(batch)
+        if not isinstance(embedding, torch.Tensor):
+            embedding = embedding[0]
+        return embedding
+
+    def project_embedding(self, embedding: torch.Tensor) -> torch.Tensor:
+        return self.projection_head(embedding)
+
     def project(self, batch: dict[str, torch.Tensor]) -> torch.Tensor:
-        return self.projection_head(self.backbone.extract_embedding(batch))
+        return self.project_embedding(self.embed(batch))
 
     def predict(self, projection: torch.Tensor) -> torch.Tensor:
         return self.predictor_head(projection)
@@ -256,8 +270,17 @@ def _pretrain_multitask_masked_contrastive(
         config.dropout,
         config.byol_predictor_hidden_dim,
     ).to(device)
+    qeeg_head = (
+        nn.Linear(config.embedding_dim * len(model.backbone.branches), 1).to(device)
+        if config.qeeg_auxiliary_enabled
+        else None
+    )
+    qeeg_targets, qeeg_metadata = _standardize_qeeg_targets(pairs, feature_name=config.qeeg_feature_name)
     target_model = _build_byol_target_model(model) if config.alignment_method == "byol" else None
-    optimizer = torch.optim.Adam(model.parameters(), lr=config.lr)
+    optimizer_parameters = list(model.parameters())
+    if qeeg_head is not None:
+        optimizer_parameters.extend(qeeg_head.parameters())
+    optimizer = torch.optim.Adam(optimizer_parameters, lr=config.lr)
     ntxent_loss_fn = NTXentLoss(temperature=config.contrastive_temperature)
     rng = np.random.default_rng(config.seed)
     rows: list[dict[str, object]] = []
@@ -277,7 +300,10 @@ def _pretrain_multitask_masked_contrastive(
         barlow_off_diag_losses: list[float] = []
         byol_losses: list[float] = []
         consistency_losses: list[float] = []
+        qeeg_auxiliary_losses: list[float] = []
         model.train()
+        if qeeg_head is not None:
+            qeeg_head.train()
         for start in range(0, len(order), config.batch_size):
             batch_indices = [int(index) for index in order[start : start + config.batch_size]]
             batch_records = [records[index] for index in batch_indices]
@@ -298,8 +324,10 @@ def _pretrain_multitask_masked_contrastive(
             )
 
             optimizer.zero_grad()
-            projection_a = model.project(view_a)
-            projection_b = model.project(view_b)
+            embedding_a = model.embed(view_a)
+            embedding_b = model.embed(view_b)
+            projection_a = model.project_embedding(embedding_a)
+            projection_b = model.project_embedding(embedding_b)
             alignment_components = (
                 _byol_alignment_components(model, target_model, view_a, view_b)
                 if config.alignment_method == "byol"
@@ -347,12 +375,20 @@ def _pretrain_multitask_masked_contrastive(
                 config,
                 device,
             )
+            qeeg_auxiliary_loss = torch.zeros((), device=device)
+            if qeeg_head is not None:
+                target = torch.as_tensor(qeeg_targets[batch_indices], dtype=torch.float32, device=device)
+                qeeg_auxiliary_loss = 0.5 * (
+                    _qeeg_auxiliary_loss(qeeg_head(embedding_a), target, huber_delta=config.qeeg_huber_delta)
+                    + _qeeg_auxiliary_loss(qeeg_head(embedding_b), target, huber_delta=config.qeeg_huber_delta)
+                )
             loss = (
                 psd_reconstruction_loss
                 + fc_reconstruction_loss
                 + config.fc_graph_smoothness_weight * fc_graph_smoothness_loss
                 + config.contrastive_weight * alignment_components["loss"]
                 + config.eo_ec_consistency_weight * consistency_loss
+                + config.lambda_qeeg * qeeg_auxiliary_loss
             )
             loss.backward()
             optimizer.step()
@@ -371,6 +407,7 @@ def _pretrain_multitask_masked_contrastive(
             barlow_off_diag_losses.append(float(alignment_components["off_diag"].detach().cpu().item()))
             byol_losses.append(float(alignment_components["byol"].detach().cpu().item()))
             consistency_losses.append(float(consistency_loss.detach().cpu().item()))
+            qeeg_auxiliary_losses.append(float(qeeg_auxiliary_loss.detach().cpu().item()))
         rows.append(
             _multitask_history_row(
                 epoch,
@@ -386,8 +423,10 @@ def _pretrain_multitask_masked_contrastive(
                 barlow_off_diag_losses,
                 byol_losses,
                 consistency_losses,
+                qeeg_auxiliary_losses,
                 len(records),
                 config,
+                qeeg_metadata,
             )
         )
 
@@ -951,6 +990,69 @@ def _fc_graph_smoothness_loss(
     return F.mse_loss(values, expected)
 
 
+def _qeeg_auxiliary_loss(
+    predictions: torch.Tensor,
+    targets: torch.Tensor,
+    *,
+    huber_delta: float = 1.0,
+) -> torch.Tensor:
+    if predictions.shape != targets.shape:
+        raise ValueError(
+            f"qEEG auxiliary predictions and targets must have the same shape; "
+            f"got {tuple(predictions.shape)} and {tuple(targets.shape)}."
+        )
+    mask = torch.isfinite(targets)
+    if not mask.any():
+        return predictions.sum() * 0.0
+    return F.huber_loss(predictions[mask], targets[mask], delta=huber_delta)
+
+
+def _standardize_qeeg_targets(
+    pairs: list[FeatureSSLPairRecord],
+    *,
+    feature_name: str,
+) -> tuple[np.ndarray, dict[str, object]]:
+    targets = np.full((len(pairs), 1), np.nan, dtype=np.float32)
+    fit_values: list[float] = []
+    fit_subjects: list[str] = []
+    for index, pair in enumerate(pairs):
+        if pair.qeeg_target is None:
+            continue
+        value = float(pair.qeeg_target)
+        if not np.isfinite(value):
+            continue
+        targets[index, 0] = value
+        fit_values.append(value)
+        fit_subjects.append(str(pair.subject_id))
+
+    if fit_values:
+        values = np.asarray(fit_values, dtype=np.float32)
+        mean = float(values.mean())
+        std = float(values.std())
+        if std < 1e-6:
+            std = 1.0
+        valid = np.isfinite(targets[:, 0])
+        targets[valid, 0] = (targets[valid, 0] - mean) / std
+    else:
+        mean = float("nan")
+        std = float("nan")
+
+    fit_subject_ids = ";".join(sorted(set(fit_subjects)))
+    metadata = {
+        "qeeg_feature_name": feature_name,
+        "qeeg_fit_subject_ids": fit_subject_ids,
+        "qeeg_target_mean": mean,
+        "qeeg_target_std": std,
+        "qeeg_scaler_hash": _qeeg_scaler_hash(feature_name, mean, std, fit_subject_ids),
+    }
+    return targets.astype(np.float32, copy=False), metadata
+
+
+def _qeeg_scaler_hash(feature_name: str, mean: float, std: float, fit_subject_ids: str) -> str:
+    payload = f"{feature_name}|{mean:.8g}|{std:.8g}|{fit_subject_ids}"
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+
 def _scaled_branch_pair_states(
     pairs: list[FeatureSSLPairRecord],
     scaler: dict[str, tuple[np.ndarray, np.ndarray]],
@@ -1067,8 +1169,10 @@ def _multitask_history_row(
     barlow_off_diag_losses: list[float],
     byol_losses: list[float],
     consistency_losses: list[float],
+    qeeg_auxiliary_losses: list[float],
     n_pairs: int,
     config: MaskedSSLConfig,
+    qeeg_metadata: dict[str, object] | None = None,
 ) -> dict[str, object]:
     objective = (
         "masked_local_reconstruction_with_vicreg_alignment"
@@ -1083,8 +1187,10 @@ def _multitask_history_row(
         objective = f"{objective}_and_eo_ec_consistency"
     if config.fc_graph_smoothness_weight > 0:
         objective = f"{objective}_with_graph_smoothness"
+    if config.qeeg_auxiliary_enabled:
+        objective = f"{objective}_with_qeeg_auxiliary"
     alignment_loss = float(np.mean(alignment_losses))
-    return {
+    row = {
         "branch": "psd_wpli_multitask",
         "epoch": epoch,
         "loss": float(np.mean(losses)),
@@ -1109,6 +1215,7 @@ def _multitask_history_row(
         "barlow_off_diag_loss": float(np.mean(barlow_off_diag_losses)),
         "byol_loss": float(np.mean(byol_losses)),
         "consistency_loss": float(np.mean(consistency_losses)),
+        "qeeg_auxiliary_loss": float(np.mean(qeeg_auxiliary_losses)) if qeeg_auxiliary_losses else 0.0,
         "objective": objective,
         "n_pairs": n_pairs,
         "n_samples": n_pairs * 2,
@@ -1136,7 +1243,14 @@ def _multitask_history_row(
         "fc_edge_mask_prob": config.fc_edge_mask_prob,
         "fc_band_mask_prob": config.fc_band_mask_prob,
         "fc_graph_smoothness_weight": config.fc_graph_smoothness_weight,
+        "qeeg_auxiliary_enabled": bool(config.qeeg_auxiliary_enabled),
+        "lambda_qeeg": config.lambda_qeeg,
+        "qeeg_huber_delta": config.qeeg_huber_delta,
+        "qeeg_feature_name": config.qeeg_feature_name,
     }
+    if qeeg_metadata:
+        row.update(qeeg_metadata)
+    return row
 
 
 def _ensure_nonempty_mask(mask: np.ndarray, rng: np.random.Generator) -> None:
@@ -1185,6 +1299,14 @@ def _validate_masked_ssl_config(config: MaskedSSLConfig) -> None:
         raise ValueError("byol_momentum must be in [0, 1).")
     if config.byol_predictor_hidden_dim < 1:
         raise ValueError("byol_predictor_hidden_dim must be positive.")
+    if config.qeeg_auxiliary_enabled and config.contrastive_weight <= 0:
+        raise ValueError("qeeg_auxiliary_enabled requires contrastive_weight > 0.")
+    if config.lambda_qeeg < 0:
+        raise ValueError("lambda_qeeg must be non-negative.")
+    if config.qeeg_huber_delta <= 0:
+        raise ValueError("qeeg_huber_delta must be positive.")
+    if config.qeeg_auxiliary_enabled and not config.qeeg_feature_name:
+        raise ValueError("qeeg_feature_name is required when qEEG auxiliary SSL is enabled.")
     _validate_probability("contrastive_feature_mask_prob", config.contrastive_feature_mask_prob)
     for name, value in (
         ("psd_channel_mask_prob", config.psd_channel_mask_prob),

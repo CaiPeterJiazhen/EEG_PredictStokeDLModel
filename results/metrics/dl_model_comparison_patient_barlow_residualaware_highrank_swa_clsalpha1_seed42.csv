@@ -1,0 +1,2 @@
+model,architecture,feature_kind,fusion,encoder_kind,pretrained,pretrained_transfer_mode,seed,residual_alpha,inference_rule,accuracy,balanced_accuracy,sensitivity,specificity,precision,f1,brier_score,roc_auc,pr_auc
+patient_barlow_residualaware_highrank_swa_clsalpha1,multimodal,psd-fc-wpli,gated,cnn,True,residual_aware_finetune_swa_aux_inference,42,1.0,classification_head_with_residual_aux_training,0.8947368421052632,0.8888888888888888,1.0,0.7777777777777778,0.8333333333333334,0.9090909090909091,0.10991124957408765,0.9111111111111111,0.8987698412698412

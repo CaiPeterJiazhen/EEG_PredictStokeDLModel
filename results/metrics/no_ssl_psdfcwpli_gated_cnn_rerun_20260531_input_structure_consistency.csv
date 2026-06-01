@@ -1,0 +1,8 @@
+check,no_ssl,ssl_cnn,match
+feature branches,"psd,wpli","psd,wpli",True
+model class,MultimodalEEGModel,MultimodalEEGModel,True
+branch modules,"psd,wpli","psd,wpli",True
+fusion,gated,gated,True
+encoder_kind,cnn,cnn,True
+embedding_dim,32,32,True
+dropout,0.0,0.0,True

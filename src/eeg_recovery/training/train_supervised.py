@@ -13,6 +13,7 @@ from torch.nn import functional as F
 
 from eeg_recovery.config import PathConfig
 from eeg_recovery.features.eeg_summary import compute_subject_eeg_summary_features
+from eeg_recovery.features.qeeg_slowing import compute_subject_qeeg_slowing_features
 from eeg_recovery.metadata.subjects import normalize_subject_id
 from eeg_recovery.models.dual_state_model import DualStateEEGModel
 from eeg_recovery.models.fusion_3d_model import Fusion3DEEGModel
@@ -21,6 +22,7 @@ from eeg_recovery.models.multimodal_model import (
     FrozenMainSSLLogitDeltaMultimodalEEGModel,
     FrozenMainSSLResidualMultimodalEEGModel,
     MultimodalEEGModel,
+    QEEGGuidedMultimodalEEGModel,
     SSLBridgeMultimodalEEGModel,
     SSLResidualMultimodalEEGModel,
     SSLTwoHeadMultimodalEEGModel,
@@ -28,6 +30,7 @@ from eeg_recovery.models.multimodal_model import (
 )
 from eeg_recovery.training.loso import make_loso_folds
 from eeg_recovery.training.metrics import binary_classification_metrics
+from eeg_recovery.training.optimizers import SAM, build_adamw_optimizer, build_swa_model, update_swa_batch_norm
 from eeg_recovery.training.schedulers import EarlyStopping, build_reduce_on_plateau
 
 
@@ -40,6 +43,8 @@ class SupervisedFeatureRecord:
     modalities: dict[str, tuple[np.ndarray, np.ndarray]] | None = None
     eeg_summary: np.ndarray | None = None
     eeg_summary_feature_names: tuple[str, ...] = ()
+    qeeg_features: np.ndarray | None = None
+    qeeg_feature_names: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -53,6 +58,16 @@ class SupervisedTrainingConfig:
     patience: int = 10
     lr: float = 1e-3
     weight_decay: float = 0.0
+    optimizer_name: str = "adam"
+    use_swa: bool = False
+    swa_start_epoch: int = 50
+    swa_lr: float = 5e-4
+    finetune_schedule: str = "standard"
+    encoder_lr: float | None = None
+    head_lr: float | None = None
+    freeze_encoder_epochs: int = 0
+    freeze_conv_backbone: bool = False
+    sam_rho: float = 0.05
     loss_name: str = "bce"
     focal_gamma_pos: float = 1.0
     focal_gamma_neg: float = 2.0
@@ -96,6 +111,11 @@ class SupervisedTrainingConfig:
     eeg_summary_features_enabled: bool = False
     eeg_summary_feature_names: tuple[str, ...] = ()
     eeg_summary_embedding_dim: int = 0
+    qeeg_features_enabled: bool = False
+    qeeg_feature_names: tuple[str, ...] = ("qeeg_ec_global_slow_fast_bsi",)
+    qeeg_primary_only: bool = True
+    qeeg_hidden_dim: int = 4
+    qeeg_clip_value: float | None = 3.0
 
 
 def resolve_device(device: str = "auto") -> torch.device:
@@ -113,6 +133,8 @@ def load_supervised_feature_records(
     label_table: pd.DataFrame,
     feature_kind: str = "psd",
     eeg_summary_features_enabled: bool = False,
+    qeeg_features_enabled: bool = False,
+    qeeg_feature_names: tuple[str, ...] = ("qeeg_ec_global_slow_fast_bsi",),
 ) -> list[SupervisedFeatureRecord]:
     """Load full EO/EC tensors for supervised deep-learning LOSO training."""
 
@@ -141,6 +163,17 @@ def load_supervised_feature_records(
             summary = compute_subject_eeg_summary_features(config.output_root, subject_id)
             eeg_summary = summary.values
             eeg_summary_feature_names = summary.feature_names
+        qeeg_features = None
+        selected_qeeg_feature_names: tuple[str, ...] = ()
+        if qeeg_features_enabled:
+            qeeg_vector = compute_subject_qeeg_slowing_features(config.output_root, subject_id)
+            qeeg_features = _select_named_feature_values(
+                qeeg_vector.values,
+                qeeg_vector.feature_names,
+                qeeg_feature_names,
+                feature_family="qEEG",
+            )
+            selected_qeeg_feature_names = tuple(qeeg_feature_names)
         records.append(
             SupervisedFeatureRecord(
                 subject_id=subject_id,
@@ -150,6 +183,8 @@ def load_supervised_feature_records(
                 modalities=modalities,
                 eeg_summary=eeg_summary,
                 eeg_summary_feature_names=eeg_summary_feature_names,
+                qeeg_features=qeeg_features,
+                qeeg_feature_names=selected_qeeg_feature_names,
             )
         )
     return records
@@ -182,6 +217,10 @@ def run_loso_supervised_with_history(
         summary_names = _eeg_summary_feature_names_from_records(records)
         resolved = replace(resolved, eeg_summary_feature_names=summary_names)
         _validate_architecture_feature_kind(resolved)
+    if resolved.qeeg_features_enabled and not resolved.qeeg_feature_names:
+        qeeg_names = _qeeg_feature_names_from_records(records)
+        resolved = replace(resolved, qeeg_feature_names=qeeg_names)
+        _validate_architecture_feature_kind(resolved)
     if resolved.ssl_bridge_enabled and not pretrained_state_by_test_subject:
         raise ValueError("ssl_bridge_enabled requires pretrained state by LOSO test subject.")
     if resolved.ssl_two_head_enabled and not pretrained_state_by_test_subject:
@@ -205,6 +244,8 @@ def run_loso_supervised_with_history(
         model_name = f"{model_name}_logitdelta"
     if resolved.eeg_summary_features_enabled:
         model_name = f"{model_name}_eegsummary"
+    if resolved.qeeg_features_enabled:
+        model_name = f"{model_name}_qeeg"
 
     for fold in folds:
         selected_residual_weights: dict[str, float | str] = {
@@ -227,11 +268,17 @@ def run_loso_supervised_with_history(
         transfer_mode = resolved.pretrained_transfer_mode if pretrained_loaded else "none"
         if pretrained_loaded:
             _apply_pretrained_transfer_mode(model, resolved.pretrained_transfer_mode)
-            if _uses_pretrained_encoder_warmup(resolved):
-                _set_encoder_requires_grad(model, False)
-        optimizer = _build_transfer_optimizer(model, resolved)
+        if resolved.finetune_schedule == "staged_sam_swa":
+            _configure_finetune_stage(model, resolved, stage="stage1")
+        elif pretrained_loaded and _uses_pretrained_encoder_warmup(resolved):
+            _set_encoder_requires_grad(model, False)
+        current_stage = "stage1" if resolved.finetune_schedule == "staged_sam_swa" else "standard"
+        optimizer_config = _optimizer_config_for_finetune_stage(resolved, current_stage)
+        optimizer = _build_transfer_optimizer(model, optimizer_config)
         scheduler = build_reduce_on_plateau(optimizer, mode="min", patience=max(1, resolved.patience // 2))
         early_stopping = EarlyStopping(patience=resolved.patience, mode="min")
+        swa_model = build_swa_model(model) if resolved.use_swa else None
+        swa_updates = 0
 
         train_batch = _make_batch(
             (record_by_subject[subject_id] for subject_id in fit_subjects),
@@ -257,20 +304,47 @@ def run_loso_supervised_with_history(
             )
             _load_frozen_main_state(model, main_model.state_dict())
             loss_rows.extend(main_loss_rows)
-            optimizer = _build_transfer_optimizer(model, resolved)
+            optimizer_config = _optimizer_config_for_finetune_stage(resolved, current_stage)
+            optimizer = _build_transfer_optimizer(model, optimizer_config)
             scheduler = build_reduce_on_plateau(optimizer, mode="min", patience=max(1, resolved.patience // 2))
             early_stopping = EarlyStopping(patience=resolved.patience, mode="min")
 
         for epoch in range(1, resolved.epochs + 1):
+            if (
+                resolved.finetune_schedule == "staged_sam_swa"
+                and current_stage == "stage1"
+                and epoch == _staged_freeze_epochs(resolved) + 1
+            ):
+                current_stage = "stage2"
+                _configure_finetune_stage(model, resolved, stage="stage2")
+                optimizer_config = _optimizer_config_for_finetune_stage(resolved, current_stage)
+                optimizer = _build_transfer_optimizer(model, optimizer_config)
+                scheduler = build_reduce_on_plateau(optimizer, mode="min", patience=max(1, resolved.patience // 2))
             if pretrained_loaded and _uses_pretrained_encoder_warmup(resolved) and epoch == resolved.freeze_pretrained_encoder_epochs + 1:
                 _set_encoder_requires_grad(model, True)
-                optimizer = _build_transfer_optimizer(model, resolved)
+                optimizer_config = _optimizer_config_for_finetune_stage(resolved, current_stage)
+                optimizer = _build_transfer_optimizer(model, optimizer_config)
                 scheduler = build_reduce_on_plateau(optimizer, mode="min", patience=max(1, resolved.patience // 2))
+            if swa_model is not None and epoch >= resolved.swa_start_epoch:
+                for group in optimizer.param_groups:
+                    group["lr"] = resolved.swa_lr
             model.train()
-            optimizer.zero_grad()
-            loss = _compute_supervised_loss(model, train_batch, resolved, training=True)
-            loss.backward()
-            optimizer.step()
+            if isinstance(optimizer, SAM):
+                def closure() -> torch.Tensor:
+                    optimizer.zero_grad()
+                    closure_loss = _compute_supervised_loss(model, train_batch, resolved, training=True)
+                    closure_loss.backward()
+                    return closure_loss
+
+                loss = optimizer.step(closure)
+            else:
+                optimizer.zero_grad()
+                loss = _compute_supervised_loss(model, train_batch, resolved, training=True)
+                loss.backward()
+                optimizer.step()
+            if swa_model is not None and epoch >= resolved.swa_start_epoch:
+                swa_model.update_parameters(model)
+                swa_updates += 1
 
             train_loss = float(loss.detach().cpu().item())
             val_loss = _evaluate_loss(model, val_batch, resolved)
@@ -291,6 +365,17 @@ def run_loso_supervised_with_history(
                     "learning_rate": float(optimizer.param_groups[0]["lr"]),
                     "learning_rates": _format_optimizer_learning_rates(optimizer),
                     "weight_decay": resolved.weight_decay,
+                    "optimizer_name": optimizer_config.optimizer_name,
+                    "finetune_schedule": resolved.finetune_schedule,
+                    "finetune_stage": current_stage,
+                    "use_swa": resolved.use_swa,
+                    "swa_start_epoch": resolved.swa_start_epoch,
+                    "swa_lr": resolved.swa_lr,
+                    "sam_rho": resolved.sam_rho,
+                    "encoder_lr": resolved.encoder_lr,
+                    "head_lr": resolved.head_lr,
+                    "freeze_encoder_epochs": resolved.freeze_encoder_epochs,
+                    "freeze_conv_backbone": resolved.freeze_conv_backbone,
                     "loss_name": resolved.loss_name,
                     "positive_class_weight": resolved.positive_class_weight,
                     "negative_class_weight": resolved.negative_class_weight,
@@ -340,20 +425,25 @@ def run_loso_supervised_with_history(
             )
             if stopped_early:
                 break
-        early_stopping.restore_best_weights(model)
+        evaluation_model: nn.Module = model
+        if swa_model is not None and swa_updates > 0:
+            update_swa_batch_norm([train_batch], swa_model)
+            evaluation_model = swa_model
+        else:
+            early_stopping.restore_best_weights(model)
         if resolved.ssl_residual_select_weights_on_val:
-            selected_residual_weights = _select_ssl_residual_weights_on_val(model, val_batch, resolved)
+            selected_residual_weights = _select_ssl_residual_weights_on_val(evaluation_model, val_batch, resolved)
             for loss_row in loss_rows:
                 if loss_row.get("fold_index") == fold.fold_index:
                     loss_row.update(selected_residual_weights)
 
         test_record = record_by_subject[fold.test_subject_id]
         test_batch = _make_batch([test_record], scaler, device, resolved.architecture)
-        model.eval()
+        evaluation_model.eval()
         with torch.no_grad():
             aux_scores: dict[str, float] = {}
             if resolved.ssl_residual_enabled:
-                probabilities_and_aux = model(test_batch, return_aux=True)
+                probabilities_and_aux = evaluation_model(test_batch, return_aux=True)
                 if not isinstance(probabilities_and_aux, tuple) or len(probabilities_and_aux) != 2:
                     raise ValueError("SSL residual model must return auxiliary probabilities at test time.")
                 probabilities, aux = probabilities_and_aux
@@ -368,14 +458,14 @@ def run_loso_supervised_with_history(
                     if aux_key in aux:
                         aux_scores[column] = float(aux[aux_key].detach().cpu().numpy()[0, 0])
             elif resolved.eeg_summary_features_enabled:
-                probabilities_and_aux = model(test_batch, return_aux=True)
+                probabilities_and_aux = evaluation_model(test_batch, return_aux=True)
                 if not isinstance(probabilities_and_aux, tuple) or len(probabilities_and_aux) != 2:
                     raise ValueError("EEG summary model must return auxiliary outputs at test time.")
                 probabilities, aux = probabilities_and_aux
                 probability = float(probabilities.detach().cpu().numpy()[0, 0])
                 aux_scores.update(_eeg_summary_aux_scores(aux, resolved))
             else:
-                probability = float(_model_probabilities(model, test_batch).detach().cpu().numpy()[0, 0])
+                probability = float(_model_probabilities(evaluation_model, test_batch).detach().cpu().numpy()[0, 0])
         row = {
                 "model": model_name,
                 "fold_index": fold.fold_index,
@@ -568,10 +658,12 @@ def _build_transfer_optimizer(
     model: nn.Module,
     config: SupervisedTrainingConfig,
 ) -> torch.optim.Optimizer:
+    encoder_lr = config.encoder_lr if config.encoder_lr is not None else config.lr * config.encoder_lr_multiplier
+    head_lr = config.head_lr if config.head_lr is not None else config.lr
     groups: dict[str, dict[str, Any]] = {
-        "encoder": {"params": [], "lr": config.lr * config.encoder_lr_multiplier},
-        "transfer_head": {"params": [], "lr": config.lr * config.transfer_head_lr_multiplier},
-        "classifier": {"params": [], "lr": config.lr},
+        "encoder": {"params": [], "lr": encoder_lr},
+        "transfer_head": {"params": [], "lr": head_lr * config.transfer_head_lr_multiplier},
+        "classifier": {"params": [], "lr": head_lr},
     }
     for name, parameter in model.named_parameters():
         if not parameter.requires_grad:
@@ -590,7 +682,18 @@ def _build_transfer_optimizer(
     ]
     if not param_groups:
         raise ValueError("No trainable model parameters remain after applying transfer mode.")
-    return torch.optim.Adam(param_groups, weight_decay=config.weight_decay)
+    if config.optimizer_name == "adam":
+        return torch.optim.Adam(param_groups, weight_decay=config.weight_decay)
+    if config.optimizer_name == "adamw":
+        return build_adamw_optimizer(param_groups, weight_decay=config.weight_decay)
+    if config.optimizer_name == "sam_adamw":
+        return SAM(
+            param_groups,
+            torch.optim.AdamW,
+            rho=config.sam_rho,
+            weight_decay=config.weight_decay,
+        )
+    raise ValueError("optimizer_name must be 'adam', 'adamw', or 'sam_adamw'.")
 
 
 def _train_preserved_main_fold_model(
@@ -910,6 +1013,20 @@ def _build_model(config: SupervisedTrainingConfig) -> nn.Module:
                 summary_input_dim=len(config.eeg_summary_feature_names),
                 summary_feature_names=tuple(config.eeg_summary_feature_names),
             )
+        if config.qeeg_features_enabled:
+            if enabled_ssl_modes:
+                raise ValueError("qeeg_features_enabled is supported on the standard multimodal CNN path only.")
+            return QEEGGuidedMultimodalEEGModel(
+                feature_kind=config.feature_kind,
+                fusion=config.fusion,
+                embedding_dim=config.embedding_dim,
+                dropout=config.dropout,
+                encoder_kind=config.encoder_kind,
+                qeeg_input_dim=len(config.qeeg_feature_names),
+                qeeg_hidden_dim=config.qeeg_hidden_dim,
+                qeeg_clip_value=config.qeeg_clip_value,
+                primary_qeeg_only=config.qeeg_primary_only,
+            )
         if config.ssl_bridge_enabled:
             return SSLBridgeMultimodalEEGModel(
                 feature_kind=config.feature_kind,
@@ -1009,8 +1126,70 @@ def _apply_pretrained_transfer_mode(model: nn.Module, transfer_mode: str) -> Non
     raise ValueError("pretrained_transfer_mode must be 'finetune' or 'freeze-encoder'.")
 
 
+def _configure_finetune_stage(
+    model: nn.Module,
+    config: SupervisedTrainingConfig,
+    *,
+    stage: str,
+) -> None:
+    if stage not in {"standard", "stage1", "stage2"}:
+        raise ValueError("stage must be 'standard', 'stage1', or 'stage2'.")
+    if stage == "standard":
+        return
+    if stage == "stage1":
+        for name, parameter in model.named_parameters():
+            parameter.requires_grad = not _is_encoder_parameter_name(name)
+        if callable(getattr(model, "freeze_ssl_branch_models", None)):
+            model.freeze_ssl_branch_models()
+        return
+    for name, parameter in model.named_parameters():
+        if not _is_encoder_parameter_name(name):
+            parameter.requires_grad = True
+        elif config.freeze_conv_backbone:
+            parameter.requires_grad = _is_encoder_final_projection_parameter_name(name)
+        else:
+            parameter.requires_grad = True
+    if callable(getattr(model, "freeze_ssl_branch_models", None)):
+        model.freeze_ssl_branch_models()
+
+
+def _optimizer_config_for_finetune_stage(
+    config: SupervisedTrainingConfig,
+    stage: str,
+) -> SupervisedTrainingConfig:
+    if config.finetune_schedule == "staged_sam_swa":
+        if stage == "stage1":
+            return replace(
+                config,
+                optimizer_name="adamw",
+                encoder_lr=config.encoder_lr,
+                head_lr=config.lr,
+            )
+        if stage == "stage2":
+            return replace(
+                config,
+                optimizer_name=config.optimizer_name,
+                lr=config.head_lr if config.head_lr is not None else config.lr,
+            )
+    if config.finetune_schedule == "swa_only":
+        return replace(config, optimizer_name="adamw" if config.optimizer_name == "adam" else config.optimizer_name)
+    if config.finetune_schedule == "sam_only":
+        return replace(config, optimizer_name="sam_adamw")
+    return config
+
+
+def _staged_freeze_epochs(config: SupervisedTrainingConfig) -> int:
+    if config.freeze_encoder_epochs > 0:
+        return config.freeze_encoder_epochs
+    return config.freeze_pretrained_encoder_epochs
+
+
 def _uses_pretrained_encoder_warmup(config: SupervisedTrainingConfig) -> bool:
-    return config.pretrained_transfer_mode == "finetune" and config.freeze_pretrained_encoder_epochs > 0
+    return (
+        config.finetune_schedule != "staged_sam_swa"
+        and config.pretrained_transfer_mode == "finetune"
+        and config.freeze_pretrained_encoder_epochs > 0
+    )
 
 
 def _set_encoder_requires_grad(model: nn.Module, requires_grad: bool) -> None:
@@ -1041,9 +1220,30 @@ def _is_encoder_parameter_name(name: str) -> bool:
     return name.startswith("encoder.")
 
 
+def _is_encoder_final_projection_parameter_name(name: str) -> bool:
+    final_tokens = (".fc", ".final", ".projection", ".head", ".linear")
+    return any(token in name for token in final_tokens)
+
+
 def _validate_architecture_feature_kind(config: SupervisedTrainingConfig) -> None:
     if config.encoder_kind not in {"cnn", "linear", "gncnn", "rescnn"}:
         raise ValueError("encoder_kind must be 'cnn', 'linear', 'gncnn', or 'rescnn'.")
+    if config.optimizer_name not in {"adam", "adamw", "sam_adamw"}:
+        raise ValueError("optimizer_name must be 'adam', 'adamw', or 'sam_adamw'.")
+    if config.finetune_schedule not in {"standard", "swa_only", "sam_only", "staged_sam_swa"}:
+        raise ValueError("finetune_schedule must be 'standard', 'swa_only', 'sam_only', or 'staged_sam_swa'.")
+    if config.swa_start_epoch < 1:
+        raise ValueError("swa_start_epoch must be at least 1.")
+    if config.swa_lr <= 0:
+        raise ValueError("swa_lr must be positive.")
+    if config.sam_rho <= 0:
+        raise ValueError("sam_rho must be positive.")
+    if config.encoder_lr is not None and config.encoder_lr <= 0:
+        raise ValueError("encoder_lr must be positive when provided.")
+    if config.head_lr is not None and config.head_lr <= 0:
+        raise ValueError("head_lr must be positive when provided.")
+    if config.freeze_encoder_epochs < 0:
+        raise ValueError("freeze_encoder_epochs must be non-negative.")
     if config.pretrained_transfer_mode not in {"finetune", "freeze-encoder"}:
         raise ValueError("pretrained_transfer_mode must be 'finetune' or 'freeze-encoder'.")
     if config.loss_name not in {"bce", "weighted_bce", "asymmetric_focal", "asymmetric_focal_fp_margin"}:
@@ -1150,9 +1350,23 @@ def _validate_architecture_feature_kind(config: SupervisedTrainingConfig) -> Non
         raise ValueError("eeg_summary_features_enabled is supported on the standard multimodal CNN path only.")
     if config.eeg_summary_embedding_dim < 0:
         raise ValueError("eeg_summary_embedding_dim must be non-negative.")
+    if config.qeeg_features_enabled and config.architecture != "multimodal":
+        raise ValueError("qeeg_features_enabled requires multimodal architecture.")
+    if config.qeeg_features_enabled and enabled_ssl_modes:
+        raise ValueError("qeeg_features_enabled is supported on the standard multimodal CNN path only.")
+    if config.qeeg_features_enabled and not config.qeeg_feature_names:
+        raise ValueError("qeeg_features_enabled requires at least one qEEG feature name.")
+    if config.qeeg_primary_only and len(config.qeeg_feature_names) != 1:
+        raise ValueError("primary qEEG mode is locked to exactly one qEEG feature.")
+    if config.qeeg_hidden_dim < 1:
+        raise ValueError("qeeg_hidden_dim must be positive.")
+    if config.qeeg_clip_value is not None and config.qeeg_clip_value <= 0:
+        raise ValueError("qeeg_clip_value must be positive when provided.")
     branches = branches_for_feature_kind(config.feature_kind)
     if config.eeg_summary_features_enabled and not {"psd", "wpli"}.issubset(set(branches)):
         raise ValueError("eeg_summary_features_enabled requires feature_kind to include both PSD and WPLI.")
+    if config.qeeg_features_enabled and not {"psd", "wpli"}.issubset(set(branches)):
+        raise ValueError("qeeg_features_enabled requires feature_kind to include both PSD and WPLI.")
     if len(branches) > 1 and config.architecture != "multimodal":
         raise ValueError(
             f"feature_kind={config.feature_kind} uses multiple feature branches "
@@ -1523,7 +1737,7 @@ def _make_batch(
             raise ValueError("Multimodal batches require branch-specific scalers.")
         batch = {"y": torch.as_tensor(y, device=device)}
         for branch, (mean, std) in scaler.items():
-            if branch == "__eeg_summary__":
+            if branch in {"__eeg_summary__", "__qeeg__"}:
                 continue
             eo, ec = _branch_state_arrays(records, branch)
             batch[f"{branch}_eo"] = torch.as_tensor(((eo - mean) / std).astype(np.float32), device=device)
@@ -1534,6 +1748,12 @@ def _make_batch(
             mean, std = scaler["__eeg_summary__"]
             summary = _eeg_summary_arrays(records)
             batch["eeg_summary"] = torch.as_tensor(((summary - mean) / std).astype(np.float32), device=device)
+        if any(record.qeeg_features is not None for record in records):
+            if "__qeeg__" not in scaler:
+                raise ValueError("qEEG records require a qEEG scaler.")
+            mean, std = scaler["__qeeg__"]
+            qeeg = _qeeg_feature_arrays(records)
+            batch["qeeg_features"] = torch.as_tensor(((qeeg - mean) / std).astype(np.float32), device=device)
         return batch
 
     if isinstance(scaler, dict):
@@ -1578,6 +1798,8 @@ def _fit_state_scaler(
         }
         if any(record.eeg_summary is not None for record in records):
             scalers["__eeg_summary__"] = _fit_vector_scaler(_eeg_summary_arrays(records))
+        if any(record.qeeg_features is not None for record in records):
+            scalers["__qeeg__"] = _fit_vector_scaler(_qeeg_feature_arrays(records))
         return scalers
 
     states = []
@@ -1624,6 +1846,39 @@ def _eeg_summary_feature_names_from_records(records: list[SupervisedFeatureRecor
         if record.eeg_summary_feature_names:
             return tuple(record.eeg_summary_feature_names)
     raise ValueError("eeg_summary_features_enabled requires records with eeg_summary_feature_names.")
+
+
+def _qeeg_feature_arrays(records: list[SupervisedFeatureRecord]) -> np.ndarray:
+    missing = [record.subject_id for record in records if record.qeeg_features is None]
+    if missing:
+        raise ValueError(f"Missing qEEG features for subject(s): {', '.join(missing)}")
+    return np.stack([np.asarray(record.qeeg_features, dtype=np.float32) for record in records]).astype(np.float32)
+
+
+def _qeeg_feature_names_from_records(records: list[SupervisedFeatureRecord]) -> tuple[str, ...]:
+    for record in records:
+        if record.qeeg_feature_names:
+            return tuple(record.qeeg_feature_names)
+    raise ValueError("qeeg_features_enabled requires records with qeeg_feature_names.")
+
+
+def _select_named_feature_values(
+    values: np.ndarray,
+    feature_names: tuple[str, ...],
+    requested_names: tuple[str, ...],
+    *,
+    feature_family: str,
+) -> np.ndarray:
+    if not requested_names:
+        raise ValueError(f"{feature_family} feature selection requires at least one feature name.")
+    lookup = {name: index for index, name in enumerate(feature_names)}
+    missing = [name for name in requested_names if name not in lookup]
+    if missing:
+        raise ValueError(f"Missing requested {feature_family} feature(s): {', '.join(missing)}")
+    selected = np.asarray([values[lookup[name]] for name in requested_names], dtype=np.float32)
+    if selected.ndim != 1 or not np.isfinite(selected).all():
+        raise ValueError(f"Selected {feature_family} features must be a finite 1D vector.")
+    return selected
 
 
 def _train_validation_subjects(train_subjects: list[str], fold_index: int) -> tuple[list[str], list[str]]:
