@@ -1,0 +1,14 @@
+finding_type,finding,metric,value,stability_or_validation
+PSD channel-band,EO TP7 Other,mean_abs_attribution,0.0013077372352393,SmoothGrad-IG summary
+PSD channel-band,EO F5 Delta,mean_abs_attribution,0.0012454401567485,SmoothGrad-IG summary
+PSD channel-band,EO TP7 Beta High,mean_abs_attribution,0.0012282585926174,SmoothGrad-IG summary
+PSD channel-band,EO C5 Other,mean_abs_attribution,0.001211085190502,SmoothGrad-IG summary
+PSD channel-band,EO FPZ Beta High,mean_abs_attribution,0.0011585975637652,SmoothGrad-IG summary
+Network/ROI validation,wpli_beta_frontal_central,rho_vs_signed_distance_fdr,0.0728389714701484,q=0.9744; poor-recovery association
+Network/ROI validation,wpli_beta_frontal_parietal,rho_vs_signed_distance_fdr,0.1219833377632607,q=0.9744; positive-class association
+Network/ROI validation,wpli_beta_central_parietal,rho_vs_signed_distance_fdr,-0.0895129528910258,q=0.9744; poor-recovery association
+Network/ROI validation,wpli_beta_interhemispheric,rho_vs_signed_distance_fdr,0.0280824950246355,q=0.9744; positive-class association
+Network/ROI validation,wpli_beta_motor_adjacent,rho_vs_signed_distance_fdr,0.0298376509636752,q=0.9744; poor-recovery association
+Sanity check,classifier_randomization,correlation,,Existing explainability sanity check
+Sanity check,input_permutation,correlation,,Existing explainability sanity check
+Sanity check,classifier_randomization,correlation,,Existing explainability sanity check

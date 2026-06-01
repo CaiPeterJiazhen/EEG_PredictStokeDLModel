@@ -12,7 +12,7 @@ Attribution targets the binary classification logit. The residual regression, pa
 
 ## Methods
 
-Integrated Gradients used a zero baseline after fold-local feature scaling and 64 interpolation steps. SmoothGrad averaged 4 noisy IG samples. Group occlusion zeroed branch, state, PSD band/channel/channel-band, and WPLI band/edge/node/interhemispheric/network groups. Sanity checks included classifier-head randomization and input permutation.
+Integrated Gradients used a zero baseline after fold-local feature scaling and 64 interpolation steps. SmoothGrad averaged 4 noisy IG samples. Because the committed run included `smoothgrad`, the primary attribution maps and summary tables should be read as SmoothGrad-smoothed Integrated Gradients, not as separate raw IG and SmoothGrad maps. Raw IG was not saved as an independent main summary table in the committed artifacts. Group occlusion zeroed branch, state, PSD band/channel/channel-band, and WPLI band/edge/node/interhemispheric/network groups. Sanity checks included classifier-head randomization and input permutation.
 
 Primary output files:
 
@@ -22,6 +22,8 @@ Primary output files:
 - `results/explainability/attribution_stability_summary.csv`
 - `results/explainability/psd_biomarker_validation.csv`
 - `results/explainability/wpli_biomarker_validation.csv`
+- `results/explainability/sanity_check_extended_summary.csv`
+- `results/explainability/network_level_biomarker_validation.csv`
 
 Figures are in `results/figures/explainability/`.
 
@@ -146,7 +148,7 @@ Generated figures include:
 - `stability_seed_to_seed_correlation.png`
 - `sub09_sub14_error_attribution_comparison.png`
 
-Full scalp topomaps are represented as channel barplots because electrode coordinate layout is not implemented in this repository.
+Full scalp topomaps have been added under `results/figures/explainability/topomaps/` using the provided electrode coordinate files. The original channel barplots are retained as companion summaries.
 
 ## Limitations
 

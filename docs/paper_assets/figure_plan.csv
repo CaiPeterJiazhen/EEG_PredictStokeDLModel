@@ -1,0 +1,8 @@
+figure,asset,purpose
+Figure 1,figure1_cohort_pipeline.png,Cohort and analysis pipeline
+Figure 2,figure2_model_architecture.png,Locked residual-aware SSL-CNN architecture
+Figure 3,figure3_seed_stability.png,10-seed performance and stability
+Figure 4,figure4_psd_attribution_topomaps.png,PSD attribution topomaps
+Figure 5,figure5_wpli_beta_connectome.png,WPLI beta-band connectome
+Figure 6,figure6_branch_state_occlusion.png,Branch/state occlusion
+Figure 7,figure7_subject_error_frequency.png,Post-hoc subject error frequency

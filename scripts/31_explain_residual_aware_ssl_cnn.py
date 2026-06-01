@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import copy
 from dataclasses import dataclass
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
@@ -134,7 +135,7 @@ def main() -> None:
                 break
             payload = _load_checkpoint(checkpoint_path, device)
             metadata = payload["metadata"]
-            sample = _sample_from_metadata(metadata, label_table, targets)
+            sample = _sample_from_metadata(metadata, label_table, targets, output_root=output_root)
             model = _build_model_from_metadata(metadata, payload["state_dict"], device)
             scaler = _scaler_from_payload(payload["state_scaler"])
             batch = _make_batch([record_by_subject[sample.subject_id]], scaler, device, "multimodal")
@@ -261,11 +262,17 @@ def _load_checkpoint(path: Path, device: torch.device) -> dict[str, Any]:
     return payload
 
 
-def _sample_from_metadata(metadata: Mapping[str, Any], label_table: pd.DataFrame, targets: pd.DataFrame) -> ExplainedSample:
+def _sample_from_metadata(
+    metadata: Mapping[str, Any],
+    label_table: pd.DataFrame,
+    targets: pd.DataFrame,
+    *,
+    output_root: Path,
+) -> ExplainedSample:
     subject_id = normalize_subject_id(str(metadata["test_subject_id"]))
     y_true = int(label_table.loc[subject_id, "label"])
     prediction_path = (
-        PROJECT_ROOT
+        Path(output_root)
         / "results"
         / "predictions"
         / f"dl_loso_predictions_patient_barlow_residualaware_highrank_swa_clsalpha1_seed{int(metadata['seed'])}.csv"
@@ -616,7 +623,7 @@ def _write_occlusion_outputs(
                 break
             payload = _load_checkpoint(checkpoint_path, device)
             metadata = payload["metadata"]
-            sample = _sample_from_metadata(metadata, label_table, targets)
+            sample = _sample_from_metadata(metadata, label_table, targets, output_root=output_root)
             model = _build_model_from_metadata(metadata, payload["state_dict"], device)
             scaler = _scaler_from_payload(payload["state_scaler"])
             batch = _make_batch([record_by_subject[sample.subject_id]], scaler, device, "multimodal")
@@ -1253,30 +1260,102 @@ def _gate_rows(sample: ExplainedSample, aux: Mapping[str, torch.Tensor]) -> list
 
 def _sanity_check_rows(model: torch.nn.Module, batch: Mapping[str, torch.Tensor], sample: ExplainedSample, *, steps: int) -> list[dict[str, Any]]:
     trained = manual_integrated_gradients(model, batch, input_keys=("psd_eo", "wpli_eo"), steps=steps)
-    randomized = randomize_classifier_weights(model, seed=sample.seed + sample.fold_index + 17)
-    randomized_attr = manual_integrated_gradients(randomized, batch, input_keys=("psd_eo", "wpli_eo"), steps=steps)
     permuted = dict(batch)
     permuted["psd_eo"] = batch["psd_eo"].flip(dims=(-1,))
     permuted["wpli_eo"] = batch["wpli_eo"].flip(dims=(1,))
-    permuted_attr = manual_integrated_gradients(model, permuted, input_keys=("psd_eo", "wpli_eo"), steps=steps)
-    return [
-        {
-            "subject_id": sample.subject_id,
-            "seed": sample.seed,
-            "fold_index": sample.fold_index,
-            "sanity_check": "classifier_randomization",
-            "psd_eo_correlation": attribution_correlation(trained["psd_eo"], randomized_attr["psd_eo"]),
-            "wpli_eo_correlation": attribution_correlation(trained["wpli_eo"], randomized_attr["wpli_eo"]),
-        },
-        {
-            "subject_id": sample.subject_id,
-            "seed": sample.seed,
-            "fold_index": sample.fold_index,
-            "sanity_check": "input_permutation",
-            "psd_eo_correlation": attribution_correlation(trained["psd_eo"], permuted_attr["psd_eo"]),
-            "wpli_eo_correlation": attribution_correlation(trained["wpli_eo"], permuted_attr["wpli_eo"]),
-        },
+
+    variants = [
+        (
+            "classifier_only_randomization",
+            randomize_classifier_weights(model, seed=sample.seed + sample.fold_index + 17),
+            batch,
+        ),
+        (
+            "classifier_final_projection_randomization",
+            _randomize_named_modules(
+                model,
+                seed=sample.seed + sample.fold_index + 23,
+                predicate=lambda name, module: (
+                    name.startswith("classifier")
+                    or name.endswith("projection")
+                    or ".projection." in name
+                    or name.endswith("network.11")
+                    or ".network.11" in name
+                ),
+            ),
+            batch,
+        ),
+        (
+            "full_psd_encoder_randomization",
+            _randomize_named_modules(
+                model,
+                seed=sample.seed + sample.fold_index + 31,
+                predicate=lambda name, module: name.startswith("branch_models.psd"),
+            ),
+            batch,
+        ),
+        (
+            "full_wpli_encoder_randomization",
+            _randomize_named_modules(
+                model,
+                seed=sample.seed + sample.fold_index + 37,
+                predicate=lambda name, module: name.startswith("branch_models.wpli"),
+            ),
+            batch,
+        ),
+        ("input_permutation", model, permuted),
     ]
+    rows = []
+    for check_name, variant_model, variant_batch in variants:
+        variant_attr = manual_integrated_gradients(variant_model, variant_batch, input_keys=("psd_eo", "wpli_eo"), steps=steps)
+        row = _sanity_row_from_attribution(sample, check_name, trained, variant_attr)
+        rows.append(row)
+    return rows
+
+
+def _sanity_row_from_attribution(
+    sample: ExplainedSample,
+    check_name: str,
+    trained: Mapping[str, torch.Tensor],
+    variant_attr: Mapping[str, torch.Tensor],
+) -> dict[str, Any]:
+    psd_signed = attribution_correlation(trained["psd_eo"], variant_attr["psd_eo"])
+    wpli_signed = attribution_correlation(trained["wpli_eo"], variant_attr["wpli_eo"])
+    psd_abs = attribution_correlation(trained["psd_eo"].abs(), variant_attr["psd_eo"].abs())
+    wpli_abs = attribution_correlation(trained["wpli_eo"].abs(), variant_attr["wpli_eo"].abs())
+    return {
+        "subject_id": sample.subject_id,
+        "seed": sample.seed,
+        "fold_index": sample.fold_index,
+        "sanity_check": check_name,
+        "psd_eo_signed_correlation": psd_signed,
+        "wpli_eo_signed_correlation": wpli_signed,
+        "psd_eo_abs_correlation": psd_abs,
+        "wpli_eo_abs_correlation": wpli_abs,
+        # Backward-compatible columns used by the existing documentation summary.
+        "psd_eo_correlation": psd_signed,
+        "wpli_eo_correlation": wpli_signed,
+    }
+
+
+def _randomize_named_modules(
+    model: torch.nn.Module,
+    *,
+    seed: int,
+    predicate: Any,
+) -> torch.nn.Module:
+    randomized = copy.deepcopy(model)
+    old_state = torch.random.get_rng_state()
+    torch.manual_seed(seed)
+    try:
+        for name, module in randomized.named_modules():
+            if not name or not predicate(name, module):
+                continue
+            if hasattr(module, "reset_parameters"):
+                module.reset_parameters()
+    finally:
+        torch.random.set_rng_state(old_state)
+    return randomized
 
 
 def _edge_network_group(first: str, second: str) -> str:
