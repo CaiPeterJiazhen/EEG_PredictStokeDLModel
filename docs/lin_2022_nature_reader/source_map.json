@@ -1,0 +1,1814 @@
+[
+  {
+    "id": "S001",
+    "page": 1,
+    "block": 1,
+    "bbox": [
+      165.42901611328125,
+      33.535797119140625,
+      551.6212768554688,
+      40.50959777832031
+    ],
+    "text": "IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 26, NO. 12, DECEMBER 2022 6003"
+  },
+  {
+    "id": "S002",
+    "page": 1,
+    "block": 2,
+    "bbox": [
+      44.424015045166016,
+      60.11536407470703,
+      545.4166870117188,
+      84.02566528320312
+    ],
+    "text": "A Transferable Deep Learning Prognosis Model"
+  },
+  {
+    "id": "S003",
+    "page": 1,
+    "block": 3,
+    "bbox": [
+      72.23408508300781,
+      88.01624298095703,
+      517.6375122070312,
+      111.92654418945312
+    ],
+    "text": "for Predicting Stroke Patients’ Recovery in"
+  },
+  {
+    "id": "S004",
+    "page": 1,
+    "block": 4,
+    "bbox": [
+      123.4451675415039,
+      115.90760040283203,
+      466.421630859375,
+      139.81790161132812
+    ],
+    "text": "Different Rehabilitation Trainings"
+  },
+  {
+    "id": "S005",
+    "page": 1,
+    "block": 5,
+    "bbox": [
+      55.94401550292969,
+      149.9715576171875,
+      533.9486694335938,
+      173.88168334960938
+    ],
+    "text": "Ping-Ju Lin , Xiaoxue Zhai, Wei Li , Tianyi Li, Graduate Student Member, IEEE, Dandan Cheng, Chong Li , Yu Pan , and Linhong Ji"
+  },
+  {
+    "id": "S006",
+    "page": 1,
+    "block": 6,
+    "bbox": [
+      37.9084587097168,
+      206.32815551757812,
+      289.00445556640625,
+      514.1823120117188
+    ],
+    "text": "Abstract—Since the underlying mechanisms of neurore- habilitation are not fully understood, the prognosis of stroke recovery faces signiﬁcant difﬁculties. Recovery out- comes can vary when undergoing different treatments; however, few models have been developed to predict pa- tient outcomes toward multiple treatments. In this study, we aimed to investigate the potential of predicting a treat- ment’s outcome using a deep learning prognosis model de- veloped for another treatment. A total of 15 stroke survivors were recruited in this study, and their clinical and phys- iological data were measured before and after the treat- ment (clinical measurement, biomechanical measurement, and electroencephalography (EEG) measurement). Multiple biomarkers and clinical scale scores of patients who had completed manual stretching rehabilitation training were analyzed. Data were used to train deep learning prognosis models, yielding an 87.50% prognosis accuracy. Pre-trained prognosis models were then applied to patients who com- pleted robotic-assisted stretching training, yielding a prog- nosis accuracy of 91.84%. Interpretation of the deep learn- ing models revealed several key factors inﬂuencing pa- tients’ recoveries, including the plantar-ﬂexor active range of movement (r = 0.930, P = 0.02), dorsiﬂexor strength (r = 0.932, P = 0.002), plantar-ﬂexor strength (r = 0.930, P = 0.002), EEG power spectrum density and EEG functional connectivities in the occipital, central parietal, and parietal areas. Our results suggest (i) that deep learning can be a promising method for accurate prediction of the recovery potential of stroke patients in clinical scenarios and (ii) that it can be successfully applied to different rehabilitation trainings with explainable factors."
+  },
+  {
+    "id": "S007",
+    "page": 1,
+    "block": 7,
+    "bbox": [
+      37.90793991088867,
+      528.0323486328125,
+      288.98748779296875,
+      616.6957397460938
+    ],
+    "text": "Manuscript received 11 June 2022; revised 9 August 2022; accepted 4 September 2022. Date of publication 9 September 2022; date of current version 6 December 2022. This work was supported in part by the National Natural Science Foundation of China under Grant 51805288, in part by Young Elite Scientists Sponsorship Program by CAST under Grant 2019QNRC001, in part by Tsinghua University Precision Medicine Research Program under Grants 10001020124 and 10001020129, and in part by the Capital’s Funds for Health Improvement and Research Program under Grant 2022-2Z-2242. (Corresponding authors: Chong Li; Yu Pan.)"
+  },
+  {
+    "id": "S008",
+    "page": 1,
+    "block": 8,
+    "bbox": [
+      37.90793991088867,
+      617.6896362304688,
+      288.9835205078125,
+      661.5243530273438
+    ],
+    "text": "Ping-Ju Lin, Wei Li, Tianyi Li, Chong Li, and Linhong Ji are with the Division of Intelligent and Bio-mimetic Machinery, The State Key Labo- ratory of Tribology, Tsinghua University, Beijing 100084, China (e-mail: lbr20@mails.tsinghua.edu.cn; lw_tsinghua15@126.com; kittyshusky@ gmail.com; chongli@tsinghua.edu.cn; jilh@tsinghua.edu.cn)."
+  },
+  {
+    "id": "S009",
+    "page": 1,
+    "block": 9,
+    "bbox": [
+      37.90793991088867,
+      662.5270385742188,
+      288.963623046875,
+      706.3617553710938
+    ],
+    "text": "Xiaoxue Zhai, Dandan Cheng, and Yu Pan are with the Depart- ment of Physical Medicine and Rehabilitation, Beijing Tsinghua Chang- gung Hospital, School of Clinical Medicine, Tsinghua University, Bei- jing 100084, China (e-mail: zxxa02445@btch.edu.cn; fdda02901@ btch.edu.cn; panyu@btch.edu.cn)."
+  },
+  {
+    "id": "S010",
+    "page": 1,
+    "block": 10,
+    "bbox": [
+      45.88203048706055,
+      707.3556518554688,
+      229.68687438964844,
+      715.3257446289062
+    ],
+    "text": "Digital Object Identiﬁer 10.1109/JBHI.2022.3205436"
+  },
+  {
+    "id": "S011",
+    "page": 1,
+    "block": 11,
+    "bbox": [
+      300.9244689941406,
+      206.83212280273438,
+      552.001708984375,
+      235.7147216796875
+    ],
+    "text": "Index Terms—Stroke prognosis, deep learning, electroencephalography, robot-assisted training, manual stretching."
+  },
+  {
+    "id": "S012",
+    "page": 1,
+    "block": 13,
+    "bbox": [
+      300.92388916015625,
+      275.5525207519531,
+      551.9977416992188,
+      512.6683959960938
+    ],
+    "text": "TROKE is the leading cause of death and long-term func- tional impairment worldwide [1]. Stroke survivors com- monly suffer from motor impairments that negatively impact their daily lives [2]. Fortunately, several specialized therapies have emerged in recent years to improve the motor abilities of stroke survivors [3]. Furthermore, new bioinformation can improve the efﬁciency of stroke rehabilitation. Clinical scales, demographic information, and neurophysiological data are valu- able to predict recovery outcomes for stroke patients. For in- stance, a clinical scale of stroke patients has been used to predict the recovery of upper extremity function in the following 3 months [4], [5]. Demographic information and clinical scales havebeenusedtocreateanewbiomarker, CoRisk, toidentifypa- tients who were less likely to exhibit favorable outcomes within a 3-month period [6]. Liu combined all three types of biometrics to predict whether a stroke patient can achieve effective recovery [7], [8]. In addition, psychological biomarker was also applied in certain model to prognosticate stroke recovery [9]. The above prognostic models were developed based on the correlations between recovery efﬁcacy and biometrics."
+  },
+  {
+    "id": "S013",
+    "page": 1,
+    "block": 14,
+    "bbox": [
+      300.92388916015625,
+      514.6578979492188,
+      551.99658203125,
+      691.9951782226562
+    ],
+    "text": "Currently, technological rehabilitation treatments, including robot-assisted training, functional electrical stimulation, and transcranial magnetic stimulation (TMS), have been validated in clinical settings and have shown competence in stroke patients’ motor recovery [3], [10], [11]. However, since stroke patients are a heterogeneous group, recovery outcomes vary among patients who receive the same treatment [12], indicating an even greater dissimilarity between patients from different treatments. The diversity among patients makes it difﬁcult to determine whether a speciﬁc type of treatment would beneﬁt one speciﬁc patient [12]. Additionally, having an accurate prediction model can help clinicians avoid challenges in stroke recovery due to uncertainties and delays of treatments [13], [14]. Therefore, the prognosis of individual stroke survivors’ recovery outcomes under a speciﬁc rehabilitation method is a signiﬁcant problem."
+  },
+  {
+    "id": "S014",
+    "page": 1,
+    "block": 15,
+    "bbox": [
+      300.92388916015625,
+      693.9937133789062,
+      551.9856567382812,
+      715.9083862304688
+    ],
+    "text": "Artiﬁcial intelligence has become a promising method for predicting stroke survivors’ recovery outcomes [15], [16]. The"
+  },
+  {
+    "id": "S015",
+    "page": 1,
+    "block": 16,
+    "bbox": [
+      64.41303253173828,
+      727.2833862304688,
+      525.4871826171875,
+      735.2534790039062
+    ],
+    "text": "This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 License. For more information, see"
+  },
+  {
+    "id": "S016",
+    "page": 1,
+    "block": 17,
+    "bbox": [
+      205.26303100585938,
+      736.247314453125,
+      384.587890625,
+      744.2174072265625
+    ],
+    "text": "https://creativecommons.org/licenses/by-nc-nd/4.0/"
+  },
+  {
+    "id": "S017",
+    "page": 2,
+    "block": 1,
+    "bbox": [
+      42.119998931884766,
+      33.436798095703125,
+      556.2262573242188,
+      40.41059875488281
+    ],
+    "text": "6004 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 26, NO. 12, DECEMBER 2022"
+  },
+  {
+    "id": "S018",
+    "page": 2,
+    "block": 2,
+    "bbox": [
+      42.119998931884766,
+      65.29450988769531,
+      293.2004089355469,
+      350.2278747558594
+    ],
+    "text": "gradient boosting decision tree was created to cope with various complicated inputs in order to forecast motor progress in stroke survivors [8]. A combination of initial clinical scale scores, demographic information, and structural magnetic resonance imaging (MRI) data has been selected to predict the outcome after repetitive TMS intervention [12]. The study applied ﬁve machine learning models to predict individual motor impairment usingMRIresultsandotherinformation[12].Aneurophysiolog- ical biomarker signal, electroencephalography (EEG), was used to predict stroke patients’ outcomes after brain–computer inter- face (BCI) upper limb rehabilitation training [17], [18]. Another machine learning method, partial least square, was applied to predict the functional recovery based on EEG data [19]. Another study used a deep neural network to predict mortality based on stroke patients’ EEG data [20]. Since deep learning remains a “black box” solution [11], another focus of this research was to understand the mechanism behind the prognosis model and the factors inﬂuencing neurorehabilitation. Interpretation methods, including the Shapley additive explanations (SHAP) value [21], attention maps, and gradient-weighted class activation mapping, have been used in the visualization of medical biomarkers [22], computed tomography scans [23], and EEG signals [24], respec- tively. The above methods might have the potential to ﬁnd out the recovery mechanisms from deep learning–supported prognosis."
+  },
+  {
+    "id": "S019",
+    "page": 2,
+    "block": 3,
+    "bbox": [
+      42.119998931884766,
+      352.2174072265625,
+      293.1893615722656,
+      553.4678955078125
+    ],
+    "text": "In the present study, we aimed to investigate the potential of using a deep learning-based prognosis model developed for a speciﬁc treatment to predict the recovery outcome of another treatment. Therefore, a deep learning model was created to prognosticate the efﬁcacy of motor recovery after 2 weeks of manual stretching training by learning a combination of clinical scale scores, demographic information, and resting-state EEG data before training. Then, we applied the pre-trained model to learn the corresponding data collected from robot-assisted stretching training to prognosticate the efﬁciency of motor re- covery. In addition, the interpretation method was also employed toidentifythecritical factors that inﬂuencedtheprognosis result. Section II introduces the architecture of the proposed model, and Section III presents the prediction results for stroke patients after 2-week rehabilitation training. The paper ends with a discussion on the merits of the pre-trained model and the factors inﬂuencing outcomes."
+  },
+  {
+    "id": "S020",
+    "page": 2,
+    "block": 6,
+    "bbox": [
+      42.119998931884766,
+      603.3238525390625,
+      293.18341064453125,
+      661.1129150390625
+    ],
+    "text": "The Institutional Ethical Committee of Tsinghua Chang- gung Hospital approved this study. This study was con- ducted according to the principles expressed in the Declara- tion of Helsinki (18172-0-01) and registered as a clinical trial (ChiCTR2000030108)."
+  },
+  {
+    "id": "S021",
+    "page": 2,
+    "block": 7,
+    "bbox": [
+      42.119998931884766,
+      663.1024780273438,
+      293.189453125,
+      756.7568359375
+    ],
+    "text": "Between May 2019 and November 2020, 15 individuals were recruited based on our inclusion criteria. Each participant gave written informed consent prior to their eligibility assessment. No adverse events related to the study occurred. All participants were recruited at the Rehabilitation Department of Beijing Ts- inghua Changgung Hospital. The main inclusion criteria were: (i) participants should have no prior history of recurrent stroke; (ii) rehabilitation within 6 months from stroke onset; (iii) age"
+  },
+  {
+    "id": "S022",
+    "page": 2,
+    "block": 9,
+    "bbox": [
+      305.13580322265625,
+      371.73529052734375,
+      556.1985473632812,
+      441.4764709472656
+    ],
+    "text": "ranges from 18 to 75 years; (iv) participants should understand the physician’s orders and must not have cognitive deﬁcits that could prevent them from undertaking the rehabilitation tasks; (v) the participants need to have the ability to remain in a stable state without spasticity during the EEG measurements and training sessions. Table I reveals the patients’ information."
+  },
+  {
+    "id": "S023",
+    "page": 2,
+    "block": 10,
+    "bbox": [
+      305.1368103027344,
+      443.46600341796875,
+      556.194580078125,
+      489.2939758300781
+    ],
+    "text": "Each participant was evaluated by clinical, biomechanical, and EEG measurements. All measured data were applied in our deep learning model to prognosticate patients’ recovery outcome."
+  },
+  {
+    "id": "S024",
+    "page": 2,
+    "block": 12,
+    "bbox": [
+      305.1368103027344,
+      523.3949584960938,
+      556.216552734375,
+      700.732177734375
+    ],
+    "text": "All participants completed the following functional assess- ments during the clinical evaluations. The Fugl–Meyer Assess- ment of Lower Extremity (FMA-LE) is the evaluation standard for measuring lower limb sensorimotor recovery (from 0 to 34 points, hemiplegia to healthy) [25]. The Berg Balance Scale (BBS)isusedforassessingthebalancingfunctionofparticipants (from 0 to 56 points, imbalance to balance) [26]. The Postural Assessment Scale for Stroke (PASS) is a 12-item performance- based scale used for assessing and monitoring postural control following stroke (from 0 to 36, worst to normal). The Activities of Daily Living (ADL) scale is designed to describe fundamental skills required to care for oneself independently or collectively (from 0 to 100, worst to normal) [27]. Clinical evaluations were performed immediately before and after the 2-week intervention (see Table I)."
+  },
+  {
+    "id": "S025",
+    "page": 2,
+    "block": 14,
+    "bbox": [
+      305.1368103027344,
+      734.8341674804688,
+      556.21044921875,
+      756.7578735351562
+    ],
+    "text": "In the biomechanical evaluations, measurements of muscle strength, range of motion (ROM), and ankle stiffness (Nm/°)"
+  },
+  {
+    "id": "S026",
+    "page": 3,
+    "block": 1,
+    "bbox": [
+      37.90800094604492,
+      33.436798095703125,
+      552.0164184570312,
+      40.41059875488281
+    ],
+    "text": "LIN et al.: TRANSFERABLE DEEP LEARNING PROGNOSIS MODEL FOR PREDICTING STROKE PATIENTS’ RECOVERY 6005"
+  },
+  {
+    "id": "S027",
+    "page": 3,
+    "block": 2,
+    "bbox": [
+      37.90800094604492,
+      65.29450988769531,
+      288.97442626953125,
+      218.71859741210938
+    ],
+    "text": "were conducted. Ankle stiffness was measured by an ankle robot [28]. The dorsiﬂexor (DF) and plantar-ﬂexor (PF) mus- cle strength were measured on each patient’s affected side. Ankle stiffness includes the DF stiffness and PF stiffness, which were calculated as the ratio of the reaction moment from ground to the angular deﬂection of the speciﬁc joint as T/θ [29], where T is the passive torque increment during the amount of ankle movement. When θ is an inﬁnitely small angle, the quasi-static stiffness can be approximated by the slope of a tangent line of the torque–angle curve at an ankle position. The peak stretching velocity was set at 5 degrees/second during the passive range of motion (PROM) to avoid reﬂex responses induced by our experimental criteria."
+  },
+  {
+    "id": "S028",
+    "page": 3,
+    "block": 3,
+    "bbox": [
+      37.90800094604492,
+      220.71705627441406,
+      288.9943542480469,
+      314.3625183105469
+    ],
+    "text": "Additionally, the PROM stiffness of DF at 10° and of PF at 30° was measured during the PROM. The PROMs of DF and PF (PF PROM/PF PROM) and active ROMs (AROMs) of DF and PF (DF AROM/PF AROM) were measured by a HogganMicroFET3 portable device (Hoggan Health Industries, Inc. Salt Lake City, USA). All biomechanical evaluations were performed immediately before and after the 2-week intervention (see Table I)."
+  },
+  {
+    "id": "S029",
+    "page": 3,
+    "block": 4,
+    "bbox": [
+      37.90800094604492,
+      329.19866943359375,
+      205.14222717285156,
+      339.1612548828125
+    ],
+    "text": "D. Neurophysiological Measurements"
+  },
+  {
+    "id": "S030",
+    "page": 3,
+    "block": 5,
+    "bbox": [
+      37.90800094604492,
+      346.2677307128906,
+      288.9903869628906,
+      607.287841796875
+    ],
+    "text": "Before treatment intervention, all participants’ EEG signals were recorded during neurophysiological measurement ses- sions. The goal of these sessions is to look for patterns in the participants’ EEG power spectrum and functional connectivities while they are at rest. A NeuSen W system (Neuracle Tech., Changzhou, China) was used to capture signals from 32 EEG channels covering the entire scalp at a sample rate of 1000 Hz. Raw EEG data were pre-processed following the method described in our previous study; they were ﬁrst averaged by an average reference and then ﬁltered to a frequency range of 0.5–45 Hz using a ﬁnite impulse response band-pass ﬁlter [31]. EEG waves were subjected to independent component analysis to eliminate human interference. The processed EEG data were then separated into 2-s intervals [14]. To ensure data consistency between our prognosis model and displayed results, EEG data collected from ipsilateral hemiplegia patients with lesions in the right hemisphere have been ﬂipped to corresponding channels in the left hemisphere [30]. Thus, the two hemisphere areas correspond to the information from electrodes FP2, AF4, F4, F8, FC2, FC6, C4, T8, CP2, CP6, P4, P8, PO4, and O2 (affected hemisphere) and FP1, AF3, F3, F7, FC1, FC5, C3, T7, CP1, CP5, P3, P7, PO3, and O1 (unaffected hemisphere)."
+  },
+  {
+    "id": "S031",
+    "page": 3,
+    "block": 6,
+    "bbox": [
+      37.90800094604492,
+      622.1339721679688,
+      253.71798706054688,
+      644.0487060546875
+    ],
+    "text": "E. EEG Power Spectrum Density and Functional Connectivities"
+  },
+  {
+    "id": "S032",
+    "page": 3,
+    "block": 7,
+    "bbox": [
+      37.90800094604492,
+      651.1541748046875,
+      288.9824523925781,
+      756.7607421875
+    ],
+    "text": "MATLAB’s built-in function pwelch was used to com- pute each segment’s EEG power spectrum density from pre- processed data (R2018b, MathWorks, Natick, MA, USA). The Welch technique was modiﬁed in this work using the following parameters: 0.5 Hz frequency resolution, 1-s Hanning window overlap, and 0 phase shift. Each trial was averaged into a single matrix to eliminate biased prediction due to experimental error. Consequently, a two-dimensional matrix was created, with the two dimensions representing EEG signal channels and EEG data"
+  },
+  {
+    "id": "S033",
+    "page": 3,
+    "block": 8,
+    "bbox": [
+      300.9226379394531,
+      65.30250549316406,
+      551.97509765625,
+      87.21725463867188
+    ],
+    "text": "frequency (0.5–45 Hz, interval of 0.5 Hz). For EEG power data, the matrix size was (32, 90)."
+  },
+  {
+    "id": "S034",
+    "page": 3,
+    "block": 9,
+    "bbox": [
+      300.921630859375,
+      89.21571350097656,
+      552.0032958984375,
+      194.82229614257812
+    ],
+    "text": "This study focused on six recognized EEG signal bands discovered in earlier studies as signiﬁcant indicators for EEG functional connectivities, namely Delta (1–3 Hz), Theta (4–7 Hz), Alpha (8–13 Hz), Beta Low (13–18 Hz), Beta Medium (18–21 Hz), and Beta High (21–30 Hz) [31], [32]. EEG func- tional connectivities was calculated using a previously described method [14]. The columns represent the 496 two-electrode combinations (for 32 electrodes, 1 + 2 + … + 31 = 496). The rows represent the six bands used to illustrate connectedness (6)."
+  },
+  {
+    "id": "S035",
+    "page": 3,
+    "block": 10,
+    "bbox": [
+      300.921630859375,
+      196.8118438720703,
+      551.9762573242188,
+      230.68765258789062
+    ],
+    "text": "The EEG power spectrum density and functional connectivi- ties results were normalized based on the z-score, which boosted the deep learning model’s prediction accuracy [33]."
+  },
+  {
+    "id": "S036",
+    "page": 3,
+    "block": 12,
+    "bbox": [
+      300.921630859375,
+      262.07977294921875,
+      551.9892578125,
+      319.8598937988281
+    ],
+    "text": "This study was an assessor-blinded, randomized controlled experiment. Each participant was randomly assigned to one of the two different rehabilitation treatments, namely robot- assisted ankle stretching or manual stretching training, for 10 sessions in 2 weeks (ﬁve times a week, 20 min/session)."
+  },
+  {
+    "id": "S037",
+    "page": 3,
+    "block": 13,
+    "bbox": [
+      300.921630859375,
+      321.8583679199219,
+      551.9852294921875,
+      427.4559631347656
+    ],
+    "text": "A physiotherapist with at least 5 years of experience in clinical rehabilitation gave manual stretching training. Each participant’s PROM ankle score was required to be measured to ensure safety before the manual stretching training. During the manual stretching training, the physiotherapist gently stretched the participant’s affected side ankle from PF to DF in the sagittal plane and then held it at the extreme DF position for 5 s. In all stretching training sessions, the participants remained in a relaxed position ( Fig. 2(a))."
+  },
+  {
+    "id": "S038",
+    "page": 3,
+    "block": 14,
+    "bbox": [
+      300.921630859375,
+      429.4544372558594,
+      551.9864501953125,
+      511.1477966308594
+    ],
+    "text": "The ankle stretching robot can assist a stroke patient with ankle stretching; this robot was described in our previous study [28]. During treatment, the participants were required to look at the display monitor; when the monitor displayed the phrase “an- kle joint,” the robotic device assisted the patients in conducting ankle stretching training, moving from the DF position to the PF position (Fig. 2(b))."
+  },
+  {
+    "id": "S039",
+    "page": 3,
+    "block": 15,
+    "bbox": [
+      300.921630859375,
+      525.4718017578125,
+      485.2633972167969,
+      535.4344482421875
+    ],
+    "text": "G. Labeling of the Development Datasets"
+  },
+  {
+    "id": "S040",
+    "page": 3,
+    "block": 16,
+    "bbox": [
+      300.921630859375,
+      542.5409545898438,
+      551.9894409179688,
+      683.9990234375
+    ],
+    "text": "Previous studies have shown that recoveries from stroke usu- ally plateau at ∼70% from initial performance to complete re- covery, regardless of patient age or sex, stroke type, and therapy dose[34],[35],[36],[37],[38].Therefore,proportionalrecovery was used as a standard in clinical rehabilitation to determine whether a patient can recover to expectation under speciﬁc rehabilitation training. We used the increase between FMA-LE scores before and after intervention from clinical evaluation to estimate motor recovery performance. The maximum value was 34. The following function was used to calculate the FMA score if the expected 70% improvement from the initial assessment was achieved:"
+  },
+  {
+    "id": "S041",
+    "page": 3,
+    "block": 17,
+    "bbox": [
+      337.4458923339844,
+      692.1095581054688,
+      551.9743041992188,
+      703.56640625
+    ],
+    "text": "ΔFMApredict = 0.7 × (34 −FMAinitial) (1)"
+  },
+  {
+    "id": "S042",
+    "page": 3,
+    "block": 18,
+    "bbox": [
+      300.9248046875,
+      710.9271850585938,
+      551.9786376953125,
+      756.755126953125
+    ],
+    "text": "The residual was deﬁned as the difference between predicted and observed improvement from the initial assessment to the assessment after intervention [7], [8], [34]. In the present study, the median value of differences between predicted and observed"
+  },
+  {
+    "id": "S043",
+    "page": 4,
+    "block": 1,
+    "bbox": [
+      42.119998931884766,
+      33.436798095703125,
+      556.2262573242188,
+      40.41059875488281
+    ],
+    "text": "6006 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 26, NO. 12, DECEMBER 2022"
+  },
+  {
+    "id": "S044",
+    "page": 4,
+    "block": 2,
+    "bbox": [
+      42.119998931884766,
+      270.7135009765625,
+      556.2257080078125,
+      296.62030029296875
+    ],
+    "text": "Fig. 1. Framework of the deep learning prognosis model for stroke survivors. The following inputs were applied to predict rehabilitation outcome: (i) Scaled values including clinical scales and biomechanical measurements, (ii) EEG functional connectivities, and (iii) EEG power spectra. ∗Matrices have a Conv-BatchNorm-ReLU structure."
+  },
+  {
+    "id": "S045",
+    "page": 4,
+    "block": 3,
+    "bbox": [
+      42.119998931884766,
+      705.3053588867188,
+      293.19879150390625,
+      740.1761474609375
+    ],
+    "text": "Fig. 2. (a) The treatment of Manual stretching (Physiotherapist is as- sisting stroke survivor ankle movement). (b) The treatment of Robot- assisted stretching (The Robotic is assisting stroke survivor ankle move- ment)."
+  },
+  {
+    "id": "S046",
+    "page": 4,
+    "block": 4,
+    "bbox": [
+      305.135986328125,
+      315.8365173339844,
+      556.2047729492188,
+      361.66448974609375
+    ],
+    "text": "values was 6. Therefore, patients were assigned to the propor- tional recovery group if their residuals were smaller than 6 and to the poor recovery group if their residuals were greater than 6."
+  },
+  {
+    "id": "S047",
+    "page": 4,
+    "block": 6,
+    "bbox": [
+      305.135986328125,
+      400.08526611328125,
+      556.2127685546875,
+      481.7785949707031
+    ],
+    "text": "A supervised deep learning architecture was designed for the prognosis model for predicting recovery outcomes. Three inputs were selected: binary and scaled values obtained from clinical assessments and biomechanical measurements (size: [17]) (Table I), functional connectivities based on EEG data (size: [496, 6]), and the power spectrum density based on EEG data (size: [90, 32])."
+  },
+  {
+    "id": "S048",
+    "page": 4,
+    "block": 7,
+    "bbox": [
+      305.135986328125,
+      483.7770690917969,
+      556.2027587890625,
+      661.1143188476562
+    ],
+    "text": "Two 128-node fully connected layers in the prognosis model were used to learn features from clinical and biomechanical assessment. In addition, the convolution layers were used to learn features from the EEG power spectrum and functional con- nectivities. This prognosis model utilized Nesterov-accelerated Adaptive Moment Estimation (Nadam) gradient descent as the stochastic optimizer for our prognosis model. The Nadam opti- mizer combines the advantages of Nesterov adaptive, momen- tum optimizer, and RMS-Prop optimizer and is thus capable of working with large datasets [39]. With the Nadam optimizer, our deep learning prognosis model can automatically learn multiple features from a large training dataset with adaptive rates. More- over, this prognosis model utilizes the categorical cross-entropy as a loss function. For forwarding and back-propagation, 200 epochs with a batch size of 32 were used."
+  },
+  {
+    "id": "S049",
+    "page": 4,
+    "block": 8,
+    "bbox": [
+      305.135986328125,
+      663.1038818359375,
+      556.1976318359375,
+      744.7971801757812
+    ],
+    "text": "EEG inputs were ﬁrst applied on the convolution layer, then on the batch normalization layer, and then activated by the Rectiﬁed Linear Unit (ReLU) activation function that is used in all layers (Conv-BatchNorm-ReLU). The complete sequence was performed three times to extract features. Moreover, the kernel size was different in the EEG power spectrum density (3) and EEG functional connectivities (2). After three repeating"
+  },
+  {
+    "id": "S050",
+    "page": 5,
+    "block": 1,
+    "bbox": [
+      37.90800094604492,
+      33.436798095703125,
+      552.0164184570312,
+      40.41059875488281
+    ],
+    "text": "LIN et al.: TRANSFERABLE DEEP LEARNING PROGNOSIS MODEL FOR PREDICTING STROKE PATIENTS’ RECOVERY 6007"
+  },
+  {
+    "id": "S051",
+    "page": 5,
+    "block": 2,
+    "bbox": [
+      37.90800094604492,
+      65.29450988769531,
+      288.9515686035156,
+      99.17037963867188
+    ],
+    "text": "sequences, the matrix would be ﬂattened. Next, a fully connected layer (dense) with 128 nodes was added to the resulting matrix after the feature extraction layer."
+  },
+  {
+    "id": "S052",
+    "page": 5,
+    "block": 3,
+    "bbox": [
+      37.90800094604492,
+      101.15992736816406,
+      288.98333740234375,
+      182.85324096679688
+    ],
+    "text": "Finally, the concatenate layer collected matrices from those three inputs, namely, scale information, the EEG power spec- trum density, and EEG functional connectivities. These matri- ces were placed in a 512-node dense layer with all important characteristics preserved. The output was a prediction of each patient’s recovery category, namely, poor recovery or propor- tional recovery."
+  },
+  {
+    "id": "S053",
+    "page": 5,
+    "block": 4,
+    "bbox": [
+      37.90800094604492,
+      184.85169982910156,
+      288.97344970703125,
+      278.4971618652344
+    ],
+    "text": "To validate the prognosis model’s reliability, leave-one-out cross-validation was applied. When verifying deep learning models with a small sample set, leave-one-out cross-validation is frequently utilized [40]. We applied this method to ensure the reliability of the prediction for each model; for each training session of the leave-one-out method, a single stroke patient’s data were “left out” to serve as the validation set, while the remaining data from the training set comprised the other sets."
+  },
+  {
+    "id": "S054",
+    "page": 5,
+    "block": 5,
+    "bbox": [
+      37.90800094604492,
+      280.4866943359375,
+      288.9754333496094,
+      350.2278747558594
+    ],
+    "text": "Our proposed architecture was implemented in CUDA and run on an RTX 3070Ti GPU with 8 GB memory (NVIDIA). The standard implementations run on an Intel i7-11700k CPU at 3.60 GHz. Keras was the platform used for building our deep learning models’ architecture. The average time for activating the model was 68.16 s."
+  },
+  {
+    "id": "S055",
+    "page": 5,
+    "block": 7,
+    "bbox": [
+      37.90800094604492,
+      382.13409423828125,
+      288.9665832519531,
+      475.78851318359375
+    ],
+    "text": "SHAP values were used to explain the machine learning model. This method is a game-theoretic approach to explain the output of the machine learning model. However, this study used the deep learning method to build a prognosis model. Therefore, to explain the output of the deep learning method, the function GradientExplainer was applied in this study. GradientExplainer is a technique that combines ideas from Integrated Gradients, SHAP, and SmoothGrad."
+  },
+  {
+    "id": "S056",
+    "page": 5,
+    "block": 8,
+    "bbox": [
+      37.90800094604492,
+      477.7780456542969,
+      288.9744567871094,
+      571.4234619140625
+    ],
+    "text": "In the present study, we validated the reliability of the deep learning model with the leave-one-out method. Therefore, the number of parameter sets of the prognosis model was the same as the number of datasets from each patient. Each prognosis model has its SHAP interaction values because it uses a different training set. Pearson’s correlation was applied to ﬁnd features that were simultaneously important across all models generated from leave-one-out validation."
+  },
+  {
+    "id": "S057",
+    "page": 5,
+    "block": 10,
+    "bbox": [
+      37.90800094604492,
+      603.3297119140625,
+      289.0013122558594,
+      673.0708618164062
+    ],
+    "text": "The Shapiro–Wilk test and the homogeneity of variance test were applied to evaluate the differences between proportional recovery group and poor recovery group datasets. Fisher’s exact test was used to compare categorical variables, and the Wilcoxon rank-sum test was used to compare continuous variables in baseline characteristics."
+  },
+  {
+    "id": "S058",
+    "page": 5,
+    "block": 11,
+    "bbox": [
+      37.90800094604492,
+      675.0604248046875,
+      288.9744873046875,
+      756.7626953125
+    ],
+    "text": "By applying the Shapiro–Wilk test and the homogeneity of variance test to obtained EEG signals, we could verify if the power spectrum density and functional connectivities were normally distributed [41]. The two-sample t-test or the Wilcoxon rank-sum test was applied to examine differences between the proportional and poor recovery groups. The Pearson or Spear- man correlation coefﬁcient was applied to ﬁnd the correlation."
+  },
+  {
+    "id": "S059",
+    "page": 5,
+    "block": 12,
+    "bbox": [
+      300.92401123046875,
+      285.81549072265625,
+      551.987060546875,
+      320.6862487792969
+    ],
+    "text": "Fig. 3. Receiver operating characteristic curve of manual stretching prognosis models was generated by the leave-one-out method (orange curve). The area under the characteristic curve was 0.95. An area under the curve of 1 indicates absolute prognosis accuracy."
+  },
+  {
+    "id": "S060",
+    "page": 5,
+    "block": 13,
+    "bbox": [
+      300.92401123046875,
+      350.3244323730469,
+      551.9994506835938,
+      408.1134948730469
+    ],
+    "text": "The false discovery rate (FDR) was used to avoid Type I errors, and a T-distribution was applied to obtain the 95% conﬁdence interval (95% CI). All statistical analyses were conducted using MATLAB and SPSS version 26.0 (IBM Corporation, Armonk, NY, USA)."
+  },
+  {
+    "id": "S061",
+    "page": 5,
+    "block": 15,
+    "bbox": [
+      300.92401123046875,
+      450.7957763671875,
+      538.1065063476562,
+      472.7104797363281
+    ],
+    "text": "A. Performance of the Prognosis Model for Predicting the Outcome of Manual Stretching Training"
+  },
+  {
+    "id": "S062",
+    "page": 5,
+    "block": 16,
+    "bbox": [
+      300.92401123046875,
+      479.81695556640625,
+      551.9945068359375,
+      525.6448974609375
+    ],
+    "text": "Clinical data, biomechanical data, EEG functional connec- tivities, and EEG power spectra were applied to our prognosis model as inputs (as shown in Fig. 1) to predict rehabilitation outcomes."
+  },
+  {
+    "id": "S063",
+    "page": 5,
+    "block": 17,
+    "bbox": [
+      300.92401123046875,
+      527.6344604492188,
+      551.9976806640625,
+      681.0674438476562
+    ],
+    "text": "In the leave-one-out cross-validation method, the number of parameter sets of the prognosis model generated by this method is the same as the number of available training sets, which is eight. The prognosis model was used as a classiﬁcation model to predict whether the patient can reach proportional recovery. The prediction results of the prognosis model generated by the leave-one-out method. The prediction accuracy is 87.50%. Fig. 3 shows the receiver operating characteristic (ROC) curve area. The area under the ROC curve (AUC) was 0.95. The confusion matrix of the manual stretching prognosis model shows that the numberoftruepositivesis3andthatthenumberoftruenegatives is 4 (Fig. 4). The sensitivity was 1.00, and the speciﬁcity was 0.80."
+  },
+  {
+    "id": "S064",
+    "page": 5,
+    "block": 18,
+    "bbox": [
+      300.92401123046875,
+      705.8134155273438,
+      528.3032836914062,
+      727.7281494140625
+    ],
+    "text": "B. Performance of Pre-Trained Prognosis Model for Predicting the Outcome of Robot-Assisted Training"
+  },
+  {
+    "id": "S065",
+    "page": 5,
+    "block": 19,
+    "bbox": [
+      300.92401123046875,
+      734.8345947265625,
+      551.9686279296875,
+      756.75830078125
+    ],
+    "text": "The prognosis model generated from manual stretching datasets was used to predict the rehabilitation outcomes of"
+  },
+  {
+    "id": "S066",
+    "page": 6,
+    "block": 1,
+    "bbox": [
+      42.119998931884766,
+      33.436798095703125,
+      556.2262573242188,
+      40.41059875488281
+    ],
+    "text": "6008 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 26, NO. 12, DECEMBER 2022"
+  },
+  {
+    "id": "S067",
+    "page": 6,
+    "block": 2,
+    "bbox": [
+      135.93609619140625,
+      65.29736328125,
+      462.3775329589844,
+      82.24054718017578
+    ],
+    "text": "TABLE II PRE-TRAINING MANUAL STRETCHING PROGNOSIS MODEL APPLIED ON ROBOT-ASSISTED TRAINING"
+  },
+  {
+    "id": "S068",
+    "page": 6,
+    "block": 3,
+    "bbox": [
+      42.119998931884766,
+      341.5704650878906,
+      293.17010498046875,
+      358.5133056640625
+    ],
+    "text": "Fig. 4. Confusion matrix of manual stretching prognosis models was generated by the leave-one-out method."
+  },
+  {
+    "id": "S069",
+    "page": 6,
+    "block": 4,
+    "bbox": [
+      42.119998931884766,
+      386.16253662109375,
+      293.1705322265625,
+      420.0383605957031
+    ],
+    "text": "robotic-assisted stretching. The inputs of the pre-trained prog- nosis model were the same as for the prognosis model used above."
+  },
+  {
+    "id": "S070",
+    "page": 6,
+    "block": 5,
+    "bbox": [
+      42.119998931884766,
+      422.02789306640625,
+      293.19134521484375,
+      635.23046875
+    ],
+    "text": "The prognosis results from the pre-trained prognosis model are presented in Table II. The prediction accuracy showed com- petitive performance in classifying between the proportional recovery group and the poor recovery group after robot-assisted training. The average accuracy was 91.07% (sensitivity is 0.941, speciﬁcity is 0.897), and the average accuracy, excluding the out-of-bound parameter set, in manual stretching rehabilitation training was 91.84% (sensitivity is 0.933; speciﬁcity is 0.912). Theoperationwasbasedonapreviousstudy,whichcanavoidthe inﬂuence from an erroneous model [42]. The lowest prediction accuracy for one pre-trained prognosis model was 71%. Four among the rest seven parameter sets presented 100% accuracy in predicting robotic-assisted stretching training outcomes. Fig. 5 shows the receiver operating characteristic (ROC) curve area of average and excluding the out-of-bound parameter sets. The area under the ROC curve (AUC) of the average was 0.95 and the area under the ROC curve (AUC) of excluding the out-of-bound parameter was 0.96."
+  },
+  {
+    "id": "S071",
+    "page": 6,
+    "block": 6,
+    "bbox": [
+      42.119998931884766,
+      657.9959106445312,
+      197.3463134765625,
+      667.9585571289062
+    ],
+    "text": "C. Key Factors of Prognosis Model"
+  },
+  {
+    "id": "S072",
+    "page": 6,
+    "block": 7,
+    "bbox": [
+      42.119998931884766,
+      675.0559692382812,
+      293.1904602050781,
+      744.7971801757812
+    ],
+    "text": "Results from GradientExplainer reveal key factors from all different parameter sets’ prognosis models, including clinical data, biomechanical data, the EEG power spectrum density, and EEG functional connectivities. Key factors determining whether a patient can make a proportional recovery are thus analyzed using a statistical method."
+  },
+  {
+    "id": "S073",
+    "page": 6,
+    "block": 8,
+    "bbox": [
+      305.135986328125,
+      383.5733642578125,
+      556.21728515625,
+      436.3721008300781
+    ],
+    "text": "Fig. 5. Orange receiver operating characteristic curve represents av- erage prognosis accuracy for all eight patients who received robot- assisted treatment (curve 1). The green receiver operating characteristic curve represents the average prognosis accuracy for seven patients, excluding one out-of-bounds model (curve 2). The areas under charac- teristic curves can be found in the legend (curve 2)."
+  },
+  {
+    "id": "S074",
+    "page": 6,
+    "block": 9,
+    "bbox": [
+      305.1334228515625,
+      459.8634338378906,
+      556.1951293945312,
+      565.469970703125
+    ],
+    "text": "Characteristics of biomechanical measurements were re- vealedtoshowsigniﬁcantdifferencesinPFAROM,DFstrength, and PF strength. After Pearson correlation coefﬁcient analysis, the correlation and credibility of biomechanical measurements were as follows: PF AROM (r = 0.930, P = 0.02), DF strength (r = 0.932, P = 0.002), and PF strength (r = 0.930, P = 0.002). The above analyses all showed high r values, which indicates high positive correlation between these biomarkers and patient recovery."
+  },
+  {
+    "id": "S075",
+    "page": 6,
+    "block": 10,
+    "bbox": [
+      305.1334228515625,
+      567.4595336914062,
+      556.195068359375,
+      744.7967529296875
+    ],
+    "text": "The results obtained from the EEG power spectrum density through the Pearson correlation coefﬁcient analysis showed a positive correlation between the power density in the occipital lobe (O2) and patient recovery; the range of this positive correla- tion included the Alpha band to the Beta High band (Alpha band, r = 0.956, P = 0.001; Beta Low band, r = 0.782, P = 0.038; Beta Medium band, r = 0.897, P = 0.006; Beta High band, r = 0.782, P = 0.038). Power density in the central parietal lobe (CP2) showed a positive correlation with patient recovery in the Theta band (r = 0.812, P = 0.026). Power density in the right parietal lobe (P8) showed a positive correlation with patient recovery in the Alpha band (r = 0.94, P = 0.002). Power density in the left parietal lobe (P3) showed a positive correlation with patient recovery in the Beta Medium band (r = 0.868, P = 0.011) (Fig. 6(a))."
+  },
+  {
+    "id": "S076",
+    "page": 7,
+    "block": 1,
+    "bbox": [
+      37.90800094604492,
+      33.436798095703125,
+      552.0164184570312,
+      40.41059875488281
+    ],
+    "text": "LIN et al.: TRANSFERABLE DEEP LEARNING PROGNOSIS MODEL FOR PREDICTING STROKE PATIENTS’ RECOVERY 6009"
+  },
+  {
+    "id": "S077",
+    "page": 7,
+    "block": 2,
+    "bbox": [
+      37.90800094604492,
+      227.01849365234375,
+      552.0128173828125,
+      243.95252990722656
+    ],
+    "text": "Fig. 6. (a) SHAP interaction values obtained from power spectrum density (warmer color tones represent higher positive correlation). (b) SHAP interaction values obtained from functional connectivities (bright colors mark areas of high correlation, both positive and negative)."
+  },
+  {
+    "id": "S078",
+    "page": 7,
+    "block": 3,
+    "bbox": [
+      37.90840148925781,
+      268.0194091796875,
+      288.98291015625,
+      421.4434814453125
+    ],
+    "text": "The Pearson correlation coefﬁcient analysis results for EEG functional connectivities showed that the following interhemi- spheric functional connectivities are positively correlated with patient recovery: frontal cortex and central cortex (FC5–C4); frontal cortex and parietal cortex (F3–PO3, F4—P7); frontal cortex and occipital cortex (FP1–O1, FC1–Oz, AF3–O2); pari- etal cortex and central cortex (P8–CZ, P8–CP2); occipital cortex and parietal cortex (O1–P4). The following functional connec- tivities within the frontal areas are positively correlated with patient recovery: F3–FP2 and F3–AF4. The values of functional connectivities between the following areas are negatively corre- lated with patient recovery: frontal cortex and occipital cortex (AF3–Oz) (Fig. 6(b))."
+  },
+  {
+    "id": "S079",
+    "page": 7,
+    "block": 5,
+    "bbox": [
+      37.90840148925781,
+      459.865234375,
+      288.98675537109375,
+      613.2892456054688
+    ],
+    "text": "In the manual stretching training, signiﬁcant differences in clinical information between the proportional recovery group and the poor recovery group are found in PASS (P = 0.039) and FMA-LE (P < 0.01). Signiﬁcant differences in biomedical information between the two groups were found in DF AROM (P = 0.030), PF AROM (P = 0.010), and PF strength (P = 0.014). Patients from the proportional recovery group were observedtohaveaconsistentlyhigher valuefor thesebiomarkers thanpatientsfromthepoorrecoverygroup.Onthecontrary,EEG power spectrum density and functional connectivities showed no signiﬁcant difference between the proportional recovery group and the poor recovery group when evaluated by the Wilcoxon rank-sum test."
+  },
+  {
+    "id": "S080",
+    "page": 7,
+    "block": 6,
+    "bbox": [
+      37.90840148925781,
+      615.2877807617188,
+      288.9778137207031,
+      756.7596435546875
+    ],
+    "text": "In the robotic-assisted stretching training, signiﬁcant dif- ferences in clinical information between the proportional and poor recovery groups were found in BBS (P = 0.047) and FMA-LE (P = 0.004). Biomedical information between the two groups showed a signiﬁcant difference in PF PROM (P = 0.042), DF strength (P = 0.012), and PF strength (P = 0.002), in which the proportional recovery group had higher values for all biomarkers than the poor recovery group. Similar to manual stretching training, the EEG power spectrum density and functional connectivities between the two groups showed no signiﬁcant difference when evaluated by the Wilcoxon rank-sum test."
+  },
+  {
+    "id": "S081",
+    "page": 7,
+    "block": 8,
+    "bbox": [
+      300.9244079589844,
+      284.98443603515625,
+      551.9852294921875,
+      354.7256164550781
+    ],
+    "text": "The main objective of this study was to explore the feasibility ofcreatingatransferabledeeplearningprognosismodelcompat- ible with various rehabilitation treatments. Accurate prognosis results obtained in this study proved the possibility of creating a prognosis model that can be transferred between similar reha- bilitation treatments."
+  },
+  {
+    "id": "S082",
+    "page": 7,
+    "block": 9,
+    "bbox": [
+      300.9244079589844,
+      356.71514892578125,
+      551.9992065429688,
+      569.917724609375
+    ],
+    "text": "Our deep learning prognosis model based on clinical data, biomechanical information, and neurophysiological signals has been developed to predict lower limb recovery with competitive performance. The resulting models were validated by leave-one- out cross-validation. A total of eight models are presented based on leave-one-out cross-validation. Only one of these models was inaccurate, leading to an average prognosis accuracy of 87.50%. The prediction results agree with our hypothesis that using all biomarkers in conjunction to predict stroke survivor outcomes under a speciﬁc rehabilitation training can result in prediction results with high enough accuracy for use in real-life settings. The prognosis models for manual stretching training accurately classify the proportional and poor recovery groups. Different treatments generally have different feature domains, posing signiﬁcant difﬁculties for transfer learning. Regardless, we can conclude from our result that the prognosis models can have high accuracy by evaluating all biomarkers in conjunction with each other and limiting the evaluation to a speciﬁc treatment."
+  },
+  {
+    "id": "S083",
+    "page": 7,
+    "block": 10,
+    "bbox": [
+      300.9244079589844,
+      571.9072875976562,
+      551.9937744140625,
+      761.2056884765625
+    ],
+    "text": "Applying the pre-trained prognosis model from manual stretching treatment on stroke survivors with robot-assisted training (a concept from transfer learning) yielded a prediction accuracy of 91.84%. This high accuracy may be due to the advantages of transfer learning [43]. The ﬁrst advantage is the ability of the pre-trained model to avoid data bias. Since each patient’s recovery varies with his/her initial capability, it would be difﬁcult to have an unbiased comparison between the two comparison groups [12]. Furthermore, in clinical settings, patient data are hard to acquire because each patient could face issues such as stability issues, consciousness issues, and other problems that could occur during training [44]. A review study showedthatthesamplesizesforEEGstudiesusingdeeplearning are generally around 10 participants per dataset [45]. With such a small sample size, a few-shot learning study shows that the biased data would cause a considerable impact (a 17% drop in"
+  },
+  {
+    "id": "S084",
+    "page": 8,
+    "block": 1,
+    "bbox": [
+      42.119998931884766,
+      33.436798095703125,
+      556.2262573242188,
+      40.41059875488281
+    ],
+    "text": "6010 IEEE JOURNAL OF BIOMEDICAL AND HEALTH INFORMATICS, VOL. 26, NO. 12, DECEMBER 2022"
+  },
+  {
+    "id": "S085",
+    "page": 8,
+    "block": 2,
+    "bbox": [
+      42.119998931884766,
+      65.29450988769531,
+      293.1875305175781,
+      254.58395385742188
+    ],
+    "text": "accuracy) [46]. Therefore, a pre-trained model generated from an unbiased dataset could achieve a more accurate result. Our study’s pre-trained application result shows an average accuracy of 91.84%. The second advantage of adapting transfer learning in our methodology is applying one prognosis model to datasets from a different training method [43], [47] without having to train a new model for every rehabilitation method. Relational knowledge transfer, one of the transfer learning methods, can deal with the classiﬁcation or regression problems only if the source and target domains have similarities [43]. A previous study has identiﬁed similarities between robot-assisted training and manual stretching rehabilitation training from a clinical aspect [48]. It is thus reasonable to suggest that the progno- sis efﬁcacies of these two treatments have similar domains of inﬂuential factors, allowing us to apply transfer learning to a broader range of rehabilitation methods."
+  },
+  {
+    "id": "S086",
+    "page": 8,
+    "block": 3,
+    "bbox": [
+      42.119998931884766,
+      256.5823974609375,
+      293.1943664550781,
+      517.6025390625
+    ],
+    "text": "GradientExplainer can be applied to prognosis models to visualize the key features of stroke survivors who met the criteria of a proportional recovery group after rehabilitation. Analyzing features from biomechanical measurements showed a high cor- relation coefﬁcient between patient recovery and biomarkers, including PF AROM, PF strength, and DF strength. A previous study showed that ankle DF and PF strength correlate with walking distances [49], supporting our ﬁnding that DF and PF strength are essential factors for stroke survivors to have a good recovery.AnotherstudyfoundthatAROMisaninﬂuentialfactor in predicting upper extremity function, which also supports our ﬁndings to some extent [4], [50]. SHAP interaction values based on the power spectrum density show that the power spectrum density in the Alpha and Beta Low bands correlates with stroke survivors’ recovery. A long-term study showed a difference in EEG signals at different post-stroke times, supporting our ﬁndings [55]. In our research, we further found that key features in the occipital lobe, central parietal lobe, and parietal lobe are positively correlated with stroke survivors’ recovery. SHAP interaction values based on functional connectivities showed the correlation between interhemispheric and intrahemispheric connectivities and patient recovery."
+  },
+  {
+    "id": "S087",
+    "page": 8,
+    "block": 4,
+    "bbox": [
+      42.119998931884766,
+      519.5921020507812,
+      293.1964111328125,
+      756.7078857421875
+    ],
+    "text": "Interhemispheric EEG connectivities between the frontal cor- tex and central cortex, the frontal cortex and parietal cortex, the frontal cortex and occipital cortex, the occipital cortex and central cortex, and the occipital cortex and parietal cortex showed high correlation coefﬁcients with stroke patients’ re- covery. Similarly, intrahemispheric EEG connectivities within the frontal, central, and parietal cortex showed high correlation coefﬁcients with stroke patients’ recovery. Several functional MRI (fMRI) studies support our SHAP ﬁndings with respect to the EEG power spectrum density and functional connectivities [52], [53], [54], [55]. An fMRI study analyzed the longitudinal changes of resting-state functional connectivities in which the stroke survivors have lower connectivities in the contralesional central and occipital cortex than healthy patients, supporting our results [52]. The present study found that high signal activities in the central and occipital cortex correlate with a high probability of proportional recovery. Another study investigating functional recovery through analyzing functional connectivities matched our ﬁndings with respect to interhemispheric connections [53]. One study showed that the frontal-parietal cortex is correlated"
+  },
+  {
+    "id": "S088",
+    "page": 8,
+    "block": 5,
+    "bbox": [
+      305.1346435546875,
+      65.30451965332031,
+      556.221923828125,
+      146.99783325195312
+    ],
+    "text": "with motor recovery [54]. The results of a brain structural analysis in a robot-assisted rehabilitation training study also match our ﬁndings [55]. It is thus reasonable to suggest that by applying deep learning interpretation methods to a sufﬁciently accurate model, researchers can identify hidden mechanisms and factors inﬂuencing patient recovery with relative ease and accuracy."
+  },
+  {
+    "id": "S089",
+    "page": 8,
+    "block": 6,
+    "bbox": [
+      305.1346435546875,
+      148.98731994628906,
+      556.2050170898438,
+      278.5071105957031
+    ],
+    "text": "Differences between the proportional recovery group and the poor recovery group in manual and robot-assisted stretching training showed signiﬁcant resemblance. The differences be- tween the proportional recovery group and the poor recovery group are virtually the same for FMA-LE scores, PF strength, and DF strength (P = 0.053) in both rehabilitation methods. These ﬁndings are the same as the GradientExplainer results for biomechanical data. These results indicate that the recovery mechanism of manual stretching training is similar to that of robotic-assisted training, which may contribute to transfer of the proposed prognosis model."
+  },
+  {
+    "id": "S090",
+    "page": 8,
+    "block": 7,
+    "bbox": [
+      305.1346435546875,
+      280.49664306640625,
+      556.2202758789062,
+      386.10321044921875
+    ],
+    "text": "Aside from helping doctors to make better judgments, accu- rate prognosis results may help boost the conﬁdence of patients. For patients in the proportional recovery group, an accurate forecast of recovery has the potential to boost conﬁdence and stimulate a positive attitude, which was shown to boost motor recovery [56]. However, to date, there is no research that categor- ically states a strong correlation between prognosis accuracy and patient mood. Further research on this topic can be conducted based on our prognosis model."
+  },
+  {
+    "id": "S091",
+    "page": 8,
+    "block": 9,
+    "bbox": [
+      305.13641357421875,
+      425.10540771484375,
+      556.2081298828125,
+      518.7508544921875
+    ],
+    "text": "In summary, the multi-input design (including demographic, clinical, biomechanical, and neurophysiological data), along with the ﬂexible nature of deep learning, allows our prognosis model to be transferable between different scenarios with high accuracy. Successful application of transfer between manual and robot-assisted rehabilitation shows potential in reducing the amount of model required to generate a prognosis for different rehabilitation treatments."
+  },
+  {
+    "id": "S092",
+    "page": 8,
+    "block": 11,
+    "bbox": [
+      309.11419677734375,
+      558.2865600585938,
+      556.2139892578125,
+      566.2566528320312
+    ],
+    "text": "[1] C. W. Tsao et al., “Heart disease and stroke statistics-2022 update: A"
+  },
+  {
+    "id": "S093",
+    "page": 8,
+    "block": 12,
+    "bbox": [
+      309.1134033203125,
+      567.1697387695312,
+      556.2119750976562,
+      593.1572875976562
+    ],
+    "text": "report from the American Heart Association,” Circulation, vol. 145, no. 8, pp. e153–e639, Feb. 2022. [2] B. H. Dobkin, “Rehabilitation after stroke,” New England J. Med., vol. 352,"
+  },
+  {
+    "id": "S094",
+    "page": 8,
+    "block": 13,
+    "bbox": [
+      309.1134033203125,
+      594.1511840820312,
+      556.209716796875,
+      611.0852661132812
+    ],
+    "text": "no. 16, pp. 1677–1684, Jul. 2005. [3] M. W. O’Dell, C. C. Lin, and V. Harrison, “Stroke rehabilitation: Strategies"
+  },
+  {
+    "id": "S095",
+    "page": 8,
+    "block": 14,
+    "bbox": [
+      309.11419677734375,
+      611.9984130859375,
+      556.2176513671875,
+      629.02197265625
+    ],
+    "text": "to enhance motor recovery,” Annu. Rev. Med., vol. 60, pp. 55–68, 2009. [4] J. A. Beebe and C. E. Lang, “Active range of motion predicts upper extrem-"
+  },
+  {
+    "id": "S096",
+    "page": 8,
+    "block": 15,
+    "bbox": [
+      309.11419677734375,
+      629.93505859375,
+      556.2182006835938,
+      655.9226684570312
+    ],
+    "text": "ity function 3 months after stroke,” Stroke, vol. 40, no. 5, pp. 1772–1779, May 2009. [5] C. Counsell, M. Dennis, M. McDowall, and C. Warlow, “Predicting"
+  },
+  {
+    "id": "S097",
+    "page": 8,
+    "block": 16,
+    "bbox": [
+      309.114990234375,
+      656.91650390625,
+      556.2245483398438,
+      682.8145751953125
+    ],
+    "text": "outcome after acute and subacute stroke development and validation of new prognostic models,” Stroke, vol. 33, no. 4, pp. 1041–1047, Apr. 2002. [6] G. M. De Marchis et al., “A novel biomarker-based prognostic score in"
+  },
+  {
+    "id": "S098",
+    "page": 8,
+    "block": 17,
+    "bbox": [
+      309.114990234375,
+      683.7364501953125,
+      556.2127075195312,
+      709.7152709960938
+    ],
+    "text": "acute ischemic stroke: The CoRisk score,” Neurology, vol. 92, no. 13, pp. e1517–e1525, Mar. 2019. [7] G. Liu et al., “Motor recovery prediction with clinical assessment and local"
+  },
+  {
+    "id": "S099",
+    "page": 8,
+    "block": 18,
+    "bbox": [
+      309.114990234375,
+      710.6283569335938,
+      556.2088012695312,
+      736.6159057617188
+    ],
+    "text": "diffusion homogeneity after acute subcortical infarction,” Stroke, vol. 48, no. 8, pp. 2121–2128, Aug. 2017. [8] G. Liu et al., “Machine learning for predicting motor improvement after"
+  },
+  {
+    "id": "S100",
+    "page": 8,
+    "block": 19,
+    "bbox": [
+      323.398193359375,
+      737.529052734375,
+      556.2032470703125,
+      754.5438842773438
+    ],
+    "text": "acute subcortical infarction using baseline whole brain volumes,” Neuro Rehabil. Neural Repair, vol. 36, no. 1, pp. 38–48, Jan. 2022."
+  },
+  {
+    "id": "S101",
+    "page": 9,
+    "block": 1,
+    "bbox": [
+      37.90800094604492,
+      33.436798095703125,
+      552.0164184570312,
+      40.41059875488281
+    ],
+    "text": "LIN et al.: TRANSFERABLE DEEP LEARNING PROGNOSIS MODEL FOR PREDICTING STROKE PATIENTS’ RECOVERY 6011"
+  },
+  {
+    "id": "S102",
+    "page": 9,
+    "block": 2,
+    "bbox": [
+      41.89500045776367,
+      66.81498718261719,
+      288.97607421875,
+      74.78508758544922
+    ],
+    "text": "[9] R. Squitti et al., “Prognostic value of serum copper for post-stroke"
+  },
+  {
+    "id": "S103",
+    "page": 9,
+    "block": 3,
+    "bbox": [
+      37.90755844116211,
+      75.6982421875,
+      288.9847717285156,
+      101.68578338623047
+    ],
+    "text": "clinical recovery: A pilot study,” Front. Neurol., vol. 9, May 2018, Art. no. 333. [10] X. Zhai et al., “Effects of robot-aided rehabilitation on the ankle joint prop-"
+  },
+  {
+    "id": "S104",
+    "page": 9,
+    "block": 4,
+    "bbox": [
+      37.90755844116211,
+      102.67967224121094,
+      288.97698974609375,
+      128.5864715576172
+    ],
+    "text": "erties and balance function in stroke survivors: A randomized controlled trial,” Front. Neurol., vol. 12, Oct. 2021, Art. no. 719305. [11] Y. L. Kuo et al., “Transcranial magnetic stimulation to assess motor"
+  },
+  {
+    "id": "S105",
+    "page": 9,
+    "block": 5,
+    "bbox": [
+      37.90755844116211,
+      129.5803680419922,
+      288.9823303222656,
+      164.45115661621094
+    ],
+    "text": "neurophysiology after acute stroke in the United States: Feasibility, lessons learned, and values for future research,” Brain Stimulation, vol. 15, no. 1, pp. 179–181, Jan./Feb. 2022. [12] C. Tozlu et al., “Machine learning methods predict individual upper-limb"
+  },
+  {
+    "id": "S106",
+    "page": 9,
+    "block": 6,
+    "bbox": [
+      37.90755844116211,
+      165.3642578125,
+      288.979248046875,
+      191.3430633544922
+    ],
+    "text": "motor impairment following therapy in chronic stroke,” Neuro Rehabil. Neural Repair, vol. 34, no. 5, pp. 428–439, May 2020. [13] P. Langhorne, J. Bernhardt, and G. Kwakkel, “Stroke rehabilitation,”"
+  },
+  {
+    "id": "S107",
+    "page": 9,
+    "block": 7,
+    "bbox": [
+      37.90755844116211,
+      192.26495361328125,
+      288.9808349609375,
+      209.27976989746094
+    ],
+    "text": "Lancet, vol. 377, pp. 1693–1702, May 2011. [14] C. M. Stinear, “Prediction of motor recovery after stroke: Ad-"
+  },
+  {
+    "id": "S108",
+    "page": 9,
+    "block": 8,
+    "bbox": [
+      37.90835952758789,
+      210.19287109375,
+      288.9895324707031,
+      236.18040466308594
+    ],
+    "text": "vances in biomarkers,” Lancet Neurol., vol. 16, no. 10, pp. 826–836, Sep. 2017. [15] Y. LeCun, Y. Bengio, and G. Hinton, “Deep learning,” Nature, vol. 521,"
+  },
+  {
+    "id": "S109",
+    "page": 9,
+    "block": 9,
+    "bbox": [
+      37.90835952758789,
+      237.17430114746094,
+      288.9433288574219,
+      254.10838317871094
+    ],
+    "text": "no. 7553, pp. 436–444, May 2015. [16] A. Bivard, L. Churilov, and M. Parsons, “Artiﬁcial intelligence for decision"
+  },
+  {
+    "id": "S110",
+    "page": 9,
+    "block": 10,
+    "bbox": [
+      37.90835952758789,
+      255.0302734375,
+      289.00396728515625,
+      281.00909423828125
+    ],
+    "text": "support in acute stroke—current roles and potential,” Nature Rev. Neurol., vol. 16, no. 10, pp. 575–585, Oct. 2020. [17] R. Mane et al., “Prognostic and monitory EEG-biomarkers for BCI upper-"
+  },
+  {
+    "id": "S111",
+    "page": 9,
+    "block": 11,
+    "bbox": [
+      37.90835952758789,
+      281.9222106933594,
+      288.9903259277344,
+      307.9097595214844
+    ],
+    "text": "limbstrokerehabilitation,”IEEETrans.NeuralSyst.Rehabil.Eng.,vol.27, no. 8, pp. 1654–1664, Aug. 2019. [18] P. J. Lin et al., “CNN-based prognosis of BCI rehabilitation using EEG"
+  },
+  {
+    "id": "S112",
+    "page": 9,
+    "block": 12,
+    "bbox": [
+      37.90835952758789,
+      308.8228759765625,
+      288.979248046875,
+      334.8104248046875
+    ],
+    "text": "from ﬁrst session BCI training,” IEEE Trans. Neural Syst. Rehabil. Eng., vol. 29, pp. 1936–1943, 2021. [19] A. M. Chiarelli et al., “Electroencephalography-derived prognosis of func-"
+  },
+  {
+    "id": "S113",
+    "page": 9,
+    "block": 13,
+    "bbox": [
+      37.90835952758789,
+      335.72357177734375,
+      288.9872131347656,
+      361.70233154296875
+    ],
+    "text": "tional recovery in acute stroke through machine learning approaches,” Int. J. Neural Syst., vol. 30, no. 12, Dec. 2020, Art. no. 2050067. [20] S. Zhang et al., “Interpretability analysis of one-year mortality prediction"
+  },
+  {
+    "id": "S114",
+    "page": 9,
+    "block": 14,
+    "bbox": [
+      37.90835952758789,
+      362.6242370605469,
+      288.970458984375,
+      388.60302734375
+    ],
+    "text": "for stroke patients based on deep neural network,” IEEE J. Biomed. Health Inform., vol. 26, no. 4, pp. 1903–1910, Apr. 2022. [21] S. M. Lundberg and S. I. Lee, “A uniﬁed approach to interpreting model"
+  },
+  {
+    "id": "S115",
+    "page": 9,
+    "block": 15,
+    "bbox": [
+      37.90835952758789,
+      389.51617431640625,
+      288.9879455566406,
+      415.50372314453125
+    ],
+    "text": "predictions,” in Proc. 31st Int. Conf. Neural Inf. Process. Syst., 2017, pp. 4768–4777. [22] S. M. Lundberg et al., “Explainable machine-learning predictions for the"
+  },
+  {
+    "id": "S116",
+    "page": 9,
+    "block": 16,
+    "bbox": [
+      37.909149169921875,
+      416.4168395996094,
+      288.983154296875,
+      442.4043884277344
+    ],
+    "text": "prevention of hypoxaemia during surgery,” Nature Biomed. Eng., vol. 2, no. 10, pp. 749–760, Oct. 2018. [23] H. Lee et al., “An explainable deep-learning algorithm for the detection"
+  },
+  {
+    "id": "S117",
+    "page": 9,
+    "block": 17,
+    "bbox": [
+      37.909149169921875,
+      443.3175354003906,
+      288.9840087890625,
+      469.3050842285156
+    ],
+    "text": "of acute intracranial haemorrhage from small datasets,” Nature Biomed. Eng., vol. 3, no. 3, pp. 173–182, Mar. 2019. [24] S. Jonas et al., “EEG-based outcome prediction after cardiac arrest with"
+  },
+  {
+    "id": "S118",
+    "page": 9,
+    "block": 18,
+    "bbox": [
+      37.90835952758789,
+      470.2989196777344,
+      288.9896240234375,
+      505.1697082519531
+    ],
+    "text": "convolutional neural networks: Performance and visualization of discrim- inative features,” Hum. Brain Mapping, vol. 40, no. 16, pp. 4606–4617, Nov. 2019. [25] A. R. Fugl-Meyer, L. Jääskö, I. Leyman, S. Olsson, and S. Steglind,"
+  },
+  {
+    "id": "S119",
+    "page": 9,
+    "block": 19,
+    "bbox": [
+      37.90835952758789,
+      506.1636047363281,
+      288.9896545410156,
+      541.0343627929688
+    ],
+    "text": "“The post-stroke hemiplegic patient. 1. A method for evaluation of phys- ical performance,” Scand. J. Rehabil. Med., vol. 7, no. 1, pp. 13–31, 1975. [26] K. Berg, S. W. Dauphinee, J. I. Williams, and D. Gayton, “Measuring"
+  },
+  {
+    "id": "S120",
+    "page": 9,
+    "block": 20,
+    "bbox": [
+      37.90835952758789,
+      541.947509765625,
+      288.98883056640625,
+      567.93505859375
+    ],
+    "text": "balance in the elderly: Preliminary development of an instrument,” Phys- iotherapy Canada, vol. 41, no. 6, pp. 304–311, Jul./Aug. 1989. [27] C. V. Granger, L. S. Dewis, N. C. Peters, C. C. Sherwood, and J. E. Barrett,"
+  },
+  {
+    "id": "S121",
+    "page": 9,
+    "block": 21,
+    "bbox": [
+      37.90835952758789,
+      568.8482055664062,
+      288.97918701171875,
+      594.8269653320312
+    ],
+    "text": "“Strokerehabilitation: AnalysisofrepeatedBarthelindexmeasures,”Arch. Phys. Med. Rehabil., vol. 60, no. 1, pp. 14–17, Jan. 1979. [28] L. Q. Zhang et al., “Intelligent stretching of ankle joints with contrac-"
+  },
+  {
+    "id": "S122",
+    "page": 9,
+    "block": 22,
+    "bbox": [
+      37.90835952758789,
+      595.7489013671875,
+      288.991943359375,
+      621.7276611328125
+    ],
+    "text": "ture/spasticity,” IEEE Trans. Neural Syst. Rehabil. Eng., vol. 10, no. 3, pp. 149–157, Sep. 2002. [29] F. Gao, Y. Ren, E. J. Roth, R. Harvey, and L. Q. Zhang, “Effects of"
+  },
+  {
+    "id": "S123",
+    "page": 9,
+    "block": 23,
+    "bbox": [
+      37.90790939331055,
+      622.7214965820312,
+      288.98883056640625,
+      657.5980834960938
+    ],
+    "text": "repeated ankle stretching on calf muscle–tendon and ankle biomechanical properties in stroke survivors,” Clin. Biomech., vol. 26, no. 5, pp. 516–522, Jun. 2011. [30] W. Li, C. Li, Q. Xu, X. Guan, and L. Ji, “Inﬂuence of focal vibration over"
+  },
+  {
+    "id": "S124",
+    "page": 9,
+    "block": 24,
+    "bbox": [
+      37.90790939331055,
+      658.5919799804688,
+      288.9875793457031,
+      693.4627685546875
+    ],
+    "text": "Achilles tendon on the activation of sensorimotor cortex in healthy subjects and subacute stroke patients,” Neuro Rep., vol. 30, no. 16, pp. 1081–1086, Nov. 2019. [31] W. Li et al., “Study of the activation in sensorimotor cortex and topolog-"
+  },
+  {
+    "id": "S125",
+    "page": 9,
+    "block": 25,
+    "bbox": [
+      37.90790939331055,
+      694.4566040039062,
+      289.0010986328125,
+      729.327392578125
+    ],
+    "text": "ical properties of functional brain network following focal vibration on healthy subjects and subacute stroke patients: An EEG study,” Brain Res., vol. 1722, Nov. 2019, Art. no. 146338. [32] J. M. Cassidy et al., “Low-frequency oscillations are a biomarker of"
+  },
+  {
+    "id": "S126",
+    "page": 9,
+    "block": 26,
+    "bbox": [
+      56.16899871826172,
+      730.2493286132812,
+      288.9875793457031,
+      747.2640991210938
+    ],
+    "text": "injury and recovery after stroke,” Stroke, vol. 51, no. 5, pp. 1442–1450, May 2020."
+  },
+  {
+    "id": "S127",
+    "page": 9,
+    "block": 27,
+    "bbox": [
+      300.9236145019531,
+      66.81523132324219,
+      551.9961547851562,
+      74.78533172607422
+    ],
+    "text": "[33] N. Fei, Y. Gao, Z. Lu, and T. Xiang, “Z-score normalization, hubness,"
+  },
+  {
+    "id": "S128",
+    "page": 9,
+    "block": 28,
+    "bbox": [
+      300.92279052734375,
+      75.698486328125,
+      552.0040283203125,
+      101.68602752685547
+    ],
+    "text": "and few-shot learning,” in Proc. IEEE/CVF Int. Conf. Comput. Vis., 2021, pp. 142–151. [34] E. R. Buch et al., “Predicting motor improvement after stroke with clinical"
+  },
+  {
+    "id": "S129",
+    "page": 9,
+    "block": 29,
+    "bbox": [
+      300.92279052734375,
+      102.59912109375,
+      551.9983520507812,
+      128.58665466308594
+    ],
+    "text": "assessment and diffusion tensor imaging,” Neurology, vol. 86, no. 20, pp. 1924–1925, Apr. 2016. [35] C. Winters, E. E. van Wegen, A. Daffertshofer, and G. Kwakkel, “Gen-"
+  },
+  {
+    "id": "S130",
+    "page": 9,
+    "block": 30,
+    "bbox": [
+      300.9219970703125,
+      129.58055114746094,
+      551.9969482421875,
+      164.4513397216797
+    ],
+    "text": "eralizability of the proportional recovery model for the upper extremity after an ischemic stroke,” Neuro Rehabil. Neural Repair, vol. 29, no. 7, pp. 614–622, Aug. 2015. [36] M. C. Smith, W. D. Byblow, P. A. Barber, and C. M. Stinear, “Proportional"
+  },
+  {
+    "id": "S131",
+    "page": 9,
+    "block": 31,
+    "bbox": [
+      300.9219970703125,
+      165.36444091796875,
+      551.9945068359375,
+      191.34324645996094
+    ],
+    "text": "recovery from lower limb motor impairment after stroke,” Stroke, vol. 48, no. 5, pp. 1400–1403, May 2017. [37] W. D. Byblow, C. M. Stinear, P. A. Barber, M. A. Petoe, and S. J. Ackerley,"
+  },
+  {
+    "id": "S132",
+    "page": 9,
+    "block": 32,
+    "bbox": [
+      300.9219970703125,
+      192.3458709716797,
+      551.9834594726562,
+      218.2439422607422
+    ],
+    "text": "“Proportional recovery after stroke depends on corticomotor integrity,” Ann. Neurol., vol. 78, no. 6, pp. 848–859, Dec. 2015. [38] J. M. Veerbeek, G. Kwakkel, E. E. H. van Wegan, J. C. F. Ket, and"
+  },
+  {
+    "id": "S133",
+    "page": 9,
+    "block": 33,
+    "bbox": [
+      300.9219970703125,
+      219.23777770996094,
+      552.0030517578125,
+      254.1085662841797
+    ],
+    "text": "M. W. Heymans, “Early prediction of outcome of activities of daily living after stroke: A systematic review,” Stroke, vol. 42, no. 5, pp. 1482–1488, May 2011. [39] T. Dozat, “Incorporating nesterov momentum into adam,” in Proc. Work-"
+  },
+  {
+    "id": "S134",
+    "page": 9,
+    "block": 34,
+    "bbox": [
+      300.9219970703125,
+      255.030517578125,
+      551.9492797851562,
+      272.0452880859375
+    ],
+    "text": "shop Track (ICLR), 2016, pp. 1–4. [40] J.Lever,M.Krzywinski,andN.Altman,“Modelselectionandoverﬁtting,”"
+  },
+  {
+    "id": "S135",
+    "page": 9,
+    "block": 35,
+    "bbox": [
+      300.92279052734375,
+      272.95843505859375,
+      551.9874267578125,
+      289.9732360839844
+    ],
+    "text": "Nature Methods, vol. 13, no. 9, pp. 703–704, Sep. 2016. [41] M. A. Salehinejad et al., “Cognitive functions and underlying parame-"
+  },
+  {
+    "id": "S136",
+    "page": 9,
+    "block": 36,
+    "bbox": [
+      300.92279052734375,
+      290.8951416015625,
+      551.9920654296875,
+      316.8739318847656
+    ],
+    "text": "ters of human brain physiology are associated with chronotype,” Nature Commun., vol. 12, no. 1, pp. 1–19, Aug. 2021. [42] B. C. Ahn et al., “Clinical decision support algorithm based on machine"
+  },
+  {
+    "id": "S137",
+    "page": 9,
+    "block": 37,
+    "bbox": [
+      300.9236145019531,
+      317.8677673339844,
+      551.9976806640625,
+      352.73858642578125
+    ],
+    "text": "learning to assess the clinical response to anti–programmed death-1 ther- apy in patients with non–small-cell lung cancer,” Eur. J. Cancer, vol. 153, pp. 179–189, Aug. 2021. [43] S. J. Pan and Q. Yang, “A survey on transfer learning,” IEEE Trans. Knowl."
+  },
+  {
+    "id": "S138",
+    "page": 9,
+    "block": 38,
+    "bbox": [
+      300.9236145019531,
+      353.6517028808594,
+      551.9694213867188,
+      370.67529296875
+    ],
+    "text": "Data Eng., vol. 22, no. 10, pp. 1345–1359, Oct. 2010. [44] A. Biasiucci et al., “Brain-actuated functional electrical stimulation elicits"
+  },
+  {
+    "id": "S139",
+    "page": 9,
+    "block": 39,
+    "bbox": [
+      300.9236145019531,
+      371.5884094238281,
+      551.9945068359375,
+      397.56719970703125
+    ],
+    "text": "lasting arm motor recovery after stroke,” Nature Commun., vol. 9, no. 1, pp. 1–13, Jun. 2018. [45] Y. Roy et al., “Deep learning-based electroencephalography analysis:"
+  },
+  {
+    "id": "S140",
+    "page": 9,
+    "block": 40,
+    "bbox": [
+      300.9236145019531,
+      398.4891052246094,
+      551.9998779296875,
+      424.4678955078125
+    ],
+    "text": "A systematic review,” J. Neural Eng., vol. 16, no. 5, Aug. 2019, Art. no. 051001. [46] M. Ochal, M. Patacchiola, A. Storkey, J. Vazquez, and S. Wang, “Few-shot"
+  },
+  {
+    "id": "S141",
+    "page": 9,
+    "block": 41,
+    "bbox": [
+      300.92437744140625,
+      425.3897705078125,
+      552.0032348632812,
+      442.40460205078125
+    ],
+    "text": "learning with class imbalance,” 2021, arXiv:2101.02523. [47] J. Yosinski, J. Clune, Y. Bengio, and H. Lipson, “How transferable are"
+  },
+  {
+    "id": "S142",
+    "page": 9,
+    "block": 42,
+    "bbox": [
+      300.9236145019531,
+      443.3177185058594,
+      551.9978637695312,
+      469.3052673339844
+    ],
+    "text": "features in deep neural networks?,” Adv. Neural Inf. Process. Syst., vol. 27, pp. 3320–3328, 2014. [48] H. Rodgers et al., “Robot assisted training for the upper limb after stroke"
+  },
+  {
+    "id": "S143",
+    "page": 9,
+    "block": 43,
+    "bbox": [
+      300.9236145019531,
+      470.2184143066406,
+      551.995361328125,
+      496.19720458984375
+    ],
+    "text": "(RATULS): A multicentre randomised controlled trial,” Lancet, vol. 394, no. 10192, pp. 51–62, Jul. 2019. [49] S. S. Ng and C. W. Hui-Chan, “Contribution of ankle dorsiﬂexor"
+  },
+  {
+    "id": "S144",
+    "page": 9,
+    "block": 44,
+    "bbox": [
+      300.9236145019531,
+      497.1997985839844,
+      552.00390625,
+      532.0618286132812
+    ],
+    "text": "strength to walking endurance in people with spastic hemiplegia af- ter stroke,” Arch. Phys. Med. Rehabil., vol. 93, no. 6, pp. 1046–1051, Jun. 2012. [50] C. M. Stinear et al., “PREP2: A biomarker-based algorithm for predicting"
+  },
+  {
+    "id": "S145",
+    "page": 9,
+    "block": 45,
+    "bbox": [
+      300.9239196777344,
+      532.98828125,
+      551.9965209960938,
+      558.967041015625
+    ],
+    "text": "upper limb function after stroke,” Ann. Clin. Transl. Neurol., vol. 4, no. 11, pp. 811–820, Nov. 2017. [51] B. Carla et al., “Quantitative EEG and functional outcome following acute"
+  },
+  {
+    "id": "S146",
+    "page": 9,
+    "block": 46,
+    "bbox": [
+      300.9247131347656,
+      559.8889770507812,
+      552.004150390625,
+      585.8677368164062
+    ],
+    "text": "ischemic stroke,” Clin. Neurophysiol., vol. 129, no. 8, pp. 1680–1687, Jan. 2018. [52] C. H. Park et al., “Longitudinal changes of resting-state functional con-"
+  },
+  {
+    "id": "S147",
+    "page": 9,
+    "block": 47,
+    "bbox": [
+      300.9247131347656,
+      586.7808837890625,
+      551.99951171875,
+      612.7684326171875
+    ],
+    "text": "nectivities during motor recovery after stroke,” Stroke, vol. 42, no. 5, pp. 1357–1362, May 2011. [53] C. Grefkes and G. R. Fink, “Connectivity-based approaches in stroke"
+  },
+  {
+    "id": "S148",
+    "page": 9,
+    "block": 48,
+    "bbox": [
+      300.9247131347656,
+      613.6815795898438,
+      551.9970092773438,
+      639.6691284179688
+    ],
+    "text": "and recovery of function,” Lancet Neurol., vol. 13, no. 2, pp. 206–216, Feb. 2014. [54] A. Baldassarre et al., “Dissociated functional connectivities proﬁles for"
+  },
+  {
+    "id": "S149",
+    "page": 9,
+    "block": 49,
+    "bbox": [
+      300.9247131347656,
+      640.582275390625,
+      552.0011596679688,
+      666.56103515625
+    ],
+    "text": "motor and attention deﬁcits in acute right-hemisphere stroke,” Brain, vol. 139, no. 7, pp. 2024–2038, Jul. 2016. [55] E. Formaggio, S. Masiero, A. Bosco, F. Izzi, F. Piccione, and A. Del"
+  },
+  {
+    "id": "S150",
+    "page": 9,
+    "block": 50,
+    "bbox": [
+      300.9247131347656,
+      667.5636596679688,
+      551.99951171875,
+      702.4256591796875
+    ],
+    "text": "Felice, “Quantitative EEG evaluation during robot-assisted foot move- ment,” IEEE Trans. Neural Syst. Rehabil. Eng., vol. 25, no. 9, pp. 1633–1640, Sep. 2017. [56] G. S. Seale, I.-M. Berges, K. J. Ottenbacher, and V. G. Ostir,"
+  },
+  {
+    "id": "S151",
+    "page": 9,
+    "block": 51,
+    "bbox": [
+      319.185791015625,
+      703.4283447265625,
+      551.9861450195312,
+      720.3623657226562
+    ],
+    "text": "“Change in positive emotion and recovery of functional status following stroke,” Rehabil. Psychol., vol. 55, no. 1, pp. 33–39, Feb. 2010."
+  }
+]

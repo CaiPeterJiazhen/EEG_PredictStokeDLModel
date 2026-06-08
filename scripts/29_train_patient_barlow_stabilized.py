@@ -63,12 +63,28 @@ def main() -> None:
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--noise-std", type=float, default=0.02)
     parser.add_argument("--feature-mask-prob", type=float, default=0.01)
-    parser.add_argument("--finetune-schedule", choices=("swa_only", "sam_only", "staged_sam_swa"), default="staged_sam_swa")
+    parser.add_argument(
+        "--finetune-schedule",
+        choices=("standard", "swa_only", "sam_only", "staged_sam_swa"),
+        default="staged_sam_swa",
+    )
     parser.add_argument("--optimizer", dest="optimizer_name", choices=("adam", "adamw", "sam_adamw"), default="sam_adamw")
     parser.add_argument("--sam-rho", type=float, default=0.05)
     parser.add_argument("--lr-head", type=float, default=None)
     parser.add_argument("--encoder-lr", type=float, default=None)
     parser.add_argument("--weight-decay", type=float, default=1e-5)
+    parser.add_argument(
+        "--loss-name",
+        choices=("bce", "weighted_bce", "asymmetric_focal", "asymmetric_focal_fp_margin"),
+        default="bce",
+        help="Supervised fine-tuning loss.",
+    )
+    parser.add_argument("--positive-class-weight", type=float, default=1.0)
+    parser.add_argument("--negative-class-weight", type=float, default=1.5)
+    parser.add_argument("--focal-gamma-pos", type=float, default=1.0)
+    parser.add_argument("--focal-gamma-neg", type=float, default=2.0)
+    parser.add_argument("--fp-margin", type=float, default=0.60)
+    parser.add_argument("--fp-penalty-weight", type=float, default=0.25)
     parser.add_argument("--embedding-dim", type=int, default=32)
     parser.add_argument("--dropout", type=float, default=0.0)
     parser.add_argument("--epochs", type=int, default=100)
@@ -78,6 +94,26 @@ def main() -> None:
     parser.add_argument("--swa-lr", type=float, default=5e-4)
     parser.add_argument("--freeze-encoder-epochs", type=int, default=20)
     parser.add_argument("--freeze-conv-backbone", action="store_true")
+    parser.add_argument("--modality-dropout-prob", type=float, default=0.0)
+    parser.add_argument("--state-dropout-prob", type=float, default=0.0)
+    parser.add_argument(
+        "--checkpoint-selection-metric",
+        choices=("val_loss", "val_accuracy", "val_balanced_accuracy", "val_brier_score", "val_balanced_brier"),
+        default="val_loss",
+    )
+    parser.add_argument(
+        "--calibration-method",
+        choices=("none", "fold_val_temperature", "fold_val_threshold", "fold_val_temperature_threshold"),
+        default="none",
+    )
+    parser.add_argument(
+        "--threshold-selection-metric",
+        choices=("accuracy", "balanced_accuracy", "f1"),
+        default="balanced_accuracy",
+    )
+    parser.add_argument("--temperature-min", type=float, default=0.5)
+    parser.add_argument("--temperature-max", type=float, default=3.0)
+    parser.add_argument("--temperature-steps", type=int, default=11)
     parser.add_argument("--output-tag", default=None)
     args = parser.parse_args()
 
@@ -197,10 +233,25 @@ def main() -> None:
             freeze_pretrained_encoder_epochs=args.freeze_encoder_epochs,
             freeze_conv_backbone=args.freeze_conv_backbone,
             sam_rho=args.sam_rho,
+            loss_name=args.loss_name,
+            positive_class_weight=args.positive_class_weight,
+            negative_class_weight=args.negative_class_weight,
+            focal_gamma_pos=args.focal_gamma_pos,
+            focal_gamma_neg=args.focal_gamma_neg,
+            fp_margin=args.fp_margin,
+            fp_penalty_weight=args.fp_penalty_weight,
             embedding_dim=args.embedding_dim,
             dropout=args.dropout,
+            modality_dropout_prob=args.modality_dropout_prob,
+            state_dropout_prob=args.state_dropout_prob,
             seed=seed,
             pretrained_transfer_mode="finetune",
+            checkpoint_selection_metric=args.checkpoint_selection_metric,
+            calibration_method=args.calibration_method,
+            threshold_selection_metric=args.threshold_selection_metric,
+            temperature_min=args.temperature_min,
+            temperature_max=args.temperature_max,
+            temperature_steps=args.temperature_steps,
         )
         predictions, metrics, loss_history = run_loso_supervised_with_history(
             supervised_records,

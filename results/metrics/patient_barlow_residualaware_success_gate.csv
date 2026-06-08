@@ -1,7 +1,0 @@
-criterion,passed
-mean_accuracy_gt_no_ssl,False
-min_accuracy_ge_no_ssl_min,True
-std_accuracy_lower,True
-mean_roc_auc_ge_no_ssl,True
-mean_pr_auc_ge_no_ssl,True
-mean_brier_le_no_ssl,True

@@ -38,25 +38,25 @@ Post-treatment variables, observed/predicted deltas, residuals, and labels are b
 
 ## Paired Bootstrap Versus Best Clinical-only Model
 
-| reference_model           | candidate_model                     | metric      |   metric_a |   metric_b |   difference |     ci_low |   ci_high |   p_value_two_sided |   n_bootstrap |
-|:--------------------------|:------------------------------------|:------------|-----------:|-----------:|-------------:|-----------:|----------:|--------------------:|--------------:|
-| clinical_only_logistic_l2 | eeg_clinical_logistic_l1_selectk100 | accuracy    |   0.842105 |   0.894737 |   0.0526316  | -0.105263  | 0.210526  |               0.732 |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_logistic_l1_selectk100 | roc_auc     |   0.911111 |   0.9      |  -0.0111111  | -0.1       | 0.0674621 |               1     |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_logistic_l1_selectk100 | brier_score |   0.104528 |   0.111132 |   0.00660449 | -0.0572081 | 0.0664126 |               0.86  |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_logistic_l2_selectk100 | accuracy    |   0.842105 |   0.684211 |  -0.157895   | -0.315789  | 0         |               0.084 |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_logistic_l2_selectk100 | roc_auc     |   0.911111 |   0.8      |  -0.111111   | -0.3       | 0.0296795 |               0.168 |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_logistic_l2_selectk100 | brier_score |   0.104528 |   0.181256 |   0.0767283  |  0.0104459 | 0.146341  |               0.016 |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_svm_rbf_selectk100     | accuracy    |   0.842105 |   0.631579 |  -0.210526   | -0.448684  | 0         |               0.072 |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_svm_rbf_selectk100     | roc_auc     |   0.911111 |   0.788889 |  -0.122222   | -0.372173  | 0.117917  |               0.308 |           500 |
-| clinical_only_logistic_l2 | eeg_clinical_svm_rbf_selectk100     | brier_score |   0.104528 |   0.21031  |   0.105782   |  0.0115389 | 0.190972  |               0.028 |           500 |
-| clinical_only_logistic_l2 | eeg_only_logistic_l1_none           | accuracy    |   0.842105 |   0.736842 |  -0.105263   | -0.368421  | 0.157895  |               0.576 |           500 |
-| clinical_only_logistic_l2 | eeg_only_logistic_l1_none           | roc_auc     |   0.911111 |   0.711111 |  -0.2        | -0.488769  | 0.0844508 |               0.184 |           500 |
-| clinical_only_logistic_l2 | eeg_only_logistic_l1_none           | brier_score |   0.104528 |   0.208001 |   0.103473   | -0.0055973 | 0.205572  |               0.06  |           500 |
-| clinical_only_logistic_l2 | eeg_only_logistic_l2_none           | accuracy    |   0.842105 |   0.684211 |  -0.157895   | -0.421053  | 0.105263  |               0.348 |           500 |
-| clinical_only_logistic_l2 | eeg_only_logistic_l2_none           | roc_auc     |   0.911111 |   0.777778 |  -0.133333   | -0.398782  | 0.0931818 |               0.3   |           500 |
-| clinical_only_logistic_l2 | eeg_only_logistic_l2_none           | brier_score |   0.104528 |   0.221418 |   0.11689    | -0.0187525 | 0.273368  |               0.124 |           500 |
-| clinical_only_logistic_l2 | eeg_only_svm_rbf_selectk100         | accuracy    |   0.842105 |   0.684211 |  -0.157895   | -0.368421  | 0.0526316 |               0.188 |           500 |
-| clinical_only_logistic_l2 | eeg_only_svm_rbf_selectk100         | roc_auc     |   0.911111 |   0.777778 |  -0.133333   | -0.387689  | 0.133793  |               0.32  |           500 |
-| clinical_only_logistic_l2 | eeg_only_svm_rbf_selectk100         | brier_score |   0.104528 |   0.218677 |   0.114149   |  0.0184693 | 0.196896  |               0.02  |           500 |
+| reference_model           | candidate_model                     |   n_subjects |   n_positive |   n_negative | metric      |   metric_a |   metric_b |   difference |     ci_low |   ci_high |   p_value_two_sided |   n_bootstrap |
+|:--------------------------|:------------------------------------|-------------:|-------------:|-------------:|:------------|-----------:|-----------:|-------------:|-----------:|----------:|--------------------:|--------------:|
+| clinical_only_logistic_l2 | eeg_clinical_logistic_l1_selectk100 |           19 |           10 |            9 | accuracy    |   0.842105 |   0.894737 |   0.0526316  | -0.105263  | 0.210526  |               0.732 |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_logistic_l1_selectk100 |           19 |           10 |            9 | roc_auc     |   0.911111 |   0.9      |  -0.0111111  | -0.1       | 0.0674621 |               1     |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_logistic_l1_selectk100 |           19 |           10 |            9 | brier_score |   0.104528 |   0.111132 |   0.00660449 | -0.0572081 | 0.0664126 |               0.86  |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_logistic_l2_selectk100 |           19 |           10 |            9 | accuracy    |   0.842105 |   0.684211 |  -0.157895   | -0.315789  | 0         |               0.084 |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_logistic_l2_selectk100 |           19 |           10 |            9 | roc_auc     |   0.911111 |   0.8      |  -0.111111   | -0.3       | 0.0296795 |               0.176 |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_logistic_l2_selectk100 |           19 |           10 |            9 | brier_score |   0.104528 |   0.181256 |   0.0767283  |  0.0104459 | 0.146341  |               0.016 |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_svm_rbf_selectk100     |           19 |           10 |            9 | accuracy    |   0.842105 |   0.631579 |  -0.210526   | -0.448684  | 0         |               0.072 |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_svm_rbf_selectk100     |           19 |           10 |            9 | roc_auc     |   0.911111 |   0.788889 |  -0.122222   | -0.372173  | 0.117917  |               0.32  |           500 |
+| clinical_only_logistic_l2 | eeg_clinical_svm_rbf_selectk100     |           19 |           10 |            9 | brier_score |   0.104528 |   0.21031  |   0.105782   |  0.0115389 | 0.190972  |               0.028 |           500 |
+| clinical_only_logistic_l2 | eeg_only_logistic_l1_none           |           19 |           10 |            9 | accuracy    |   0.842105 |   0.736842 |  -0.105263   | -0.368421  | 0.157895  |               0.576 |           500 |
+| clinical_only_logistic_l2 | eeg_only_logistic_l1_none           |           19 |           10 |            9 | roc_auc     |   0.911111 |   0.711111 |  -0.2        | -0.488769  | 0.0844508 |               0.196 |           500 |
+| clinical_only_logistic_l2 | eeg_only_logistic_l1_none           |           19 |           10 |            9 | brier_score |   0.104528 |   0.208001 |   0.103473   | -0.0055973 | 0.205572  |               0.06  |           500 |
+| clinical_only_logistic_l2 | eeg_only_logistic_l2_none           |           19 |           10 |            9 | accuracy    |   0.842105 |   0.684211 |  -0.157895   | -0.421053  | 0.105263  |               0.348 |           500 |
+| clinical_only_logistic_l2 | eeg_only_logistic_l2_none           |           19 |           10 |            9 | roc_auc     |   0.911111 |   0.777778 |  -0.133333   | -0.398782  | 0.0931818 |               0.304 |           500 |
+| clinical_only_logistic_l2 | eeg_only_logistic_l2_none           |           19 |           10 |            9 | brier_score |   0.104528 |   0.221418 |   0.11689    | -0.0187525 | 0.273368  |               0.124 |           500 |
+| clinical_only_logistic_l2 | eeg_only_svm_rbf_selectk100         |           19 |           10 |            9 | accuracy    |   0.842105 |   0.684211 |  -0.157895   | -0.368421  | 0.0526316 |               0.188 |           500 |
+| clinical_only_logistic_l2 | eeg_only_svm_rbf_selectk100         |           19 |           10 |            9 | roc_auc     |   0.911111 |   0.777778 |  -0.133333   | -0.387689  | 0.133793  |               0.328 |           500 |
+| clinical_only_logistic_l2 | eeg_only_svm_rbf_selectk100         |           19 |           10 |            9 | brier_score |   0.104528 |   0.218677 |   0.114149   |  0.0184693 | 0.196896  |               0.02  |           500 |
 
 The paired bootstrap uses subject-level LOSO predictions and resamples subjects, not seeds or segments.

@@ -9,7 +9,6 @@ This file freezes the manuscript-facing model table by recomputing metrics from 
 | ML_EEG_updated_no_selector_logistic_l1        | PSD+WPLI EO+EC   | none                                |           19 |   0.736842 |            0.733333 |  0.711111 | 0.775406 |      0.208001 |
 | ML_EEG_updated_no_selector_logistic_l2        | PSD+WPLI EO+EC   | none                                |           19 |   0.684211 |            0.688889 |  0.777778 | 0.839721 |      0.221418 |
 | ML_EEG_updated_selectk100_svm_rbf             | PSD+WPLI EO+EC   | SelectK=100 inside LOSO train folds |           19 |   0.684211 |            0.694444 |  0.777778 | 0.771338 |      0.218677 |
-| no_SSL_CNN_updated_sub05_sub28_seedensemble10 | PSD+WPLI EO+EC   | none                                |           19 |   0.842105 |            0.833333 |  0.811111 | 0.807984 |      0.177034 |
 | residual_aware_SSL_CNN_seedmean10             | PSD+WPLI EO+EC   | none                                |           19 |   0.842105 |            0.833333 |  0.844444 | 0.836025 |      0.125887 |
 
 ## Exploratory Or Support Rows

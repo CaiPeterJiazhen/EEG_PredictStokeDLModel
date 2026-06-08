@@ -4,7 +4,6 @@ This table keeps only the current EEG-reference rows used for manuscript compari
 
 | model                                         |   accuracy |   balanced_accuracy |   sensitivity |   specificity |   roc_auc |   pr_auc |   brier_score |
 |:----------------------------------------------|-----------:|--------------------:|--------------:|--------------:|----------:|---------:|--------------:|
-| no_SSL_CNN_updated_sub05_sub28_seedensemble10 |   0.842105 |            0.833333 |           1   |      0.666667 |  0.811111 | 0.807984 |      0.177034 |
 | residual_aware_SSL_CNN_seedmean10             |   0.842105 |            0.833333 |           1   |      0.666667 |  0.844444 | 0.836025 |      0.125887 |
 | ML_EEG_updated_no_selector_gaussian_nb        |   0.631579 |            0.633333 |           0.6 |      0.666667 |  0.633333 | 0.610526 |      0.368421 |
 | ML_EEG_updated_no_selector_knn                |   0.473684 |            0.461111 |           0.7 |      0.222222 |  0.683333 | 0.765132 |      0.304094 |

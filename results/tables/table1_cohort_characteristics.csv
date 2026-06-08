@@ -1,15 +1,18 @@
-variable,summary,All,Proportional recovery,Poor recovery
-age,mean (SD),64.74 (6.49),64.10 (7.75),65.44 (5.10)
-duration,mean (SD),36.26 (17.76),35.40 (14.95),37.22 (21.36)
-FMA_pre,mean (SD),40.47 (23.83),59.60 (4.74),19.22 (16.95)
-FMA_post,mean (SD),45.47 (23.23),64.10 (1.20),24.78 (17.24)
-Delta_FMA_obs,mean (SD),5.00 (4.07),4.50 (3.87),5.56 (4.45)
-Residual,mean (SD),12.87 (16.23),-0.02 (0.87),27.19 (12.39)
-MBI_pre,mean (SD),55.53 (19.92),68.00 (14.57),41.67 (15.61)
-MBI_post,mean (SD),76.84 (21.49),93.00 (8.23),58.89 (16.54)
-sex=女,n (%),11 (57.9%),6 (60.0%),5 (55.6%)
-sex=男,n (%),8 (42.1%),4 (40.0%),4 (44.4%)
-affected_hand=右,n (%),8 (42.1%),4 (40.0%),4 (44.4%)
-affected_hand=左,n (%),11 (57.9%),6 (60.0%),5 (55.6%)
-label=0,n (%),9 (47.4%),0 (0.0%),9 (100.0%)
-label=1,n (%),10 (52.6%),10 (100.0%),0 (0.0%)
+section,item,All clinical records,Supervised labelled cohort,Additional EEG-indexed SSL pool,P,notes
+,Subject,29,19,9,,One M1 clinical source record had no current EEG index and is included only in all clinical records.
+Demographics,Demographics,,,,,
+,Gender (woman),48%,58%,33%,0.42,
+,"Age, years",63.72 (±8.94),64.74 (±6.49),60.11 (±12.07),0.31,
+,"Course of disease, months",37.69 (±21.59),36.26 (±17.76),42.46 (±29.33),0.86,One value recorded in days was converted to months by days/30.
+Clinical measurements,Clinical measurements,,,,,
+,"Affected upper limb, left",55%,58%,56%,1,
+,"Affected upper limb, right",45%,42%,44%,,
+,FMA-UE before treatment,38.66 (±24.19),40.47 (±23.83),38.11 (±25.53),0.98,
+,FMA-UE after 14 sessions,44.86 (±23.72),45.47 (±23.23),66.00 (n=1),,
+,Observed FMA-UE improvement,4.67 (±4.03),5.00 (±4.07),0.00 (n=1),,
+,MBI before treatment,56.55 (±21.26),55.53 (±19.92),62.22 (±22.93),0.46,
+,MBI after 14 sessions,76.19 (±22.58),76.84 (±21.49),100.00 (n=1),,
+Data availability,Data availability,,,,,
+,Baseline EEG indexed,97%,100%,100%,,
+,Complete post-treatment FMA-UE,72%,100%,11%,<0.001,
+,Complete supervised label,66%,100%,0%,design,

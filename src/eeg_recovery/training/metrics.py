@@ -20,6 +20,7 @@ def binary_classification_metrics(
     y_true: np.ndarray,
     y_score: np.ndarray,
     threshold: float = 0.5,
+    y_pred: np.ndarray | None = None,
 ) -> dict[str, float]:
     """Compute small-sample-safe binary classification metrics."""
 
@@ -28,19 +29,24 @@ def binary_classification_metrics(
     if y_true_array.shape[0] != y_score_array.shape[0]:
         raise ValueError("y_true and y_score must have the same length.")
 
-    y_pred = (y_score_array >= threshold).astype(int)
-    tn, fp, fn, tp = confusion_matrix(y_true_array, y_pred, labels=[0, 1]).ravel()
+    if y_pred is None:
+        y_pred_array = (y_score_array >= threshold).astype(int)
+    else:
+        y_pred_array = np.asarray(y_pred, dtype=int)
+        if y_pred_array.shape[0] != y_true_array.shape[0]:
+            raise ValueError("y_pred and y_true must have the same length.")
+    tn, fp, fn, tp = confusion_matrix(y_true_array, y_pred_array, labels=[0, 1]).ravel()
     specificity = tn / (tn + fp) if (tn + fp) else np.nan
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         metrics = {
-            "accuracy": float(accuracy_score(y_true_array, y_pred)),
-            "balanced_accuracy": float(balanced_accuracy_score(y_true_array, y_pred)),
-            "sensitivity": float(recall_score(y_true_array, y_pred, zero_division=0)),
+            "accuracy": float(accuracy_score(y_true_array, y_pred_array)),
+            "balanced_accuracy": float(balanced_accuracy_score(y_true_array, y_pred_array)),
+            "sensitivity": float(recall_score(y_true_array, y_pred_array, zero_division=0)),
             "specificity": float(specificity),
-            "precision": float(precision_score(y_true_array, y_pred, zero_division=0)),
-            "f1": float(f1_score(y_true_array, y_pred, zero_division=0)),
+            "precision": float(precision_score(y_true_array, y_pred_array, zero_division=0)),
+            "f1": float(f1_score(y_true_array, y_pred_array, zero_division=0)),
             "brier_score": float(brier_score_loss(y_true_array, y_score_array)),
         }
     if np.unique(y_true_array).size < 2:

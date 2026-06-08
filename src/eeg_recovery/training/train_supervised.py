@@ -116,6 +116,12 @@ class SupervisedTrainingConfig:
     qeeg_primary_only: bool = True
     qeeg_hidden_dim: int = 4
     qeeg_clip_value: float | None = 3.0
+    checkpoint_selection_metric: str = "val_loss"
+    calibration_method: str = "none"
+    threshold_selection_metric: str = "balanced_accuracy"
+    temperature_min: float = 0.5
+    temperature_max: float = 3.0
+    temperature_steps: int = 11
 
 
 def resolve_device(device: str = "auto") -> torch.device:
@@ -276,7 +282,10 @@ def run_loso_supervised_with_history(
         optimizer_config = _optimizer_config_for_finetune_stage(resolved, current_stage)
         optimizer = _build_transfer_optimizer(model, optimizer_config)
         scheduler = build_reduce_on_plateau(optimizer, mode="min", patience=max(1, resolved.patience // 2))
-        early_stopping = EarlyStopping(patience=resolved.patience, mode="min")
+        early_stopping = EarlyStopping(
+            patience=resolved.patience,
+            mode=_checkpoint_selection_mode(resolved.checkpoint_selection_metric),
+        )
         swa_model = build_swa_model(model) if resolved.use_swa else None
         swa_updates = 0
 
@@ -307,7 +316,10 @@ def run_loso_supervised_with_history(
             optimizer_config = _optimizer_config_for_finetune_stage(resolved, current_stage)
             optimizer = _build_transfer_optimizer(model, optimizer_config)
             scheduler = build_reduce_on_plateau(optimizer, mode="min", patience=max(1, resolved.patience // 2))
-            early_stopping = EarlyStopping(patience=resolved.patience, mode="min")
+            early_stopping = EarlyStopping(
+                patience=resolved.patience,
+                mode=_checkpoint_selection_mode(resolved.checkpoint_selection_metric),
+            )
 
         for epoch in range(1, resolved.epochs + 1):
             if (
@@ -348,9 +360,15 @@ def run_loso_supervised_with_history(
 
             train_loss = float(loss.detach().cpu().item())
             val_loss = _evaluate_loss(model, val_batch, resolved)
+            checkpoint_score, val_metric_values = _evaluate_checkpoint_selection_score(
+                model,
+                val_batch,
+                resolved,
+                val_loss=val_loss,
+            )
             scheduler.step(val_loss)
-            is_best_epoch = early_stopping.best_score is None or val_loss < early_stopping.best_score - early_stopping.min_delta
-            stopped_early = early_stopping.step(val_loss, model)
+            is_best_epoch = _is_checkpoint_improvement(early_stopping, checkpoint_score)
+            stopped_early = early_stopping.step(checkpoint_score, model)
             loss_rows.append(
                 {
                     "model": model_name,
@@ -362,6 +380,9 @@ def run_loso_supervised_with_history(
                     "training_phase": "ssl_residual" if resolved.ssl_residual_preserve_main else "supervised",
                     "train_loss": train_loss,
                     "val_loss": val_loss,
+                    "checkpoint_selection_metric": resolved.checkpoint_selection_metric,
+                    "checkpoint_selection_score": checkpoint_score,
+                    **val_metric_values,
                     "learning_rate": float(optimizer.param_groups[0]["lr"]),
                     "learning_rates": _format_optimizer_learning_rates(optimizer),
                     "weight_decay": resolved.weight_decay,
@@ -436,6 +457,7 @@ def run_loso_supervised_with_history(
             for loss_row in loss_rows:
                 if loss_row.get("fold_index") == fold.fold_index:
                     loss_row.update(selected_residual_weights)
+        calibration = _fit_fold_validation_calibration(evaluation_model, val_batch, resolved)
 
         test_record = record_by_subject[fold.test_subject_id]
         test_batch = _make_batch([test_record], scaler, device, resolved.architecture)
@@ -466,13 +488,18 @@ def run_loso_supervised_with_history(
                 aux_scores.update(_eeg_summary_aux_scores(aux, resolved))
             else:
                 probability = float(_model_probabilities(evaluation_model, test_batch).detach().cpu().numpy()[0, 0])
+        uncalibrated_probability = probability
+        probability = _apply_probability_temperature(probability, calibration["temperature"])
+        decision_threshold = float(calibration["threshold"])
         row = {
                 "model": model_name,
                 "fold_index": fold.fold_index,
                 "subject_id": fold.test_subject_id,
                 "y_true": int(test_record.label),
                 "y_score": probability,
-                "y_pred": int(probability >= 0.5),
+                "uncalibrated_y_score": uncalibrated_probability,
+                "decision_threshold": decision_threshold,
+                "y_pred": int(probability >= decision_threshold),
                 "architecture": resolved.architecture,
                 "feature_kind": resolved.feature_kind,
                 "fusion": resolved.fusion,
@@ -522,6 +549,14 @@ def run_loso_supervised_with_history(
                 "embedding_adapter_scale": resolved.embedding_adapter_scale,
                 "eeg_summary_features_enabled": resolved.eeg_summary_features_enabled,
                 "eeg_summary_embedding_dim": resolved.eeg_summary_embedding_dim,
+                "checkpoint_selection_metric": resolved.checkpoint_selection_metric,
+                "calibration_method": resolved.calibration_method,
+                "threshold_selection_metric": resolved.threshold_selection_metric,
+                "calibration_temperature": float(calibration["temperature"]),
+                "calibration_metric_value": float(calibration["metric_value"]),
+                "temperature_min": resolved.temperature_min,
+                "temperature_max": resolved.temperature_max,
+                "temperature_steps": resolved.temperature_steps,
             }
         row.update(aux_scores)
         rows.append(row)
@@ -575,6 +610,7 @@ def run_loso_supervised_with_history(
     metric_values = binary_classification_metrics(
         predictions["y_true"].to_numpy(dtype=int),
         predictions["y_score"].to_numpy(dtype=float),
+        y_pred=predictions["y_pred"].to_numpy(dtype=int),
     )
     metrics = pd.DataFrame(
         [
@@ -639,6 +675,15 @@ def run_loso_supervised_with_history(
                 "embedding_adapter_scale": resolved.embedding_adapter_scale,
                 "eeg_summary_features_enabled": resolved.eeg_summary_features_enabled,
                 "eeg_summary_embedding_dim": resolved.eeg_summary_embedding_dim,
+                "checkpoint_selection_metric": resolved.checkpoint_selection_metric,
+                "calibration_method": resolved.calibration_method,
+                "threshold_selection_metric": resolved.threshold_selection_metric,
+                "mean_decision_threshold": float(predictions["decision_threshold"].mean())
+                if "decision_threshold" in predictions.columns
+                else 0.5,
+                "mean_calibration_temperature": float(predictions["calibration_temperature"].mean())
+                if "calibration_temperature" in predictions.columns
+                else 1.0,
                 **metric_values,
             }
         ]
@@ -869,6 +914,15 @@ def aggregate_patient_probabilities(predictions: pd.DataFrame, threshold: float 
     for column in predictions.columns:
         if column.endswith("_y_score") and column != "y_score":
             aggregations[column] = (column, "mean")
+        if column in {"uncalibrated_y_score", "calibration_temperature", "calibration_metric_value"}:
+            aggregations[column] = (column, "mean")
+        if column in {
+            "decision_threshold",
+            "checkpoint_selection_metric",
+            "calibration_method",
+            "threshold_selection_metric",
+        }:
+            aggregations[column] = (column, "first")
         if column.startswith("modality_weight_") or column.startswith("eeg_summary_importance_"):
             aggregations[column] = (column, "mean")
 
@@ -879,7 +933,13 @@ def aggregate_patient_probabilities(predictions: pd.DataFrame, threshold: float 
         .reset_index(drop=True)
     )
     grouped["y_true"] = grouped["y_true"].astype(int)
-    grouped["y_pred"] = (grouped["y_score"] >= threshold).astype(int)
+    if "decision_threshold" in grouped.columns:
+        grouped["y_pred"] = (
+            grouped["y_score"].to_numpy(dtype=float)
+            >= grouped["decision_threshold"].to_numpy(dtype=float)
+        ).astype(int)
+    else:
+        grouped["y_pred"] = (grouped["y_score"] >= threshold).astype(int)
     return grouped
 
 
@@ -1362,6 +1422,25 @@ def _validate_architecture_feature_kind(config: SupervisedTrainingConfig) -> Non
         raise ValueError("qeeg_hidden_dim must be positive.")
     if config.qeeg_clip_value is not None and config.qeeg_clip_value <= 0:
         raise ValueError("qeeg_clip_value must be positive when provided.")
+    _checkpoint_selection_mode(config.checkpoint_selection_metric)
+    if config.calibration_method not in {
+        "none",
+        "fold_val_temperature",
+        "fold_val_threshold",
+        "fold_val_temperature_threshold",
+    }:
+        raise ValueError(
+            "calibration_method must be 'none', 'fold_val_temperature', "
+            "'fold_val_threshold', or 'fold_val_temperature_threshold'."
+        )
+    if config.threshold_selection_metric not in {"accuracy", "balanced_accuracy", "f1"}:
+        raise ValueError("threshold_selection_metric must be 'accuracy', 'balanced_accuracy', or 'f1'.")
+    if config.temperature_min <= 0 or config.temperature_max <= 0:
+        raise ValueError("temperature_min and temperature_max must be positive.")
+    if config.temperature_min > config.temperature_max:
+        raise ValueError("temperature_min must be <= temperature_max.")
+    if config.temperature_steps < 1:
+        raise ValueError("temperature_steps must be at least 1.")
     branches = branches_for_feature_kind(config.feature_kind)
     if config.eeg_summary_features_enabled and not {"psd", "wpli"}.issubset(set(branches)):
         raise ValueError("eeg_summary_features_enabled requires feature_kind to include both PSD and WPLI.")
@@ -1391,6 +1470,51 @@ def _evaluate_loss(
     with torch.no_grad():
         loss = _compute_supervised_loss(model, batch, config, training=False)
     return float(loss.detach().cpu().item())
+
+
+def _checkpoint_selection_mode(metric: str) -> str:
+    if metric in {"val_loss", "val_brier_score"}:
+        return "min"
+    if metric in {"val_accuracy", "val_balanced_accuracy", "val_balanced_brier"}:
+        return "max"
+    raise ValueError(
+        "checkpoint_selection_metric must be 'val_loss', 'val_accuracy', "
+        "'val_balanced_accuracy', 'val_brier_score', or 'val_balanced_brier'."
+    )
+
+
+def _is_checkpoint_improvement(early_stopping: EarlyStopping, score: float) -> bool:
+    return early_stopping.best_score is None or early_stopping._is_improvement(score)
+
+
+def _evaluate_checkpoint_selection_score(
+    model: nn.Module,
+    batch: dict[str, torch.Tensor],
+    config: SupervisedTrainingConfig,
+    *,
+    val_loss: float,
+) -> tuple[float, dict[str, float]]:
+    if config.checkpoint_selection_metric == "val_loss":
+        return val_loss, {}
+    model.eval()
+    with torch.no_grad():
+        probabilities = _model_probabilities(model, batch).detach().cpu().numpy().reshape(-1)
+    targets = batch["y"].detach().cpu().numpy().astype(int).reshape(-1)
+    metrics = binary_classification_metrics(targets, probabilities)
+    prefixed = {
+        f"selection_{key}": float(value)
+        for key, value in metrics.items()
+        if np.isfinite(value)
+    }
+    if config.checkpoint_selection_metric == "val_accuracy":
+        return float(metrics["accuracy"]), prefixed
+    if config.checkpoint_selection_metric == "val_balanced_accuracy":
+        return float(metrics["balanced_accuracy"]), prefixed
+    if config.checkpoint_selection_metric == "val_brier_score":
+        return float(metrics["brier_score"]), prefixed
+    if config.checkpoint_selection_metric == "val_balanced_brier":
+        return float(metrics["balanced_accuracy"] - 0.25 * metrics["brier_score"]), prefixed
+    raise ValueError(f"Unsupported checkpoint_selection_metric: {config.checkpoint_selection_metric}")
 
 
 def _compute_supervised_loss(
@@ -1722,6 +1846,117 @@ def _hard_false_positive_penalty(
     if not torch.isfinite(penalty):
         raise ValueError("hard false-positive penalty produced a non-finite value.")
     return penalty
+
+
+def _fit_fold_validation_calibration(
+    model: nn.Module,
+    val_batch: dict[str, torch.Tensor],
+    config: SupervisedTrainingConfig,
+) -> dict[str, float]:
+    method = config.calibration_method
+    if method == "none":
+        return {"temperature": 1.0, "threshold": 0.5, "metric_value": 0.0}
+    model.eval()
+    with torch.no_grad():
+        probabilities = _model_probabilities(model, val_batch).detach().cpu().numpy().reshape(-1)
+    targets = val_batch["y"].detach().cpu().numpy().astype(int).reshape(-1)
+    temperature = 1.0
+    calibrated = probabilities
+    if method in {"fold_val_temperature", "fold_val_temperature_threshold"}:
+        temperature = _select_validation_temperature(
+            targets,
+            probabilities,
+            min_temperature=config.temperature_min,
+            max_temperature=config.temperature_max,
+            steps=config.temperature_steps,
+        )
+        calibrated = _apply_probability_temperature(probabilities, temperature)
+    threshold = 0.5
+    metric_value = 0.0
+    if method in {"fold_val_threshold", "fold_val_temperature_threshold"}:
+        threshold, metric_value = _select_validation_threshold(
+            targets,
+            calibrated,
+            metric=config.threshold_selection_metric,
+        )
+    return {
+        "temperature": float(temperature),
+        "threshold": float(threshold),
+        "metric_value": float(metric_value),
+    }
+
+
+def _select_validation_temperature(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    *,
+    min_temperature: float,
+    max_temperature: float,
+    steps: int,
+) -> float:
+    grid = np.linspace(float(min_temperature), float(max_temperature), int(steps))
+    best_temperature = 1.0
+    best_loss = np.inf
+    for temperature in grid:
+        calibrated = _apply_probability_temperature(y_score, float(temperature))
+        loss = _binary_cross_entropy_np(y_true, calibrated)
+        if loss < best_loss - 1e-12 or (
+            abs(loss - best_loss) <= 1e-12 and abs(float(temperature) - 1.0) < abs(best_temperature - 1.0)
+        ):
+            best_temperature = float(temperature)
+            best_loss = float(loss)
+    return best_temperature
+
+
+def _select_validation_threshold(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    *,
+    metric: str,
+) -> tuple[float, float]:
+    y_true_array = np.asarray(y_true, dtype=int)
+    y_score_array = np.asarray(y_score, dtype=float)
+    candidates = _candidate_probability_thresholds(y_score_array)
+    best_threshold = 0.5
+    best_metric = -np.inf
+    for threshold in candidates:
+        y_pred = (y_score_array >= threshold).astype(int)
+        metrics = binary_classification_metrics(y_true_array, y_score_array, y_pred=y_pred)
+        metric_value = float(metrics[metric])
+        if metric_value > best_metric + 1e-12 or (
+            abs(metric_value - best_metric) <= 1e-12 and abs(float(threshold) - 0.5) < abs(best_threshold - 0.5)
+        ):
+            best_threshold = float(threshold)
+            best_metric = metric_value
+    return best_threshold, best_metric
+
+
+def _candidate_probability_thresholds(scores: np.ndarray) -> np.ndarray:
+    finite_scores = np.asarray(scores, dtype=float)
+    if finite_scores.size == 0 or not np.isfinite(finite_scores).all():
+        raise ValueError("Validation scores must be finite and non-empty.")
+    unique = np.unique(np.clip(finite_scores, 0.0, 1.0))
+    candidates = {0.5, 0.0, 1.0}
+    candidates.update(float(value) for value in unique)
+    if unique.size > 1:
+        candidates.update(float((left + right) / 2.0) for left, right in zip(unique[:-1], unique[1:], strict=True))
+    return np.asarray(sorted(candidates), dtype=float)
+
+
+def _apply_probability_temperature(probability: float | np.ndarray, temperature: float) -> float | np.ndarray:
+    probabilities = np.asarray(probability, dtype=float)
+    clipped = np.clip(probabilities, 1e-7, 1.0 - 1e-7)
+    logits = np.log(clipped / (1.0 - clipped))
+    calibrated = 1.0 / (1.0 + np.exp(-logits / float(temperature)))
+    if np.isscalar(probability):
+        return float(calibrated)
+    return calibrated
+
+
+def _binary_cross_entropy_np(y_true: np.ndarray, y_score: np.ndarray) -> float:
+    y = np.asarray(y_true, dtype=float)
+    p = np.clip(np.asarray(y_score, dtype=float), 1e-7, 1.0 - 1e-7)
+    return float(-(y * np.log(p) + (1.0 - y) * np.log(1.0 - p)).mean())
 
 
 def _make_batch(

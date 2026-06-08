@@ -55,16 +55,17 @@ def collect_core_ablation_rows(output_root: Path) -> pd.DataFrame:
         {
             "contrast": "b_no_ssl_cnn_same_arch_10seed",
             "model_key": "no-SSL CNN same architecture",
-            "source": output_root / "results" / "metrics" / "no_ssl_psdfcwpli_gated_cnn_rerun_20260531_10seed_summary.csv",
-            "command": "python -B scripts/30_train_residual_aware_patient_barlow.py --model-group standard_no_ssl_bce --seeds 0 1 2 3 4 5 7 13 21 42",
-            "interpretation": "CNN architecture contribution over traditional ML.",
+            "source": output_root / "results" / "metrics" / "updated_sub05_sub28_10seed_no_ssl_barlow_cnn_summary.csv",
+            "row_filter": ("method", "no_ssl_schemeA"),
+            "command": "for seed in 0 1 2 3 4 5 6 7 8 13: python -B scripts/05_train_supervised_loso.py --architecture multimodal --feature-kind psd-fc-wpli --fusion gated --encoder cnn --seed <seed>",
+            "interpretation": "CNN architecture contribution over traditional ML, using the same paired 10-seed set as the Barlow SSL no-residual-head comparison.",
         },
         {
             "contrast": "c_patient_barlow_ssl_no_residual_heads",
             "model_key": "Patient-level Barlow SSL without residual-aware heads",
             "source": output_root / "results" / "metrics" / "updated_sub05_sub28_10seed_no_ssl_barlow_cnn_summary.csv",
             "row_filter": ("method", "barlow_ssl"),
-            "command": "python -B scripts/29_train_patient_barlow_stabilized.py --seeds 0 1 2 3 4 5 7 13 21 42",
+            "command": "python -B scripts/29_train_patient_barlow_stabilized.py --seeds 0 1 2 3 4 5 6 7 8 13",
             "interpretation": "Patient-level SSL contribution before residual-aware auxiliary training.",
         },
         {

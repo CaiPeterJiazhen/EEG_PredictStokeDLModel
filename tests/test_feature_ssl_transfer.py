@@ -24,6 +24,7 @@ from eeg_recovery.training.train_feature_ssl import (
     _apply_latent_modality_mask,
     _safe_run_name,
 )
+from eeg_recovery.training.metrics import binary_classification_metrics
 from eeg_recovery.training.train_supervised import (
     SupervisedFeatureRecord,
     SupervisedTrainingConfig,
@@ -300,6 +301,60 @@ def test_eeg_summary_features_are_fold_scaled_and_exposed_in_loso_predictions():
         "eeg_summary_importance_beta_bsi",
     }
     assert np.isfinite(predictions["modality_weight_eeg_summary"]).all()
+
+
+def test_binary_metrics_can_use_fold_specific_predictions():
+    y_true = np.asarray([0, 1], dtype=int)
+    y_score = np.asarray([0.7, 0.4], dtype=float)
+
+    fixed_threshold_metrics = binary_classification_metrics(y_true, y_score)
+    fold_threshold_metrics = binary_classification_metrics(
+        y_true,
+        y_score,
+        y_pred=np.asarray([0, 1], dtype=int),
+    )
+
+    assert fixed_threshold_metrics["accuracy"] == 0.0
+    assert fold_threshold_metrics["accuracy"] == 1.0
+    assert np.isclose(fold_threshold_metrics["brier_score"], fixed_threshold_metrics["brier_score"])
+
+
+def test_loso_finetune_checkpoint_selection_and_calibration_are_recorded():
+    records = [
+        _feature_record(f"sub0{index + 1}", index % 2, float(index + 1))
+        for index in range(4)
+    ]
+    config = SupervisedTrainingConfig(
+        architecture="multimodal",
+        feature_kind="psd-fc-wpli",
+        fusion="gated",
+        encoder_kind="linear",
+        device="cpu",
+        epochs=2,
+        patience=2,
+        lr=1e-3,
+        embedding_dim=4,
+        dropout=0.0,
+        seed=31,
+        checkpoint_selection_metric="val_brier_score",
+        calibration_method="fold_val_temperature_threshold",
+        threshold_selection_metric="accuracy",
+        temperature_min=0.5,
+        temperature_max=1.5,
+        temperature_steps=3,
+    )
+
+    predictions, metrics, loss_history = run_loso_supervised_with_history(records, config)
+
+    assert set(predictions["checkpoint_selection_metric"]) == {"val_brier_score"}
+    assert set(predictions["calibration_method"]) == {"fold_val_temperature_threshold"}
+    assert "decision_threshold" in predictions.columns
+    assert "calibration_temperature" in predictions.columns
+    assert np.isfinite(predictions["decision_threshold"]).all()
+    assert metrics.loc[0, "checkpoint_selection_metric"] == "val_brier_score"
+    assert metrics.loc[0, "calibration_method"] == "fold_val_temperature_threshold"
+    assert set(loss_history["checkpoint_selection_metric"]) == {"val_brier_score"}
+    assert np.isfinite(loss_history["checkpoint_selection_score"]).all()
 
 
 def test_feature_ssl_pretraining_is_reproducible_for_same_seed():

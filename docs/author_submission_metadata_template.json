@@ -1,0 +1,171 @@
+{
+  "_instructions": {
+    "purpose": "Fill this file with author-approved submission metadata before final manuscript replacement.",
+    "do_not_guess": "Leave a value blank if it is not verified from ethics documents, consent documents, protocol records, device records, or author-approved repository decisions.",
+    "validation": "Run scripts/63_validate_author_submission_metadata.py after editing this file. Use --strict only when checking final submission readiness.",
+    "language": "Chinese source details are acceptable, but ready-to-paste manuscript statements should be provided in English or reviewed after translation."
+  },
+  "fields": {
+    "target_journal_reference_style": {
+      "target_journal": "",
+      "article_type": "",
+      "target_submission_date": "",
+      "reference_style": "",
+      "evidence_source": ""
+    },
+    "author_list_affiliations": {
+      "author_order_full_names": "",
+      "affiliations": "",
+      "orcid_ids": "",
+      "corresponding_author_name": "",
+      "corresponding_author_email": "",
+      "corresponding_author_postal_address": "",
+      "evidence_source": ""
+    },
+    "author_contributions": {
+      "credit_roles_by_author": "",
+      "all_authors_approved_final_manuscript": "",
+      "evidence_source": ""
+    },
+    "ethics_approval": {
+      "ethics_committee_name": "",
+      "approval_number": "",
+      "approval_date": "",
+      "applicable_site_or_sites": "",
+      "declaration_of_helsinki_statement": "",
+      "ready_to_paste_statement_en": "",
+      "evidence_source": ""
+    },
+    "informed_consent": {
+      "consent_route": "",
+      "who_provided_consent": "",
+      "written_or_waived": "",
+      "covered_eeg_tacs_clinical_assessments": "",
+      "covered_data_sharing": "",
+      "ready_to_paste_statement_en": "",
+      "evidence_source": ""
+    },
+    "trial_or_study_registration": {
+      "registry_name": "",
+      "registration_number": "",
+      "registration_date": "",
+      "non_registration_reason_if_applicable": "",
+      "ready_to_paste_statement_en": "",
+      "evidence_source": ""
+    },
+    "study_site_dates_design": {
+      "hospital_or_department": "",
+      "recruitment_start_date": "",
+      "recruitment_end_date": "",
+      "follow_up_or_last_assessment_window": "",
+      "prospective_or_retrospective": "",
+      "single_or_multicentre": "",
+      "randomization_or_blinding": "",
+      "ready_to_paste_methods_sentence_en": "",
+      "evidence_source": ""
+    },
+    "eligibility_stroke_timing": {
+      "inclusion_criteria": "",
+      "exclusion_criteria": "",
+      "stroke_subtype_criteria": "",
+      "lesion_side_or_location_summary": "",
+      "time_since_stroke_to_eeg": "",
+      "time_since_stroke_to_tacs": "",
+      "evidence_source": ""
+    },
+    "tacs_device_electrodes": {
+      "device_model": "",
+      "electrode_dimensions": "",
+      "electrode_material_or_saline_details": "",
+      "confirmed_target_frequency_intensity_duration_sessions": "",
+      "evidence_source": ""
+    },
+    "concurrent_rehabilitation": {
+      "was_conventional_rehabilitation_delivered": "",
+      "frequency": "",
+      "duration_per_session": "",
+      "main_training_content": "",
+      "same_dose_across_participants_or_groups": "",
+      "ready_to_paste_methods_sentence_en": "",
+      "evidence_source": ""
+    },
+    "tacs_safety_adverse_events": {
+      "adverse_event_summary": "",
+      "tolerability_summary": "",
+      "withdrawals_or_discontinuations": "",
+      "safety_monitoring_method": "",
+      "ready_to_paste_statement_en": "",
+      "evidence_source": ""
+    },
+    "fma_assessors_timing": {
+      "assessor_training_or_credentials": "",
+      "assessor_blinding": "",
+      "baseline_assessment_timing": "",
+      "post_treatment_assessment_timing": "",
+      "fma_ue_version_or_scoring_reference": "",
+      "evidence_source": ""
+    },
+    "eeg_hardware_reference_impedance": {
+      "amplifier_model": "",
+      "acquisition_software": "",
+      "cap_system": "",
+      "original_channel_count": "",
+      "online_reference": "",
+      "ground": "",
+      "impedance_threshold": "",
+      "evidence_source": ""
+    },
+    "resting_state_instructions": {
+      "eyes_open_eyes_closed_order": "",
+      "target_duration_per_condition": "",
+      "fixation_or_eye_instruction": "",
+      "drowsiness_monitoring": "",
+      "evidence_source": ""
+    },
+    "raw_eeg_preprocessing": {
+      "raw_filtering": "",
+      "notch_filtering": "",
+      "rereference": "",
+      "artifact_rejection": "",
+      "ica_or_eye_muscle_artifact_handling": "",
+      "bad_channel_handling": "",
+      "segmentation_or_continuous_export_rules": "",
+      "eeglab_set_fdt_export_rules": "",
+      "evidence_source": ""
+    },
+    "data_repository_doi_scope": {
+      "repository_name": "",
+      "doi_or_accession": "",
+      "version": "",
+      "data_license": "",
+      "public_data_scope": "",
+      "restricted_data_scope": "",
+      "controlled_access_contact_or_committee": "",
+      "request_review_requirements": "",
+      "expected_response_time": "",
+      "ready_to_paste_data_availability_en": "",
+      "evidence_source": ""
+    },
+    "code_repository_license": {
+      "code_repository_url_or_doi": "",
+      "version_or_commit_hash": "",
+      "code_license": "",
+      "environment_or_runtime_notes": "",
+      "ready_to_paste_code_availability_en": "",
+      "evidence_source": ""
+    },
+    "funding_competing_acknowledgements": {
+      "funding_sources_and_grant_numbers": "",
+      "funder_role_statement": "",
+      "competing_interests_statement": "",
+      "acknowledgements": "",
+      "evidence_source": ""
+    },
+    "suggested_opposed_reviewers": {
+      "suggested_reviewers": "",
+      "opposed_reviewers": "",
+      "conflict_or_rationale": "",
+      "evidence_source": ""
+    }
+  }
+}

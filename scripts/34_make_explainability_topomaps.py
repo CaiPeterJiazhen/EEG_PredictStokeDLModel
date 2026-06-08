@@ -23,7 +23,7 @@ from eeg_recovery.visualization.topomap import (
 )
 
 
-PSD_BANDS = ("Delta", "Theta", "Alpha", "Beta Low", "Beta Medium", "Beta High")
+PSD_BANDS = ("Delta", "Theta", "Alpha", "Beta Low", "Beta Medium", "Beta High", "Gamma")
 WPLI_TARGETS = (
     ("EC", "Beta Medium"),
     ("EC", "Beta High"),

@@ -413,6 +413,9 @@ def clinical_incremental_comparisons(
                 {
                     "reference_model": clinical_best,
                     "candidate_model": model_name,
+                    "n_subjects": int(merged["subject_id"].nunique()),
+                    "n_positive": int(merged["y_true_clinical"].sum()),
+                    "n_negative": int(len(merged) - merged["y_true_clinical"].sum()),
                     "metric": metric,
                     **diff,
                 }

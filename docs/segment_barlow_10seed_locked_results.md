@@ -56,8 +56,6 @@ Model groups:
 - `psd_segbarlow_ssl_cnn`
 - `wpli_segbarlow_ssl_cnn`
 - `psd_wpli_segbarlow_equal_weight`
-- `no_ssl_wpli_equal_weight` mixed supervised/SSL candidate
-- `no_ssl_psd_wpli_equal_weight` supplementary mixed ensemble
 
 ## Checkpoint Reuse
 
@@ -120,8 +118,6 @@ Fixed threshold `0.5`, summarized across 10 training seeds:
 | psd_segbarlow_ssl_cnn | 0.7895 | 0.0577 | 0.6842 | 0.8947 | 0.7806 | 0.7789 | 0.7711 | 0.2117 |
 | wpli_segbarlow_ssl_cnn | 0.8000 | 0.0516 | 0.6842 | 0.8421 | 0.7894 | 0.8267 | 0.8282 | 0.1901 |
 | psd_wpli_segbarlow_equal_weight | 0.8053 | 0.0529 | 0.6842 | 0.8421 | 0.7961 | 0.8200 | 0.8284 | 0.1935 |
-| no_ssl_wpli_equal_weight | 0.8000 | 0.0614 | 0.6316 | 0.8421 | 0.7900 | 0.8389 | 0.8453 | 0.1838 |
-| no_ssl_psd_wpli_equal_weight | 0.8158 | 0.0485 | 0.6842 | 0.8421 | 0.8072 | 0.8322 | 0.8365 | 0.1886 |
 
 The SSL-only PSD+WPLI ensemble has the highest fixed-threshold mean accuracy
 among SSL-only candidates, while WPLI Segment Barlow is the strongest single
@@ -138,8 +134,6 @@ seed scores. Fixed threshold `0.5`:
 | psd_segbarlow_ssl_cnn | 0.8421 | 0.8333 | 0.8111 | 0.8247 | 0.1908 |
 | wpli_segbarlow_ssl_cnn | 0.8421 | 0.8333 | 0.8333 | 0.8437 | 0.1845 |
 | psd_wpli_segbarlow_equal_weight | 0.8421 | 0.8333 | 0.8333 | 0.8613 | 0.1868 |
-| no_ssl_wpli_equal_weight | 0.8421 | 0.8333 | 0.8667 | 0.8881 | 0.1790 |
-| no_ssl_psd_wpli_equal_weight | 0.8421 | 0.8333 | 0.8333 | 0.8530 | 0.1822 |
 
 All fixed-threshold seed-mean candidates tie on accuracy and balanced
 accuracy. The no-SSL baseline remains strongest on ROC AUC, PR AUC, and Brier.

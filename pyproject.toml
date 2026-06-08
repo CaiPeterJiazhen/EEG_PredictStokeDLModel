@@ -16,6 +16,8 @@ dependencies = [
   "scikit-learn",
   "torch",
   "matplotlib",
+  "mne",
+  "mne-connectivity",
 ]
 
 [project.optional-dependencies]

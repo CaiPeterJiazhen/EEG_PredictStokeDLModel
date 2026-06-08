@@ -74,8 +74,6 @@ Six-seed fixed-threshold ensemble summaries:
 | model_group | accuracy_mean | accuracy_std | balanced_accuracy_mean | ROC AUC mean | PR AUC mean |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | psd_wpli_segbarlow_equal_weight | 0.8158 | 0.0588 | 0.8074 | 0.8185 | 0.8252 |
-| no_ssl_wpli_equal_weight | 0.7895 | 0.0744 | 0.7796 | 0.8389 | 0.8464 |
-| no_ssl_psd_wpli_equal_weight | 0.8158 | 0.0588 | 0.8074 | 0.8389 | 0.8414 |
 
 The SSL-only PSD+WPLI ensemble improves the six-seed mean accuracy over both
 single SSL branches, while keeping accuracy std moderate. The noSSL+WPLI
@@ -94,8 +92,6 @@ evaluate 19 subjects once. This is not treated as 114 independent samples.
 | psd_segbarlow_ssl_cnn | fixed_0.5 | 0.5000 | 0.8421 | 0.8333 | 0.8444 | 0.8515 | 0.1833 |
 | wpli_segbarlow_ssl_cnn | fixed_0.5 | 0.5000 | 0.7895 | 0.7778 | 0.8222 | 0.8228 | 0.1883 |
 | psd_wpli_segbarlow_equal_weight | fixed_0.5 | 0.5000 | 0.8421 | 0.8333 | 0.8444 | 0.8515 | 0.1837 |
-| no_ssl_wpli_equal_weight | fixed_0.5 | 0.5000 | 0.8421 | 0.8333 | 0.8889 | 0.9097 | 0.1776 |
-| no_ssl_psd_wpli_equal_weight | fixed_0.5 | 0.5000 | 0.8421 | 0.8333 | 0.8667 | 0.8847 | 0.1780 |
 
 ## Threshold Calibration
 
@@ -162,11 +158,8 @@ Selected rows:
 
 | analysis | model | metric | observed | 95% CI / p |
 | --- | --- | --- | ---: | --- |
-| bootstrap | no_ssl_wpli_equal_weight | ROC AUC | 0.8889 | 0.6932 to 1.0000 |
-| bootstrap | no_ssl_wpli_equal_weight | PR AUC | 0.9097 | 0.7372 to 1.0000 |
 | bootstrap | psd_wpli_segbarlow_equal_weight | accuracy | 0.8421 | 0.6842 to 1.0000 |
 | paired correctness | WPLI vs PSD+WPLI | correctness difference | 0.0526 | sign-test p=1.0000 |
-| random label permutation | no_ssl_wpli_equal_weight | balanced accuracy | 0.8333 | p=0.0022 |
 
 The paired tests are intentionally conservative: with 19 subjects, most model
 pairs differ on only zero or one subject at fixed threshold.

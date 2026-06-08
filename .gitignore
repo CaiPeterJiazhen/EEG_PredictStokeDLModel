@@ -2,9 +2,11 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.numba_cache/
 *.pyc
 *.pyo
 *.egg-info/
+~$*
 
 data/processed/
 data/features/
@@ -15,6 +17,8 @@ runs/*/data/features_*/
 runs/*/logs/
 results/
 checkpoints/
+output/
+outputs/
 configs/paths.*.yaml
 !configs/paths.example.yaml
 

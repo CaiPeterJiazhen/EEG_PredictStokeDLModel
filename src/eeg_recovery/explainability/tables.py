@@ -7,12 +7,13 @@ import pandas as pd
 
 
 PSD_BANDS: tuple[tuple[str, float, float], ...] = (
-    ("Delta", 1.0, 4.0),
+    ("Delta", 0.5, 4.0),
     ("Theta", 4.0, 8.0),
     ("Alpha", 8.0, 13.0),
     ("Beta Low", 13.0, 18.0),
     ("Beta Medium", 18.0, 21.0),
     ("Beta High", 21.0, 30.0),
+    ("Gamma", 30.0, 45.5),
 )
 
 
