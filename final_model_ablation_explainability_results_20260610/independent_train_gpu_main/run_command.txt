@@ -1,0 +1,1 @@
+﻿python -u -B final_model_ablation_explainability_results_20260610\scripts\43_run_final_ssl_cnn_feature_state_band_ablation.py --output-root F:\CJZProjectFile\EEG_PredictStokeDLModel\final_model_ablation_explainability_results_20260610\independent_train_gpu_main --analysis-mode independent_train --ablation-set main --seeds 0 1 2 3 4 5 7 13 21 42 --device cuda

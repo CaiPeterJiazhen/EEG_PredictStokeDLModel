@@ -107,30 +107,38 @@ def make_final_roc(pred: pd.DataFrame, base: Path) -> None:
     fpr, tpr, _ = roc_curve(y_true, y_score, drop_intermediate=True)
     roc_auc = auc(fpr, tpr)
 
-    fig, ax = plt.subplots(figsize=(4.4, 4.1), constrained_layout=True)
-    ax.plot([0, 1], [0, 1], linestyle="--", color="#000080", linewidth=1.5)
+    fig, ax = plt.subplots(figsize=(4.35, 4.0), constrained_layout=True)
+    purple = "#8E44AD"
+    diagonal = "#EF6F8F"
+    ax.plot([0, 1], [0, 1], linestyle=(0, (3.2, 2.3)), color=diagonal, linewidth=0.8)
     ax.plot(
         fpr,
         tpr,
-        color=COLORS["orange"],
-        linewidth=2.0,
+        color=purple,
+        linewidth=1.15,
         drawstyle="steps-post",
-        label=f"Area under curve = {roc_auc:.2f}",
+        label=f"AUC = {roc_auc:.2f}",
     )
-    ax.set_xlim(-0.02, 1.02)
-    ax.set_ylim(-0.02, 1.04)
-    ax.set_xlabel("False Positive Rate")
-    ax.set_ylabel("True Positive Rate")
-    ax.set_title("Receiver operating characteristic curve", fontsize=12)
-    ax.grid(False)
-    ax.legend(
+    ax.set_xlim(-0.02, 1.03)
+    ax.set_ylim(-0.03, 1.03)
+    ax.set_xticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    ax.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    ax.set_xlabel("False Positive Rate (1 - Specificity)", fontsize=8.0)
+    ax.set_ylabel("True Positive Rate (Sensitivity)", fontsize=8.0)
+    ax.set_title("Receiver Operating Characteristic (ROC) Curve", fontsize=9.1, fontweight="bold", pad=7)
+    ax.grid(True, color="#DADDE3", linestyle=":", linewidth=0.55, alpha=0.95)
+    legend = ax.legend(
         loc="lower right",
         frameon=True,
-        framealpha=0.92,
+        framealpha=1.0,
         facecolor="white",
-        edgecolor="#c9c9c9",
-        fontsize=8,
+        edgecolor=purple,
+        fontsize=7.4,
+        handlelength=1.8,
+        borderpad=0.6,
+        labelspacing=0.3,
     )
+    legend.get_frame().set_linewidth(0.7)
     save_pub(fig, base)
     plt.close(fig)
 

@@ -8,7 +8,7 @@
 
 当前论文主题为：基于基线静息态 EEG 的残差感知自监督 CNN，用于预测卒中后上肢比例恢复结局。
 
-核心论点是：在小样本卒中 tACS 干预队列中，单纯二分类标签会丢失连续恢复残差信息；残差感知训练可以在保持二分类临床推断的同时，把比例恢复残差、残差距离和恢复排序信息作为辅助监督信号纳入模型训练。自监督学习部分用于利用监督标签不足但已有基线 EEG 的患者数据，扩大表征学习样本池；不过目前证据更支持“残差感知辅助监督”的稳定贡献，自监督预训练的独立增益仍需要更大样本验证。
+核心论点是：在小样本卒中 tACS 干预队列中，单纯二分类标签会丢失连续恢复残差信息；残差感知训练可以在保持二分类临床推断的同时，把比例恢复残差、残差距离和恢复排序信息作为辅助监督信号纳入模型训练。自监督学习部分用于利用监督标签不足但已有基线 EEG 的患者数据，扩大表征学习样本池；
 
 
 
@@ -149,6 +149,150 @@ Discussion 当前应围绕四点展开：
 
 注意：Table 1 当前是中文三线表方向，后续如投稿英文期刊，需要翻译为英文表格并统一缩写说明。
 
+#### Table 1A：患者信息完整统计表
+
+来源文件：`results/tables/table1_patient_information_zh.md`
+
+| 指标 | 全部临床记录 | 比例恢复组 | 恢复不良组 | P值 |
+|---|---:|---:|---:|---:|
+| 受试者数 | 29 | 10 | 9 |  |
+| **人口学资料** |  |  |  |  |
+| 女性，n (%) | 15 (51.7%) | 6 (60.0%) | 6 (66.7%) | 1 |
+| 年龄，岁 | 64.03 ± 9.03 | 64.00 ± 7.60 | 66.11 ± 5.30 | 0.49 |
+| 病程，月 | 5.86 ± 22.47 (n=28) | 0.97 ± 0.52 | 1.27 ± 0.71 | 0.29 |
+| **临床评估** |  |  |  |  |
+| 患侧为左手，n (%) | 14 (48.3%) | 7 (70.0%) | 4 (44.4%) | 0.37 |
+| FMA-UE，治疗前 | 38.88 ± 23.72 (n=25) | 59.60 ± 4.74 | 19.22 ± 16.95 | <0.001 |
+| FMA-UE，14次治疗后 | 45.84 ± 23.03 (n=19) | 64.10 ± 1.20 | 25.56 ± 17.66 | <0.001 |
+| FMA-UE 改变量 | 5.37 ± 4.55 (n=19) | 4.50 ± 3.87 | 6.33 ± 5.27 | 0.38 |
+| 比例恢复残差 | 12.87 ± 16.23 (n=19) | -0.02 ± 0.87 | 27.19 ± 12.39 | <0.001 |
+| MBI，治疗前 | 60.00 ± 18.42 (n=24) | 72.50 ± 13.59 | 43.75 ± 15.29 (n=8) | <0.001 |
+| MBI，14次治疗后 | 79.12 ± 18.73 (n=17) | 92.22 ± 8.33 (n=9) | 64.38 ± 15.91 (n=8) | 0.001 |
+| MBI 改变量 | 21.18 ± 14.85 (n=17) | 21.67 ± 9.35 (n=9) | 20.62 ± 20.08 (n=8) | 0.90 |
+| BBT 患侧手，治疗前 | 23.29 ± 7.28 (n=14) | 21.56 ± 3.24 (n=9) | NA |  |
+| BBT 患侧手，14次治疗后 | 28.10 ± 8.20 (n=10) | 26.11 ± 5.58 (n=9) | NA |  |
+| BBT 患侧手改变量 | 4.10 ± 3.28 (n=10) | 4.56 ± 3.13 (n=9) | NA |  |
+| MMSE | 27.67 ± 1.71 (n=27) | 27.90 ± 1.60 | 27.22 ± 2.11 | 0.61 |
+| **数据可用性** |  |  |  |  |
+| 基线静息态 EEG 可用，n (%) | 28 (96.6%) | 10 (100.0%) | 9 (100.0%) |  |
+| 完整治疗后 FMA-UE，n (%) | 19 (65.5%) | 10 (100.0%) | 9 (100.0%) | 1 |
+| 可构建监督标签，n (%) | 19 (65.5%) | 10 (100.0%) | 9 (100.0%) |  |
+
+注：连续变量以均值 ± 标准差表示；当该指标存在缺失时，括号内标注可用记录数。P值为比例恢复组与恢复不良组比较；连续变量根据 Shapiro-Wilk 正态性检验结果采用 Welch t 检验或 Mann-Whitney U 检验，分类变量采用 Fisher 精确检验。比例恢复组与恢复不良组由监督队列的比例恢复标签定义；`十余年`病程按 10 年进行保守换算。
+
+#### Table 1B：患者信息统计检验方法明细
+
+来源文件：`results/tables/table1_patient_information_zh_stats_details.csv`
+
+| 指标 | 检验方法 | 变量 |
+|:---|:---|:---|
+| 女性，n (%) | Fisher exact test | is_female |
+| 年龄，岁 | Welch t-test | age |
+| 病程，月 | Mann-Whitney U | duration_months |
+| 患侧为左手，n (%) | Fisher exact test | is_left_affected |
+| FMA-UE，治疗前 | Mann-Whitney U | FMA_pre |
+| FMA-UE，14次治疗后 | Mann-Whitney U | FMA_post |
+| FMA-UE 改变量 | Mann-Whitney U | Delta_FMA |
+| 比例恢复残差 | Mann-Whitney U | residual |
+| MBI，治疗前 | Welch t-test | MBI_pre |
+| MBI，14次治疗后 | Welch t-test | MBI_post |
+| MBI 改变量 | Welch t-test | Delta_MBI |
+| BBT 患侧手，治疗前 | not tested: n<2 in at least one group | BBT_pre_affected |
+| BBT 患侧手，14次治疗后 | not tested: n<2 in at least one group | BBT_post_affected |
+| BBT 患侧手改变量 | not tested: n<2 in at least one group | Delta_BBT_affected |
+| MMSE | Mann-Whitney U | MMSE |
+| 基线静息态 EEG 可用，n (%) | NA | is_eeg_indexed |
+| 完整治疗后 FMA-UE，n (%) | Fisher exact test | complete_post_fma |
+| 可构建监督标签，n (%) | NA | complete_supervised_label |
+
+#### Table 1C：临床记录、监督队列和自监督 EEG 池对比
+
+来源文件：`results/tables/table1_cohort_characteristics.md`
+
+| section | item | All clinical records | Supervised labelled cohort | Additional EEG-indexed SSL pool | P | notes |
+|:---|:---|:---|:---|:---|:---|:---|
+|  | Subject | 29 | 19 | 9 |  | One M1 clinical source record had no current EEG index and is included only in all clinical records. |
+| Demographics | Demographics |  |  |  |  |  |
+|  | Gender (woman) | 48% | 58% | 33% | 0.42 |  |
+|  | Age, years | 63.72 (±8.94) | 64.74 (±6.49) | 60.11 (±12.07) | 0.31 |  |
+|  | Course of disease, months | 37.69 (±21.59) | 36.26 (±17.76) | 42.46 (±29.33) | 0.86 | One value recorded in days was converted to months by days/30. |
+| Clinical measurements | Clinical measurements |  |  |  |  |  |
+|  | Affected upper limb, left | 55% | 58% | 56% | 1 |  |
+|  | Affected upper limb, right | 45% | 42% | 44% |  |  |
+|  | FMA-UE before treatment | 38.66 (±24.19) | 40.47 (±23.83) | 38.11 (±25.53) | 0.98 |  |
+|  | FMA-UE after 14 sessions | 44.86 (±23.72) | 45.47 (±23.23) | 66.00 (n=1) |  |  |
+|  | Observed FMA-UE improvement | 4.67 (±4.03) | 5.00 (±4.07) | 0.00 (n=1) |  |  |
+|  | MBI before treatment | 56.55 (±21.26) | 55.53 (±19.92) | 62.22 (±22.93) | 0.46 |  |
+|  | MBI after 14 sessions | 76.19 (±22.58) | 76.84 (±21.49) | 100.00 (n=1) |  |  |
+| Data availability | Data availability |  |  |  |  |  |
+|  | Baseline EEG indexed | 97% | 100% | 100% |  |  |
+|  | Complete post-treatment FMA-UE | 72% | 100% | 11% | <0.001 |  |
+|  | Complete supervised label | 66% | 100% | 0% | design |  |
+
+说明：这张表用于说明自监督学习可以利用监督标签外的 EEG-indexed patient pool，但论文主分析最终按比例恢复/恢复不良组统计。
+
+#### Table 1D：19例监督队列标签分组临床特征
+
+来源文件：`results/tables/patient_characteristics_table.csv`
+
+| variable | type | all | proportional_label1 | poor_recovery_label0 |
+|:---|:---|:---|:---|:---|
+| age | mean_sd | 64.74 (6.49) | 64.10 (7.75) | 65.44 (5.10) |
+| duration | mean_sd | 36.26 (17.76) | 35.40 (14.95) | 37.22 (21.36) |
+| FMA_pre | mean_sd | 40.47 (23.83) | 59.60 (4.74) | 19.22 (16.95) |
+| FMA_post | mean_sd | 45.47 (23.23) | 64.10 (1.20) | 24.78 (17.24) |
+| Delta_FMA_obs | mean_sd | 5.00 (4.07) | 4.50 (3.87) | 5.56 (4.45) |
+| Residual | mean_sd | 12.87 (16.23) | -0.02 (0.87) | 27.19 (12.39) |
+| MBI_pre | mean_sd | 55.53 (19.92) | 68.00 (14.57) | 41.67 (15.61) |
+| MBI_post | mean_sd | 76.84 (21.49) | 93.00 (8.23) | 58.89 (16.54) |
+| sex=女 | n | 11 | 6 | 5 |
+| sex=男 | n | 8 | 4 | 4 |
+| affected_hand=右 | n | 8 | 4 | 4 |
+| affected_hand=左 | n | 11 | 6 | 5 |
+| label=0 | n | 9 | 0 | 9 |
+| label=1 | n | 10 | 10 | 0 |
+
+#### Table 1E：EEG 记录摘要
+
+来源文件：`results/tables/eeg_recording_summary.csv`
+
+| group | stage | state | n_records | n_subjects | srate_values_hz | nbchan_values | trials_values | duration_sec_mean | duration_sec_min | duration_sec_max | points_min | points_max |
+|:---|:---|:---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| health | health | EC | 13 | 13 | 250 | 62 | 1 | 192.675 | 181.652 | 212.720 | 45413 | 53180 |
+| health | health | EO | 13 | 13 | 250 | 62 | 1 | 195.571 | 162.972 | 254.400 | 40743 | 63600 |
+| patient | 即时 | EC | 23 | 23 | 250 | 62 | 1 | 194.613 | 143.720 | 269.056 | 35930 | 67264 |
+| patient | 即时 | EO | 23 | 23 | 250 | 62 | 1 | 194.544 | 150.812 | 258.440 | 37703 | 64610 |
+| patient | 基线 | EC | 28 | 28 | 250 | 62 | 1 | 183.042 | 63.544 | 237.920 | 15886 | 59480 |
+| patient | 基线 | EO | 28 | 28 | 250 | 62 | 1 | 185.412 | 116.336 | 247.760 | 29084 | 61940 |
+| patient | 最终 | EC | 20 | 20 | 250 | 62 | 1 | 190.299 | 142.660 | 216.800 | 35665 | 54200 |
+| patient | 最终 | EO | 20 | 20 | 250 | 62 | 1 | 182.502 | 113.176 | 245.624 | 28294 | 61406 |
+| patient | 阶段 | EC | 21 | 21 | 250 | 62 | 1 | 189.884 | 128.388 | 262.844 | 32097 | 65711 |
+| patient | 阶段 | EO | 21 | 21 | 250 | 62 | 1 | 196.221 | 135.404 | 292.468 | 33851 | 73117 |
+
+#### Table 1F：Participant flow 与 source-note 分类
+
+来源文件：`results/tables/participant_flow_safety_source_notes.csv`
+
+| row_type | category | n | denominator | source_basis | manuscript_use | notes |
+|:---|:---|---:|---:|:---|:---|:---|
+| participant_flow | M1 patient records in clinical source workbook | 29 | 29 | M1 clinical source workbook, patient EEG directory index, and 19-patient integrity workbook | Cohort source frame | Counts are de-identified and derived from current project files. |
+| participant_flow | Current EEG-indexed M1 patient pool | 28 | 29 | M1 clinical source workbook, patient EEG directory index, and 19-patient integrity workbook | Unlabeled/self-supervised patient EEG pool | Counts are de-identified and derived from current project files. |
+| participant_flow | Clinical workbook entries without current indexed EEG | 1 | 29 | M1 clinical source workbook, patient EEG directory index, and 19-patient integrity workbook | Excluded from EEG analyses | Counts are de-identified and derived from current project files. |
+| participant_flow | Final labeled supervised cohort | 19 | 28 | M1 clinical source workbook, patient EEG directory index, and 19-patient integrity workbook | Patient-level LOSO model evaluation | Counts are de-identified and derived from current project files. |
+| participant_flow | EEG-indexed patients not used for supervised labels | 9 | 28 | M1 clinical source workbook, patient EEG directory index, and 19-patient integrity workbook | Unlabeled/descriptive pool only | Counts are de-identified and derived from current project files. |
+| participant_flow | Proportional-recovery label | 10 | 19 | M1 clinical source workbook, patient EEG directory index, and 19-patient integrity workbook | Outcome class in supervised cohort | Counts are de-identified and derived from current project files. |
+| participant_flow | Poor-recovery label | 9 | 19 | M1 clinical source workbook, patient EEG directory index, and 19-patient integrity workbook | Outcome class in supervised cohort | Counts are de-identified and derived from current project files. |
+| source_note_category | Non-supervised EEG-indexed entries with missing-data or discontinuation notes | 8 | 9 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Participant-flow interpretation only; not a complete adverse-event summary. |
+| source_note_category | Clinical workbook entries without current EEG but with missing-data or discontinuation notes | 1 | 1 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Participant-flow interpretation only; not a complete adverse-event summary. |
+| source_note_category | Complete FMA with ceiling-level baseline score | 1 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+| source_note_category | Did not receive treatment | 2 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+| source_note_category | Discharged before complete follow-up | 1 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+| source_note_category | EEG-cap heat/discomfort note | 1 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+| source_note_category | MRI-related discomfort/no desire to enroll note | 1 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+| source_note_category | Poor compliance or cognitive/communication difficulty | 2 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+| source_note_category | Post-session discomfort note | 1 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+| source_note_category | Post-session discomfort with next-day hypertension note | 1 | 10 | M1 clinical source workbook missing-data/drop-reason notes | Author-facing participant-flow and safety-source review | Source workbook reason category; requires author review before formal safety reporting. |
+
 ### Table 2：主模型性能
 
 文件：
@@ -219,6 +363,46 @@ Barlow CNN / SSL-CNN without residual-aware heads 的 10 seed 逐 seed 均值为
 
 解释：当前最强、最稳定的增益来自 residual-aware auxiliary heads。Barlow SSL 的独立增益不稳定，不能写成已证明有效。
 
+#### Table 3A：特征/状态/频段消融完整表
+
+来源文件：`results/tables/modality_state_band_ablation.md`
+
+| 消融模型 | 输入特征 | 维度 | Accuracy | Balanced accuracy | Sensitivity | Specificity | ROC-AUC | PR-AUC | Brier |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| PSD only | PSD only, EO+EC, all bands | 744 | 0.789 | 0.789 | 0.800 | 0.778 | 0.811 | 0.840 | 0.193 |
+| WPLI only | WPLI only, EO+EC, all bands | 22692 | 0.632 | 0.628 | 0.700 | 0.556 | 0.689 | 0.751 | 0.232 |
+| PSD + WPLI | PSD + WPLI, EO+EC, all bands | 23436 | 0.684 | 0.678 | 0.800 | 0.556 | 0.767 | 0.793 | 0.207 |
+| EO only | EO only, PSD+WPLI | 11718 | 0.316 | 0.317 | 0.300 | 0.333 | 0.300 | 0.467 | 0.490 |
+| EC only | EC only, PSD+WPLI | 11718 | 0.632 | 0.633 | 0.600 | 0.667 | 0.789 | 0.816 | 0.223 |
+| PSD EO only | PSD EO only | 372 | 0.684 | 0.678 | 0.800 | 0.556 | 0.733 | 0.771 | 0.267 |
+| WPLI EC only | WPLI EC only | 11346 | 0.632 | 0.633 | 0.600 | 0.667 | 0.711 | 0.793 | 0.231 |
+| PSD EO + WPLI EC | PSD EO plus WPLI EC | 11718 | 0.579 | 0.583 | 0.500 | 0.667 | 0.711 | 0.793 | 0.239 |
+| Beta medium only | Beta medium band only, PSD+WPLI | 3906 | 0.737 | 0.733 | 0.800 | 0.667 | 0.711 | 0.776 | 0.232 |
+| Beta high only | Beta high band only, PSD+WPLI | 3906 | 0.579 | 0.578 | 0.600 | 0.556 | 0.567 | 0.561 | 0.317 |
+| Beta medium + beta high | Beta medium + beta high bands, PSD+WPLI | 7812 | 0.632 | 0.628 | 0.700 | 0.556 | 0.578 | 0.560 | 0.280 |
+| Motor WPLI edges | Motor/stimulation-side related WPLI edges around C3/C4 network | 6780 | 0.632 | 0.628 | 0.700 | 0.556 | 0.733 | 0.816 | 0.261 |
+
+注：该表对应 Figure 5C/5D 的 source data。当前结果支持“PSD 单独输入在低维下信息效率最高，EC 和运动相关 WPLI 边提供补充判别信息”的表述；不应写成任何单一频段或单一连接特征已被验证为稳定临床 biomarker。
+
+#### Table 3B：标签阈值敏感性表
+
+来源文件：`results/tables/residual_threshold_sensitivity.md`
+
+| 模型 | 标签定义 | 阈值类型 | 残差阈值 | 排除边界 | n | 阳性 | 阴性 | Accuracy | Balanced accuracy | Sensitivity | Specificity | ROC-AUC | PR-AUC | Brier |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Logistic L1 | current_fixed_1.5 | fixed | 1.5 | NA | 19 | 10 | 9 | 0.737 | 0.733 | 0.800 | 0.667 | 0.711 | 0.775 | 0.208 |
+| Logistic L1 | fixed_0.0 | fixed | 0.0 | NA | 19 | 5 | 14 | 0.579 | 0.650 | 0.800 | 0.500 | 0.586 | 0.353 | 0.264 |
+| Logistic L1 | fixed_3.0 | fixed | 3.0 | NA | 19 | 11 | 8 | 0.684 | 0.676 | 0.727 | 0.625 | 0.682 | 0.779 | 0.212 |
+| Logistic L1 | exclude_margin_0.5_at_1.5 | exclude margin | 1.5 | 0.5 | 18 | 9 | 9 | 0.722 | 0.722 | 0.778 | 0.667 | 0.704 | 0.766 | 0.212 |
+| Logistic L1 | exclude_margin_1.0_at_1.5 | exclude margin | 1.5 | 1.0 | 15 | 7 | 8 | 0.733 | 0.741 | 0.857 | 0.625 | 0.768 | 0.804 | 0.188 |
+| Residual-aware SSL-CNN | current_fixed_1.5 | fixed | 1.5 | NA | 19 | 10 | 9 | 0.842 | 0.833 | 1.000 | 0.667 | 0.844 | 0.836 | 0.126 |
+| Residual-aware SSL-CNN | fixed_0.0 | fixed | 0.0 | NA | 19 | 5 | 14 | 0.579 | 0.714 | 1.000 | 0.429 | 0.586 | 0.320 | 0.310 |
+| Residual-aware SSL-CNN | fixed_3.0 | fixed | 3.0 | NA | 19 | 11 | 8 | 0.895 | 0.875 | 1.000 | 0.750 | 0.920 | 0.925 | 0.087 |
+| Residual-aware SSL-CNN | exclude_margin_0.5_at_1.5 | exclude margin | 1.5 | 0.5 | 18 | 9 | 9 | 0.833 | 0.833 | 1.000 | 0.667 | 0.852 | 0.836 | 0.130 |
+| Residual-aware SSL-CNN | exclude_margin_1.0_at_1.5 | exclude margin | 1.5 | 1.0 | 15 | 7 | 8 | 0.867 | 0.875 | 1.000 | 0.750 | 0.893 | 0.826 | 0.104 |
+
+注：该表用于说明标签阈值不是模型表现的唯一来源。当前固定残差阈值 1.5 是主稿锁定定义；阈值 0.0 会改变阳性/阴性比例并显著影响 PR-AUC 和 Brier，因此正文应固定一种标签定义，其他阈值只作为敏感性分析。
+
 ### EEG-only ML 三线表
 
 文件：
@@ -228,6 +412,56 @@ Barlow CNN / SSL-CNN without residual-aware heads 的 10 seed 逐 seed 均值为
 - `output/doc/eeg_only_ml_three_line_table.docx`
 
 该表只包含 EEG-only 传统机器学习，不包含 Clinical 和 DeepLearning，适合复制到 PPT 或作为补充表。
+
+#### Table ML-1：EEG-only 传统机器学习完整结果
+
+来源文件：`results/tables/eeg_only_ml_three_line_table.md`
+
+| 模型 | Accuracy | Balanced accuracy | Sensitivity | Specificity | ROC-AUC | PR-AUC | Brier |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Logistic L1 (No selector) | 0.737 | 0.733 | 0.800 | 0.667 | 0.711 | 0.775 | 0.208 |
+| Logistic L1 (SelectK=100) | 0.474 | 0.472 | 0.500 | 0.444 | 0.444 | 0.550 | 0.307 |
+| Logistic L2 (No selector) | 0.684 | 0.689 | 0.600 | 0.778 | 0.778 | 0.840 | 0.221 |
+| Logistic L2 (SelectK=100) | 0.684 | 0.678 | 0.800 | 0.556 | 0.767 | 0.793 | 0.207 |
+| SVM linear (No selector) | 0.632 | 0.633 | 0.600 | 0.667 | 0.667 | 0.667 | 0.251 |
+| SVM linear (SelectK=100) | 0.684 | 0.678 | 0.800 | 0.556 | 0.678 | 0.674 | 0.216 |
+| SVM RBF (No selector) | 0.211 | 0.200 | 0.400 | 0.000 | 0.144 | 0.394 | 0.309 |
+| SVM RBF (SelectK=100) | 0.684 | 0.694 | 0.500 | 0.889 | 0.778 | 0.771 | 0.219 |
+| Random forest (No selector) | 0.316 | 0.300 | 0.600 | 0.000 | 0.378 | 0.509 | 0.271 |
+| Random forest (SelectK=100) | 0.368 | 0.367 | 0.400 | 0.333 | 0.317 | 0.445 | 0.287 |
+| Gaussian NB (No selector) | 0.632 | 0.633 | 0.600 | 0.667 | 0.633 | 0.611 | 0.368 |
+| Gaussian NB (SelectK=100) | 0.526 | 0.533 | 0.400 | 0.667 | 0.622 | 0.601 | 0.474 |
+| KNN (No selector) | 0.474 | 0.461 | 0.700 | 0.222 | 0.683 | 0.765 | 0.304 |
+| KNN (SelectK=100) | 0.632 | 0.617 | 0.900 | 0.333 | 0.606 | 0.584 | 0.333 |
+
+注：所有结果均为 19 例监督队列的 patient-level LOSO 点估计；Brier 越低越好，其余指标越高越好。
+
+#### Table ML-2：EEG-only ML 与 Deep EEG 当前汇总表
+
+来源文件：`results/tables/all_machine_learning_results_ppt_table.md`
+
+| 模型类型 | 模型 | 输入/设置 | 汇总口径 | Accuracy | Balanced accuracy | Sensitivity | Specificity | ROC-AUC | PR-AUC | Brier |
+|---|---|---|---|---|---|---|---|---|---|---|
+| EEG-only ML | EEG Gaussian NB | EEG PSD+WPLI | LOSO, n=19 | 0.632 | 0.633 | 0.600 | 0.667 | 0.633 | 0.611 | 0.368 |
+| EEG-only ML | EEG Gaussian NB | EEG PSD+WPLI; SelectK=100 | LOSO, n=19 | 0.526 | 0.533 | 0.400 | 0.667 | 0.622 | 0.601 | 0.474 |
+| EEG-only ML | EEG KNN | EEG PSD+WPLI | LOSO, n=19 | 0.474 | 0.461 | 0.700 | 0.222 | 0.683 | 0.765 | 0.304 |
+| EEG-only ML | EEG KNN | EEG PSD+WPLI; SelectK=100 | LOSO, n=19 | 0.632 | 0.617 | 0.900 | 0.333 | 0.606 | 0.584 | 0.333 |
+| EEG-only ML | EEG Logistic L1 | EEG PSD+WPLI | LOSO, n=19 | 0.737 | 0.733 | 0.800 | 0.667 | 0.711 | 0.775 | 0.208 |
+| EEG-only ML | EEG Logistic L1 | EEG PSD+WPLI; SelectK=100 | LOSO, n=19 | 0.474 | 0.472 | 0.500 | 0.444 | 0.444 | 0.550 | 0.307 |
+| EEG-only ML | EEG Logistic L2 | EEG PSD+WPLI | LOSO, n=19 | 0.684 | 0.689 | 0.600 | 0.778 | 0.778 | 0.840 | 0.221 |
+| EEG-only ML | EEG Logistic L2 | EEG PSD+WPLI; SelectK=100 | LOSO, n=19 | 0.684 | 0.678 | 0.800 | 0.556 | 0.767 | 0.793 | 0.207 |
+| EEG-only ML | EEG Random forest | EEG PSD+WPLI | LOSO, n=19 | 0.316 | 0.300 | 0.600 | 0.000 | 0.378 | 0.509 | 0.271 |
+| EEG-only ML | EEG Random forest | EEG PSD+WPLI; SelectK=100 | LOSO, n=19 | 0.368 | 0.367 | 0.400 | 0.333 | 0.317 | 0.445 | 0.287 |
+| EEG-only ML | EEG SVM RBF | EEG PSD+WPLI | LOSO, n=19 | 0.211 | 0.200 | 0.400 | 0.000 | 0.144 | 0.394 | 0.309 |
+| EEG-only ML | EEG SVM RBF | EEG PSD+WPLI; SelectK=100 | LOSO, n=19 | 0.684 | 0.694 | 0.500 | 0.889 | 0.778 | 0.771 | 0.219 |
+| EEG-only ML | EEG SVM linear | EEG PSD+WPLI | LOSO, n=19 | 0.632 | 0.633 | 0.600 | 0.667 | 0.667 | 0.667 | 0.251 |
+| EEG-only ML | EEG SVM linear | EEG PSD+WPLI; SelectK=100 | LOSO, n=19 | 0.684 | 0.678 | 0.800 | 0.556 | 0.678 | 0.674 | 0.216 |
+| Deep EEG | Barlow SSL-CNN | EEG PSD+WPLI; gated CNN | 10-seed mean ± SD | 0.789 ± 0.035 | 0.782 ± 0.034 | 0.920 ± 0.063 | 0.644 ± 0.047 | 0.777 ± 0.054 | 0.753 ± 0.080 | 0.198 ± 0.014 |
+| Deep EEG | No-SSL CNN | EEG PSD+WPLI; gated CNN | 10-seed mean ± SD | 0.763 ± 0.100 | 0.757 ± 0.100 | 0.880 ± 0.103 | 0.633 ± 0.105 | 0.773 ± 0.088 | 0.753 ± 0.102 | 0.198 ± 0.037 |
+| Deep EEG | No-SSL residual-aware CNN | EEG PSD+WPLI; gated CNN | 10-seed mean ± SD | 0.816 ± 0.045 | 0.812 ± 0.044 | 0.880 ± 0.079 | 0.744 ± 0.054 | 0.899 ± 0.047 | 0.908 ± 0.052 | 0.130 ± 0.030 |
+| Deep EEG | Residual-aware SSL-CNN | EEG PSD+WPLI; gated CNN | 10-seed mean ± SD | 0.837 ± 0.039 | 0.831 ± 0.039 | 0.950 ± 0.053 | 0.711 ± 0.057 | 0.860 ± 0.053 | 0.858 ± 0.058 | 0.142 ± 0.024 |
+
+注：传统 EEG-only ML 结果为 19 例监督队列的 patient-level LOSO 点估计；Deep EEG 结果为标准 10 seeds（0,1,2,3,4,5,7,13,21,42）的均值 ± 标准差。Brier 分数越低越好，其余指标越高越好。
 
 ### Table 4：可解释性 biomarker 表
 

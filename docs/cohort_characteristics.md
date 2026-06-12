@@ -38,6 +38,8 @@ Label definition:
 | MBI post, median [IQR] | 80.0 [57.5, 95.0] |
 | Observed Delta FMA, mean +/- SD | 5.0 +/- 4.1 |
 | Observed Delta FMA, median [IQR] | 3.0 [2.0, 6.5] |
+| FMA pre-post paired test | Wilcoxon signed-rank p = 3.81e-06 (<0.001) |
+| MBI pre-post paired test | paired t-test p = 3.86e-06 (<0.001) |
 | Predicted Delta FMA, mean +/- SD | 17.9 +/- 16.7 |
 | Predicted Delta FMA, median [IQR] | 10.5 [3.5, 34.7] |
 | Residual, mean +/- SD | 12.9 +/- 16.2 |
@@ -91,6 +93,8 @@ The clinical workbook also contains `sub04`, but `sub04` is not indexed in the c
 | Observed Delta FMA, n | 20 |
 | Observed Delta FMA, mean +/- SD | 4.8 +/- 4.1 |
 | Observed Delta FMA, median [IQR] | 3.0 [2.0, 6.3] |
+| FMA pre-post paired test, complete post-treatment subset | n=20, Wilcoxon signed-rank p = 1.24e-04 (<0.001) |
+| MBI pre-post paired test, complete post-treatment subset | n=20, paired t-test p = 6.08e-06 (<0.001) |
 | Residual, n | 20 |
 | Residual, mean +/- SD | 12.2 +/- 16.1 |
 | Residual, median [IQR] | 1.2 [-0.03, 29.5] |

@@ -21,6 +21,16 @@ WHITE_OUT = ROOT / "docs" / "white_2024_nature_reader"
 FIG_OUT = ROOT / "results" / "figures" / "revised_initial"
 METRIC_OUT = ROOT / "results" / "metrics"
 SEEDS = [0, 1, 2, 3, 4, 5, 7, 13, 21, 42]
+LOSS_HISTORY_CANDIDATES = [
+    (
+        "patient_barlow_residualaware_highrank_swa",
+        "dl_loss_history_patient_barlow_residualaware_highrank_swa_seed{seed}.csv",
+    ),
+    (
+        "no_ssl_residualaware_highrank_swa_clsalpha1",
+        "dl_loss_history_no_ssl_residualaware_highrank_swa_clsalpha1_seed{seed}.csv",
+    ),
+]
 
 
 def translate_caption_stub(text: str) -> str:
@@ -219,21 +229,32 @@ def mean_sem(frame: pd.DataFrame, value: str) -> pd.DataFrame:
     return grouped
 
 
+def load_loss_histories() -> tuple[pd.DataFrame, str]:
+    log_dir = ROOT / "results" / "training_logs"
+    missing_by_candidate: dict[str, list[Path]] = {}
+    for source_name, template in LOSS_HISTORY_CANDIDATES:
+        paths = [log_dir / template.format(seed=seed) for seed in SEEDS]
+        missing = [path for path in paths if not path.exists()]
+        if missing:
+            missing_by_candidate[source_name] = missing
+            continue
+
+        rows = []
+        for seed, path in zip(SEEDS, paths):
+            df = pd.read_csv(path)
+            df["seed"] = seed
+            rows.append(df)
+        return pd.concat(rows, ignore_index=True), source_name
+
+    details = "\n".join(
+        f"{name}: missing {len(paths)} files, first missing: {paths[0]}"
+        for name, paths in missing_by_candidate.items()
+    )
+    raise FileNotFoundError(f"No complete 10-seed loss history set found.\n{details}")
+
+
 def build_loss_figure() -> None:
-    rows = []
-    for seed in SEEDS:
-        path = (
-            ROOT
-            / "results"
-            / "training_logs"
-            / f"dl_loss_history_patient_barlow_residualaware_highrank_swa_seed{seed}.csv"
-        )
-        if not path.exists():
-            raise FileNotFoundError(path)
-        df = pd.read_csv(path)
-        df["seed"] = seed
-        rows.append(df)
-    data = pd.concat(rows, ignore_index=True)
+    data, source_name = load_loss_histories()
 
     for prefix in ["train", "val"]:
         data[f"{prefix}_weighted_bce"] = data[f"{prefix}_loss_bce"]
@@ -265,6 +286,7 @@ def build_loss_figure() -> None:
         s["metric"] = col
         summary_parts.append(s.rename(columns={"mean": "value_mean", "sem": "value_sem"}))
     summary = pd.concat(summary_parts, ignore_index=True)
+    summary["source_loss_history"] = source_name
     METRIC_OUT.mkdir(parents=True, exist_ok=True)
     summary.to_csv(METRIC_OUT / "final_model_loss_curve_summary.csv", index=False)
 
@@ -330,6 +352,7 @@ def build_loss_figure() -> None:
     for val_metric, label, color_key in [
         ("val_weighted_bce", "BCE", "bce"),
         ("val_weighted_residual", "Residual", "residual"),
+        ("val_weighted_rank", "Ranking", "ranking"),
         ("val_weighted_soft", "Soft label", "soft"),
     ]:
         s = summary[summary["metric"] == val_metric]

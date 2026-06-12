@@ -1,0 +1,8 @@
+# Source paths are inherited from the project config, but this secondary
+# run writes all newly generated artifacts under the dedicated output_root.
+patient_info_integrity_xlsx: "F:/CJZFile/EEG_M1/19例患者脑电数据完整性检查.xlsx"
+patient_info_clinical_xlsx: "F:/CJZFile/EEG_M1/脑卒中患者信息记录表.xlsx"
+patient_eeg_root: "F:/CJZFile/EEG_M1/Patient_tACS_M1_RestingStateEEG_afterProcess"
+health_eeg_root: "F:/CJZFile/EEG_M1/Health_tACS_M1_RestingStateEEG_afterProcess"
+standard_1005_ced: "F:/CJZFile/EEG_M1/standard_1005.ced"
+output_root: "F:/CJZProjectFile/EEG_PredictStokeDLModel/final_model_ablation_explainability_results_20260610"
