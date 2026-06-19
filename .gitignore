@@ -3,6 +3,9 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .numba_cache/
+tmp/
+visio_replica/
+tools/visio_replica/
 *.pyc
 *.pyo
 *.egg-info/

@@ -57,6 +57,13 @@ MODEL_COLORS = {
     "Residual-aware SSL-CNN": COLORS["green"],
 }
 
+SEED_STABILITY_COLORS = {
+    "No-SSL CNN": "#4C78A8",
+    "Barlow CNN": "#4E8D7C",
+    "No-SSL residual-aware": "#D9A43A",
+    "Residual-aware SSL-CNN": "#D66A5C",
+}
+
 
 def configure_matplotlib() -> None:
     mpl.rcParams.update(
@@ -246,14 +253,14 @@ def make_seed_stability_figure(source: pd.DataFrame) -> None:
 
     violins = ax.violinplot(grouped, positions=positions, widths=0.72, showmeans=False, showmedians=False, showextrema=False)
     for body, label in zip(violins["bodies"], order, strict=True):
-        color = MODEL_COLORS[label]
+        color = SEED_STABILITY_COLORS[label]
         body.set_facecolor(color)
         body.set_edgecolor(color)
         body.set_alpha(0.16)
         body.set_linewidth(0.9)
 
     for pos, label, values in zip(positions, order, grouped, strict=True):
-        color = MODEL_COLORS[label]
+        color = SEED_STABILITY_COLORS[label]
         values = np.asarray(values, dtype=float)
         ax.vlines(pos, values.min(), values.max(), color=color, linewidth=1.25, zorder=2)
         ax.hlines([values.min(), values.max()], pos - 0.18, pos + 0.18, color=color, linewidth=1.25, zorder=2)
@@ -281,7 +288,7 @@ def make_seed_stability_figure(source: pd.DataFrame) -> None:
     ax.set_title("Random-seed stability", loc="left", pad=6)
     ax.set_ylabel("Seed-level accuracy")
     ax.set_xticks(positions)
-    ax.set_xticklabels(["No-SSL\nCNN", "Barlow\nCNN", "No-SSL\nresidual", "Final\nSSL-CNN"])
+    ax.set_xticklabels(["No-SSL\nCNN", "Barlow\nSSL-CNN", "No-SSL\nresidual", "Final\nSSL-CNN"])
     ax.set_ylim(0.50, 0.93)
     ax.set_yticks(np.arange(0.50, 0.95, 0.05))
     ax.grid(axis="y", color=COLORS["grid"], linewidth=0.55, zorder=0)

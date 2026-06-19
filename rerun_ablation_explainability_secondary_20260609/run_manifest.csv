@@ -1,0 +1,5 @@
+item,value
+artifact_root,F:\CJZProjectFile\EEG_PredictStokeDLModel\rerun_ablation_explainability_secondary_20260609
+model_group,residualaware_highrank_swa_clsalpha1
+n_checkpoint_rows,190
+seeds,"0,1,2,3,4,5,7,13,21,42"
